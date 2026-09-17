@@ -1,0 +1,437 @@
+/* ==========================================================================
+   BITÁCORA VERDE — hoja de estilos del frontend estático (Git_Page)
+   Identidad portada desde Bitácora-Verde-Blog/04-bitacora-verde.css
+   (ese archivo es CSS para el tema de Blogger; este es el mismo lenguaje
+   visual -- tipografías, paleta, tono -- adaptado a HTML plano, sin
+   clases ni selectores específicos de Blogger).
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@400;500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap');
+
+:root {
+  --bg: #f4f6f3;
+  --surface: #ffffff;
+  --text: #3a453f;
+  --heading: #1a3c34;
+  --heading-alt: #2c5f2d;
+  --muted: #5c6a63;
+  --link: #1a5c8a;
+  --accent: #b5622a;
+  --label-bg: #eaf0ec;
+  --border: #dde4de;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 16px 'Sora', sans-serif;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:visited { color: var(--link); }
+a:hover { color: var(--heading-alt); text-decoration: underline; }
+
+blockquote {
+  color: var(--heading-alt);
+  font: italic 400 20px 'Spectral', serif;
+  border-left: 3px solid var(--accent);
+  padding-left: 16px;
+  margin: 1.4em 0;
+}
+
+/* ---- Encabezado / hero ---- */
+/* Foto real de portada (assets/hero-banner.jpg) con el mismo criterio que
+   bitacora-verde.css: degradado más oscuro del lado izquierdo (donde va el
+   título) que del derecho (donde está el interés visual de la foto), para
+   que el texto blanco quede legible encima de cualquier foto. Si algún día
+   no hay foto, el gradiente de fondo (mismo verde de antes) queda como
+   respaldo detrás de la imagen. */
+.site-header {
+  background:
+    linear-gradient(to right, rgba(15, 26, 22, 0.72) 0%, rgba(15, 26, 22, 0.5) 38%, rgba(15, 26, 22, 0.22) 68%),
+    linear-gradient(120deg, #1a3c34 0%, #234d3f 60%, #2c5f2d 100%),
+    url('../assets/hero-banner.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 48px 20px 28px;
+  text-align: left;
+}
+.site-header .inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.site-header h1 {
+  margin: 0 0 6px;
+  color: #ffffff;
+  font: 600 42px 'Spectral', serif;
+  letter-spacing: 0.01em;
+}
+.site-header p.tagline {
+  margin: 0 0 24px;
+  color: #cfe0d9;
+  font: 400 15px 'Sora', sans-serif;
+}
+
+.site-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 4px;
+  margin: 0;
+  padding: 0;
+}
+.site-nav li a {
+  display: inline-block;
+  padding: 8px 10px;
+  color: #cfe0d9;
+  font: 600 13px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 3px solid transparent;
+}
+.site-nav li a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+.site-nav li a.selected {
+  color: #ffffff;
+  border-bottom-color: var(--accent);
+}
+
+/* ---- Contenido ---- */
+.page-body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.posts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-card {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 24px 28px;
+  box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.35);
+}
+
+.post-card .post-title {
+  margin: 0 0 8px;
+  color: var(--heading);
+  font: 600 26px 'Spectral', serif;
+}
+.post-card .post-title a {
+  color: inherit;
+}
+.post-card .post-title a:hover {
+  color: var(--heading-alt);
+}
+
+.post-meta {
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+  margin: 0 0 12px;
+}
+
+.post-excerpt {
+  color: var(--text);
+  font: 400 16px/1.6 'Lora', Georgia, serif;
+  margin: 0;
+}
+
+/* Mensaje "próximamente" mientras no hay artículos reales -- misma tarjeta
+   (.post-card) que se usa para los posts, solo centrada. */
+.post-card.aviso {
+  text-align: center;
+  padding: 40px 28px;
+}
+
+.post-labels {
+  margin-top: 14px;
+}
+.post-labels span {
+  display: inline-block;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  font: 500 11px 'JetBrains Mono', monospace;
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+
+/* ---- Cuerpo de artículo (post-body, cuando exista contenido real) ---- */
+.post-body {
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.6;
+  text-align: justify;
+}
+.post-body h2 {
+  color: var(--heading);
+  font: 600 22px 'Spectral', serif;
+  border-bottom: 2px solid #e3e8e4;
+  padding-bottom: 6px;
+}
+.post-body h3 {
+  color: var(--heading-alt);
+  font: 600 18px 'Spectral', serif;
+}
+.post-body img { max-width: 100%; border-radius: 4px; }
+
+/* ==========================================================================
+   FÓRMULAS Y FRACCIONES -- portado exacto (mismos valores, sin
+   reinterpretar) desde BLOG/Bitacora-Verde-Blog/04-bitacora-verde.css,
+   líneas 412-428 (.fraccion/.numerador/.denominador).
+
+   El "blockquote centrado para fórmulas" NO es una regla en ese archivo
+   CSS -- ahí solo se documenta; el Conversor a Blogger
+   (05-conversor-a-blogger-backup.html) lo genera como estilo inline en
+   cada <blockquote class="formula">:
+     style="text-align:center !important;margin:1.6em auto !important;
+            padding:18px 22px !important;"
+   y en el <p> interno:
+     style="text-align:center !important;text-indent:0 !important;"
+   Esta regla blockquote.formula reproduce esos mismos valores como clase
+   reusable, para no depender del estilo inline en este proyecto.
+   ========================================================================== */
+.post-body .fraccion {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 0.2em;
+  line-height: 1.15;
+  text-indent: 0;
+}
+.post-body .fraccion .numerador {
+  display: block;
+  padding: 0 0.25em 0.15em;
+  border-bottom: 1.5px solid currentColor;
+}
+.post-body .fraccion .denominador {
+  display: block;
+  padding: 0.15em 0.25em 0;
+}
+
+.post-body blockquote.formula {
+  text-align: center !important;
+  margin: 1.6em auto !important;
+  padding: 18px 22px !important;
+}
+.post-body blockquote.formula p {
+  text-align: center !important;
+  text-indent: 0 !important;
+}
+
+/* ---- Páginas simples (about.html) ---- */
+.page-header {
+  margin-bottom: 32px;
+}
+.page-header h1 {
+  margin: 0 0 6px;
+  color: var(--heading);
+  font: 600 34px 'Spectral', serif;
+}
+.page-header .role {
+  margin: 0;
+  color: var(--heading-alt);
+  font: 600 14px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Foto de perfil real (assets/foto-perfil.png) en about.html */
+.profile-photo {
+  display: block;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 0 16px;
+  border: 3px solid var(--surface);
+  box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.45);
+}
+
+.page-section {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 28px 28px 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.35);
+}
+.page-section h2 {
+  margin: 0 0 12px;
+  color: var(--heading);
+  font: 600 20px 'Sora', sans-serif;
+}
+.page-section p {
+  font-family: 'Lora', Georgia, serif;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  text-align: justify;
+}
+.page-section ul {
+  margin: 0 0 20px;
+  padding-left: 20px;
+  font-family: 'Lora', Georgia, serif;
+  line-height: 1.6;
+}
+.page-section li { margin-bottom: 8px; }
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 28px;
+  font: 600 13px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---- Pie de página ---- */
+.site-footer {
+  color: var(--muted);
+  font: 500 12px 'Sora', sans-serif;
+  letter-spacing: 0.02em;
+  text-align: center;
+  padding: 28px 20px 48px;
+}
+.site-footer a { color: var(--link); }
+
+/* ---- Redes sociales (footer) ---- */
+/* SVG de Simple Icons insertados directo en el HTML -- sin depender de
+   ninguna imagen externa. LinkedIn tiene link real; el resto ("pendiente")
+   usa href="#" hasta que Elvis tenga cada cuenta lista -- mismo estilo
+   visual, solo más tenues, para que no parezcan un error. */
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.social-links a:hover {
+  background: var(--heading-alt);
+  color: #ffffff;
+  text-decoration: none;
+}
+.social-links svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.social-links a.pendiente {
+  opacity: .45;
+  cursor: default;
+}
+.social-links a.pendiente:hover {
+  background: var(--label-bg);
+  color: var(--heading-alt);
+}
+
+/* ==========================================================================
+   MINIATURAS DE VIDEO (a futuro, para la galería de YouTube)
+   Clase reusable: cuadrada, recorte "cover" sin deformar -- lista para
+   cuando Elvis suba el primer video. La sección/galería en sí todavía no
+   se construye.
+   ========================================================================== */
+.miniatura-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* ==========================================================================
+   CALLOUTS -- cuadro de nota para artículos futuros
+   Reutiliza el mismo lenguaje visual que ya existe en bitacora-verde.css:
+   el borde lateral de acento de blockquote (--accent, #b5622a) + el fondo
+   suave que ya se usa en las etiquetas y en el marcador de imagen
+   (--label-bg, #eaf0ec). No había, en el CSS original, una caja con fondo Y
+   borde lateral juntos para "nota" -- esta clase combina esos dos
+   patrones existentes en uno nuevo, reusable, sin tocar Lora/Sora.
+   Uso: <div class="callout"><p>Texto de la nota.</p></div>
+   ========================================================================== */
+.callout {
+  background: var(--label-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 14px 18px;
+  margin: 1.4em 0;
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--heading); }
+
+/* ==========================================================================
+   ÍNDICE FLOTANTE (tabla de contenidos del artículo)
+   <nav class="toc"> lateral, listando los <h2> del post-body -- se arma y
+   se resalta (scroll-spy) con JS vanilla, ver js/toc.js. En pantallas
+   angostas se queda arriba del artículo, en vez de flotar (no hay espacio
+   lateral para eso en celular).
+   ========================================================================== */
+.toc {
+  font: 500 13px 'Sora', sans-serif;
+}
+.toc .toc-title {
+  color: var(--muted);
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border);
+}
+.toc li a {
+  display: block;
+  padding: 5px 0 5px 12px;
+  color: var(--muted);
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+}
+.toc li a:hover {
+  color: var(--heading-alt);
+  text-decoration: none;
+}
+.toc li a.activo {
+  color: var(--heading);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+@media (min-width: 960px) {
+  .article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 40px;
+    align-items: start;
+  }
+  .toc {
+    position: sticky;
+    top: 24px;
+  }
+}

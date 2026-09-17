@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Plantilla base del sitemap del frontend estático (GitHub Pages).
+  Se actualiza agregando una entrada <url> cada vez que se publica una
+  página o artículo real nuevo, con su fecha de última modificación.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://elvissalcedo.github.io/</loc>
+    <lastmod>2026-09-17</lastmod>
+  </url>
+
+  <url>
+    <loc>https://elvissalcedo.github.io/about.html</loc>
+    <lastmod>2026-09-17</lastmod>
+  </url>
+
+  <!--
+  Por cada artículo nuevo, copiar este bloque y completar con su URL real
+  y la fecha de publicación (o de la última edición, si se corrigió):
+
+  <url>
+    <loc>https://elvissalcedo.github.io/articulos/titulo-del-articulo.html</loc>
+    <lastmod>AAAA-MM-DD</lastmod>
+  </url>
+  -->
+
+</urlset>
