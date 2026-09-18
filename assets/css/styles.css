@@ -1,9 +1,9 @@
 /* ==========================================================================
-   BITÁCORA VERDE — hoja de estilos del frontend estático (Git_Page)
-   Identidad portada desde Bitácora-Verde-Blog/04-bitacora-verde.css
-   (ese archivo es CSS para el tema de Blogger; este es el mismo lenguaje
-   visual -- tipografías, paleta, tono -- adaptado a HTML plano, sin
-   clases ni selectores específicos de Blogger).
+   Elvis Salcedo | Ingeniería Ambiental -- hoja de estilos del sitio Jekyll.
+   Hoja única: la cargan _layouts/default.html y, por herencia, todas las
+   páginas (portada, categorías, artículos). Cada bloque de abajo está en
+   uso por un layout, un include o el Markdown de un artículo -- si una
+   regla deja de usarse, se borra, no se comenta.
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@400;500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap');
@@ -101,15 +101,6 @@ blockquote {
   color: #ffffff;
   border-bottom-color: var(--accent);
 }
-.site-nav li a.pendiente {
-  opacity: .45;
-  cursor: default;
-}
-.site-nav li a.pendiente:hover {
-  color: #cfe0d9;
-  text-decoration: none;
-}
-
 /* ---- Contenido ---- */
 .page-body {
   max-width: 860px;
@@ -265,116 +256,17 @@ blockquote {
 }
 
 /* ==========================================================================
-   FÓRMULAS Y FRACCIONES -- portado exacto (mismos valores, sin
-   reinterpretar) desde BLOG/Bitacora-Verde-Blog/04-bitacora-verde.css,
-   líneas 412-428 (.fraccion/.numerador/.denominador).
-
-   El "blockquote centrado para fórmulas" NO es una regla en ese archivo
-   CSS -- ahí solo se documenta; el Conversor a Blogger
-   (05-conversor-a-blogger-backup.html) lo genera como estilo inline en
-   cada <blockquote class="formula">:
-     style="text-align:center !important;margin:1.6em auto !important;
-            padding:18px 22px !important;"
-   y en el <p> interno:
-     style="text-align:center !important;text-indent:0 !important;"
-   Esta regla blockquote.formula reproduce esos mismos valores como clase
-   reusable, para no depender del estilo inline en este proyecto.
-   ========================================================================== */
-.post-body .fraccion {
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
-  margin: 0 0.2em;
-  line-height: 1.15;
-  text-indent: 0;
-}
-.post-body .fraccion .numerador {
-  display: block;
-  padding: 0 0.25em 0.15em;
-  border-bottom: 1.5px solid currentColor;
-}
-.post-body .fraccion .denominador {
-  display: block;
-  padding: 0.15em 0.25em 0;
-}
-
-.post-body blockquote.formula {
-  text-align: center !important;
-  margin: 1.6em auto !important;
-  padding: 18px 22px !important;
-}
-.post-body blockquote.formula p {
-  text-align: center !important;
-  text-indent: 0 !important;
-}
-
-/* ==========================================================================
-   LATEX / MATHJAX -- bloques de fórmula del flujo nuevo (Elvis copia directo
-   desde el bloque de código de NotebookLM, sin pasar por Google Docs).
-   No reemplaza .fraccion/blockquote.formula de arriba (ver la nota en ese
-   bloque): conviven porque MathJax solo procesa el texto que trae sus
-   delimitadores \(...\)/\[...\], y el HTML viejo (Unicode) no los trae.
-   .formula-latex solo centra el párrafo contenedor -- el espaciado y el
-   centrado del propio bloque matemático los pone MathJax (mjx-container). */
+   LATEX / MATHJAX -- bloques de fórmula del flujo actual (Elvis copia directo
+   desde el bloque de código de NotebookLM). Es el ÚNICO sistema de fórmulas
+   del sitio: MathJax procesa el texto que trae sus delimitadores
+   \(...\)/\[...\] y arma la fórmula. .formula-latex solo centra el párrafo
+   contenedor -- el espaciado y el centrado del bloque matemático en sí los
+   pone MathJax (mjx-container[display="true"] ya centra por defecto, así que
+   un artículo en Markdown puro se ve bien sin usar esta clase). */
 .post-body p.formula-latex {
   text-align: center;
   margin: 1.6em 0;
 }
-
-/* ---- Páginas simples (about.html) ---- */
-.page-header {
-  margin-bottom: 32px;
-}
-.page-header h1 {
-  margin: 0 0 6px;
-  color: var(--heading);
-  font: 600 34px 'Spectral', serif;
-}
-.page-header .role {
-  margin: 0;
-  color: var(--heading-alt);
-  font: 600 14px 'Sora', sans-serif;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-/* Foto de perfil real (assets/foto-perfil.png) en about.html */
-.profile-photo {
-  display: block;
-  width: 128px;
-  height: 128px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin: 0 0 16px;
-  border: 3px solid var(--surface);
-  box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.45);
-}
-
-.page-section {
-  background: var(--surface);
-  border-radius: 6px;
-  padding: 28px 28px 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.35);
-}
-.page-section h2 {
-  margin: 0 0 12px;
-  color: var(--heading);
-  font: 600 20px 'Sora', sans-serif;
-}
-.page-section p {
-  font-family: 'Lora', Georgia, serif;
-  line-height: 1.6;
-  margin: 0 0 20px;
-  text-align: justify;
-}
-.page-section ul {
-  margin: 0 0 20px;
-  padding-left: 20px;
-  font-family: 'Lora', Georgia, serif;
-  line-height: 1.6;
-}
-.page-section li { margin-bottom: 8px; }
 
 .back-link {
   display: inline-block;
@@ -436,27 +328,9 @@ blockquote {
 }
 
 /* ==========================================================================
-   MINIATURAS DE VIDEO (a futuro, para la galería de YouTube)
-   Clase reusable: cuadrada, recorte "cover" sin deformar -- lista para
-   cuando Elvis suba el primer video. La sección/galería en sí todavía no
-   se construye.
-   ========================================================================== */
-.miniatura-video {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-/* ==========================================================================
-   CALLOUTS -- cuadro de nota para artículos futuros
-   Reutiliza el mismo lenguaje visual que ya existe en bitacora-verde.css:
-   el borde lateral de acento de blockquote (--accent, #b5622a) + el fondo
-   suave que ya se usa en las etiquetas y en el marcador de imagen
-   (--label-bg, #eaf0ec). No había, en el CSS original, una caja con fondo Y
-   borde lateral juntos para "nota" -- esta clase combina esos dos
-   patrones existentes en uno nuevo, reusable, sin tocar Lora/Sora.
+   CALLOUTS -- cuadro de nota dentro de un artículo. Combina los dos patrones
+   que ya usa el sitio: el borde lateral de acento de blockquote (--accent) y
+   el fondo suave de las etiquetas de categoría (--label-bg).
    Uso: <div class="callout"><p>Texto de la nota.</p></div>
    ========================================================================== */
 .callout {

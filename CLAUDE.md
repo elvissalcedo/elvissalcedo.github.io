@@ -121,6 +121,11 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: limpieza de `assets/css/styles.css` -- se borran las reglas sin
+  uso: `.fraccion`/`blockquote.formula` (fórmulas Unicode de la era Blogger,
+  reemplazadas por LaTeX+MathJax), `.page-header`/`.page-section`/`.profile-photo`
+  (about.html está retirada), `.miniatura-video` (galería inexistente) y
+  `.site-nav a.pendiente` (el nav no tiene links pendientes). 527 -> 399 líneas.
 - 2026-09-18: borra dos huérfanos de la etapa pre-Jekyll -- `conversor.html`
   (herramienta obsoleta, queda en el historial de git) y `prueba-latex.html`
   (duplicaba a mano header/nav/MathJax y se colaba en el sitemap pese al
