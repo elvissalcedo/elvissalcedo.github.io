@@ -121,6 +121,12 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: jekyll-seo-tag queda como única fuente de metadatos -- se saca
+  la barra "|" de `site.title` (kramdown la leía como tabla y el <title> de la
+  portada salía roto), se agregan `tagline`, `author`, `twitter.card` y una
+  `og:image` por defecto vía `defaults`, y se borran los `title`/`description`
+  escritos a mano en `index.html` y en las 8 `categorias/*.html` (que además
+  pierden el `permalink:` redundante: la ruta del archivo ya lo define).
 - 2026-09-18: las tablas de artículo pasan a tener estilo propio en
   `styles.css` (colgado de `.post-body table`, no de una clase, así una tabla
   Markdown pelada ya sale bien) y `assets/js/toc.js` se renombra a
