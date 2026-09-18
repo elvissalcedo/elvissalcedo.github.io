@@ -1,0 +1,35 @@
+title: "Elvis Salcedo | Ingeniería Ambiental"
+description: "Bitácora de ingeniería ambiental de Elvis Salcedo: agua, aire, suelo y residuos, explicados con rigor técnico y lenguaje claro."
+url: "https://elvissalcedo.github.io"
+lang: es
+
+markdown: kramdown
+kramdown:
+  math_engine: null
+
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Fuente única para el menú y las páginas de categorías -- nada de esto se
+# vuelve a escribir a mano en ningún layout o include.
+categorias:
+  - { name: "Agua", slug: "agua" }
+  - { name: "Aire", slug: "aire" }
+  - { name: "Ruido", slug: "ruido" }
+  - { name: "Suelo", slug: "suelo" }
+  - { name: "Toxicología y Salud", slug: "toxicologia-salud" }
+  - { name: "Sostenibilidad y Energía", slug: "sostenibilidad-energia" }
+  - { name: "Gestión y Política", slug: "gestion-politica" }
+  - { name: "Filosofía y Decisión", slug: "filosofia-decision" }
+
+exclude:
+  - conversor.html
+  - 02-instrucciones-notebooklm.md
+  - 03-prompt-notebooklm.txt
+  - CLAUDE.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - node_modules

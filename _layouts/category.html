@@ -1,0 +1,21 @@
+---
+layout: default
+---
+    <a class="back-link" href="/">&larr; Volver al inicio</a>
+
+    <h1 style="font:600 30px 'Spectral', serif; color:#1a3c34; margin:0 0 24px;">
+      {{ page.category }}
+    </h1>
+
+    <div class="posts">
+      {% assign posts_categoria = site.posts | where: "category", page.category | where_exp: "post", "post.hidden != true" %}
+      {% if posts_categoria.size > 0 %}
+        {% for post in posts_categoria %}
+{% include post-card.html post=post %}
+        {% endfor %}
+      {% else %}
+      <div class="post-card aviso">
+        <p class="post-excerpt">Todavía no hay artículos publicados en esta categoría. Próximamente.</p>
+      </div>
+      {% endif %}
+    </div>

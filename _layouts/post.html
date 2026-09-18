@@ -1,0 +1,19 @@
+---
+layout: default
+---
+    <a class="back-link" href="/">&larr; Volver al inicio</a>
+
+    <h1 style="font:600 30px 'Spectral', serif; color:#1a3c34; margin:0 0 4px;">
+      {{ page.title }}
+    </h1>
+    <p class="post-meta" style="margin:0 0 24px;">{% include fecha-es.html date=page.date %} &middot; Elvis Salcedo{% if page.category %} &middot; {{ page.category }}{% endif %}</p>
+
+    <div class="article-layout">
+      <div class="post-body">
+{{ content }}
+      </div>
+
+      <nav class="toc" aria-label="Índice del artículo">
+        <p class="toc-title">En este artículo</p>
+      </nav>
+    </div>

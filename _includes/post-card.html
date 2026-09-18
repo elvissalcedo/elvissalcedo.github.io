@@ -1,0 +1,15 @@
+      <div class="post-card">
+        {% if include.post.image %}
+        <a class="post-card-thumb" href="{{ include.post.url }}" tabindex="-1" aria-hidden="true">
+          <img src="{{ include.post.image }}" alt="">
+        </a>
+        {% endif %}
+        <div class="post-card-body">
+          <div class="post-card-meta">
+            <span class="post-card-category">{{ include.post.category }}</span>
+            <span class="post-card-date">{% include fecha-es.html date=include.post.date %}</span>
+          </div>
+          <h2 class="post-title"><a href="{{ include.post.url }}">{{ include.post.title }}</a></h2>
+          <p class="post-excerpt">{{ include.post.excerpt }}</p>
+        </div>
+      </div>

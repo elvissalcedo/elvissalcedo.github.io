@@ -52,8 +52,8 @@ blockquote {
 .site-header {
   background:
     linear-gradient(to right, rgba(15, 26, 22, 0.72) 0%, rgba(15, 26, 22, 0.5) 38%, rgba(15, 26, 22, 0.22) 68%),
-    linear-gradient(120deg, #1a3c34 0%, #234d3f 60%, #2c5f2d 100%),
-    url('../assets/hero-banner.jpg');
+    url('../hero-banner.jpg'),
+    linear-gradient(120deg, #1a3c34 0%, #234d3f 60%, #2c5f2d 100%);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -117,23 +117,70 @@ blockquote {
   padding: 32px 20px 80px;
 }
 
+/* ==========================================================================
+   GRILLA DE TARJETAS -- portada y páginas de categoría. Estilo "tarjeta de
+   noticias" (miniatura arriba + etiqueta de categoría/fecha + título +
+   extracto), reusable sea que haya un solo artículo o decenas: el grid se
+   acomoda solo con auto-fill, sin tocar el CSS al agregar posts nuevos.
+   ========================================================================== */
 .posts {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 
 .post-card {
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border-radius: 6px;
-  padding: 24px 28px;
+  overflow: hidden;
   box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.35);
+}
+
+.post-card-thumb {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--label-bg);
+}
+.post-card-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.post-card-body {
+  padding: 18px 20px 22px;
+}
+
+.post-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.post-card-category {
+  display: inline-block;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.post-card-date {
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
 }
 
 .post-card .post-title {
   margin: 0 0 8px;
   color: var(--heading);
-  font: 600 26px 'Spectral', serif;
+  font: 600 21px 'Spectral', serif;
+  line-height: 1.25;
 }
 .post-card .post-title a {
   color: inherit;
@@ -151,28 +198,25 @@ blockquote {
 
 .post-excerpt {
   color: var(--text);
-  font: 400 16px/1.6 'Lora', Georgia, serif;
+  font: 400 15px/1.55 'Lora', Georgia, serif;
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Mensaje "próximamente" mientras no hay artículos reales -- misma tarjeta
-   (.post-card) que se usa para los posts, solo centrada. */
+   (.post-card) que se usa para los posts, ocupando todo el ancho de la
+   grilla en vez de una sola columna. */
 .post-card.aviso {
+  grid-column: 1 / -1;
   text-align: center;
   padding: 40px 28px;
 }
-
-.post-labels {
-  margin-top: 14px;
-}
-.post-labels span {
-  display: inline-block;
-  background: var(--label-bg);
-  color: var(--heading-alt);
-  font: 500 11px 'JetBrains Mono', monospace;
-  padding: 3px 8px;
-  border-radius: 3px;
-  margin-right: 6px;
+.post-card.aviso .post-excerpt {
+  display: block;
+  -webkit-line-clamp: unset;
 }
 
 /* ---- Cuerpo de artículo (post-body, cuando exista contenido real) ---- */
@@ -194,6 +238,31 @@ blockquote {
   font: 600 18px 'Spectral', serif;
 }
 .post-body img { max-width: 100%; border-radius: 4px; }
+
+/* ==========================================================================
+   FIGURA CON PIE DE FOTO -- formato estándar para toda imagen real de un
+   artículo (no decorativa): <figure class="post-figure"><img>
+   <figcaption>Figura N. Descripción. Fuente: Autor (Año).</figcaption>
+   </figure>. Reemplaza la vieja convención de un <img> seguido de un <p>
+   suelto con "Fuente: ..." -- mismo criterio visual (imagen redondeada,
+   pie de foto discreto en mono/muted) pero semánticamente correcto y sin
+   depender de que el párrafo de la fuente quede pegado a la imagen.
+   ========================================================================== */
+.post-body figure.post-figure {
+  margin: 1.6em 0;
+  text-align: center;
+}
+.post-body figure.post-figure img {
+  display: block;
+  margin: 0 auto;
+}
+.post-body figure.post-figure figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font: 500 13px 'JetBrains Mono', monospace;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
 
 /* ==========================================================================
    FÓRMULAS Y FRACCIONES -- portado exacto (mismos valores, sin

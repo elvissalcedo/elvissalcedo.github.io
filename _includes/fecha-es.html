@@ -1,0 +1,4 @@
+{%- comment -%} Formatea include.date como "01 ene 2026" -- GitHub Pages no permite plugins de localización, así que se arma a mano el mes en español. {%- endcomment -%}
+{%- assign meses = "ene,feb,mar,abr,may,jun,jul,ago,sep,oct,nov,dic" | split: "," -%}
+{%- assign mes_idx = include.date | date: "%-m" | minus: 1 -%}
+{{- include.date | date: "%d" }} {{ meses[mes_idx] }} {{ include.date | date: "%Y" -}}

@@ -1,0 +1,10 @@
+# Jekyll build output y caché local -- nunca se comitea, GitHub Pages
+# genera el sitio publicado por su cuenta a partir de _config.yml/_posts/etc.
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# Bundler local (si se instalan las gemas dentro del repo en vez de global)
+.bundle/
+vendor/

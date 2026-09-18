@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% seo %}
+  <link rel="stylesheet" href="/assets/css/styles.css">
+
+  <!-- MathJax: renderiza LaTeX real (\(...\) inline, \[...\] en bloque) en el
+       navegador. Versión fijada (no "latest"). Se carga acá en el layout base
+       -- no solo en los posts -- porque Liquid no permite que un layout hijo
+       inyecte contenido en el <head> del padre; el script es async y no pesa
+       en las páginas sin fórmulas. Delimitadores \(...\)/\[...\], no $...$,
+       para no chocar con montos en soles/dólares en el texto. -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+</head>
+<body>
+
+{% include header.html %}
+
+  <main class="page-body">
+{{ content }}
+  </main>
+
+{% include footer.html %}
+
+  <script src="/assets/js/toc.js"></script>
+</body>
+</html>

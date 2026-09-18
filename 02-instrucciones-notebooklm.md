@@ -93,34 +93,60 @@ Entrega el artículo en Markdown plano, exactamente así:
 - `## ` para subtítulos de sección (H2).
 - `### ` para subsecciones (H3).
 - `**texto**` para negrita — CON MODERACIÓN, solo en ideas clave que ayuden al lector a escanear el artículo (la etiqueta de un ítem de lista, como "Oxidación:", o una frase que nombra un concepto central, como "Fase I (el raspador de superficie)"). Nunca pongas en negrita oraciones completas ni párrafos enteros. `*texto*` para cursiva.
-- **TODA fórmula o cálculo va SIEMPRE en LaTeX real** -- es el único formato de fórmulas que reconoce el Conversor a Git Page, y MathJax (cargado en el sitio) lo renderiza en el navegador.
-  - Fórmula en bloque: envuelta en `\[ ... \]`. Un cálculo de varios pasos va completo dentro del mismo bloque. Ejemplo:
+- **TODA fórmula o cálculo va SIEMPRE en LaTeX real** -- es el único formato de fórmulas que reconoce el sitio (Jekyll/kramdown), y MathJax (cargado en el sitio) lo renderiza en el navegador.
+  - **Los 4 delimitadores van SIEMPRE con el backslash duplicado: `\\(`, `\\)`, `\\[`, `\\]`** (dos barras invertidas, no una). Esto es obligatorio y no es un capricho de estilo: el conversor de Markdown del sitio (kramdown) tiene una regla fija que borra un backslash simple antes de `(`, `)`, `[`, `]` -- si el delimitador va con una sola barra, la fórmula se rompe en el sitio publicado (aparecen paréntesis sueltos en vez de la fórmula renderizada). El resto del LaTeX interno de la fórmula (`\frac`, `\cdot`, `\rho`, `\mu`, etc.) va con backslash simple, normal, como siempre -- la duplicación es SOLO para esos 4 delimitadores de apertura/cierre.
+  - Fórmula en bloque: envuelta en `\\[ ... \\]`, siempre en su propio párrafo (línea en blanco antes y después) -- nunca pegada al texto de arriba o de abajo. Un cálculo de varios pasos va completo dentro del mismo bloque. Ejemplo:
 
-    \[ a = \frac{1.5 \cdot C_d \cdot \rho_{aire} \cdot V^2}{2 \cdot D_D \cdot \rho_D} \]
+    \\[ a = \frac{1.5 \cdot C_d \cdot \rho_{aire} \cdot V^2}{2 \cdot D_D \cdot \rho_D} \\]
 
-  - Notación matemática suelta dentro de una oración normal (no solo cálculos completos en bloque) también va en LaTeX real, envuelta en `\( ... \)`. Ejemplo: "\( d_{50} < 1\ \mu m \)".
-  - Si la ecuación tiene varias variables que necesitan explicación (símbolo, significado, unidad, valor), agregá un bloque `**Donde:**` justo después del cálculo, con una viñeta por variable, cada símbolo envuelto en `\(...\)` -- ej. `- **\(C_d\)**: coeficiente de arrastre.`
-  - Nunca uses símbolos Unicode (⁶, ⁄, subíndices con guión bajo) como sustituto de LaTeX real, ni mezcles ambos estilos en el mismo artículo -- todas las fórmulas y notación matemática del artículo van en `\[...\]`/`\(...\)`, sin excepción.
+  - Notación matemática suelta dentro de una oración normal (no solo cálculos completos en bloque) también va en LaTeX real, envuelta en `\\( ... \\)`. Ejemplo: "\\( d_{50} < 1\ \mu m \\)".
+  - Si la ecuación tiene varias variables que necesitan explicación (símbolo, significado, unidad, valor), agregá un bloque `Donde:` justo después del cálculo -- **en texto plano, sin negrita ni cursiva** (nunca `**Donde:**` ni `*Donde:*`) -- con una viñeta por variable, cada símbolo envuelto en `\\(...\\)` -- ej. `- **\\(C_d\\)**: coeficiente de arrastre.`
+  - **Sustitución numérica paso a paso:** cuando desarrollás un cálculo (ver la regla de la sección 4 sobre desarrollar mínimo 2 cálculos), cada paso de la sustitución va en su propia línea -- nunca amontonados en un solo párrafo corrido. Cerrá cada línea intermedia con `<br>` al final (no alcanza con un simple salto de línea en el Markdown, se pierde al pegarlo en el editor de GitHub) para que el paso siguiente arranque en línea nueva dentro del mismo párrafo. Ejemplo:
+
+    ```
+    Numerador = 1.5 · 0.7 · 1.20 kg/m³ · (106.7 m/s)²<br>
+    Numerador = 1.05 · 1.20 kg/m³ · 11384.89 m²/s² = 14344.96 kg/(m·s²)<br>
+    Denominador = 2 · 0.0001 m · 1000 kg/m³ = 0.2 kg/m²<br>
+    a = 14344.96 kg/(m·s²) / 0.2 kg/m²<br>
+    a = 71724.8 m/s² ≈ 7.2 · 10⁴ m/s²
+    ```
+  - **Nota interpretativa o de verificación después de un cálculo** (discrepancia entre tu propia cuenta y la fuente, contexto adicional sobre el resultado): el label fijo es siempre `*Nota técnica:*` (cursiva simple, sin negrita) -- nunca variantes largas como "Nota de verificación técnica e interpretación:" ni inventes otro nombre. Un solo formato, en todo artículo.
+  - Nunca uses símbolos Unicode (⁶, ⁄, subíndices con guión bajo) como sustituto de LaTeX real, ni mezcles ambos estilos en el mismo artículo -- todas las fórmulas y notación matemática del artículo van en `\\[...\\]`/`\\(...\\)` (backslash duplicado), sin excepción.
 - `---` para separar secciones.
 - Listas con `-` o `1.`.
 - **Tabla Markdown** (`| Encabezado | Encabezado |` seguida de una fila `| --- | --- |` y las filas de datos) SOLO cuando la información sea genuinamente tabular — varias columnas alineadas que describen lo mismo para varios elementos (ejemplo: compuesto → metabolito → método de análisis; o parámetro → valor → unidad). No apliques esto a una lista narrativa simple solo porque tiene varios ítems — eso sigue siendo una lista con `-`. Si el dosier o una fuente trae una tabla real (por ejemplo "Tabla 28.1" de un libro), consérvala como tabla en el artículo, no la aplanes a una lista de guiones — se pierde la comparación visual entre columnas que es justamente el punto de una tabla.
-- Dónde va cada imagen: en el cuerpo del artículo, SIEMPRE deja una línea sola con `[IMAGEN N — título/pie de foto breve]` en el lugar donde corresponda según el dato que ilustra (nada más en esa línea). **Nunca insertes vos mismo la sintaxis de imagen `![...]()` en el cuerpo, ni siquiera reutilizando una imagen real del dosier** -- la ruta de esa imagen es un archivo local en la PC de Elvis (`imagenes/libro_.../....png`), y esa ruta no funciona pegada en el sitio (el sitio necesita el archivo subido a su propia carpeta, no un path local). Por eso toda imagen -- real del dosier o de banco/IA -- se resuelve de la misma forma: con un placeholder en el cuerpo y el detalle completo (listo para que Elvis solo agregue el archivo) en la sección 6. **Usa pocas imágenes** — ver la regla de cantidad en la sección 6, no pongas una por cada párrafo o subtítulo.
+- Dónde va cada imagen: en el cuerpo del artículo, SIEMPRE deja una línea sola con `[IMAGEN N — título/pie de foto breve]` en el lugar donde corresponda según el dato que ilustra (nada más en esa línea). **Nunca insertes vos mismo la sintaxis de imagen `![...]()` ni HTML de figura en el cuerpo, ni siquiera reutilizando una imagen real del dosier** -- la ruta de esa imagen es un archivo local en la PC de Elvis (`imagenes/libro_.../....png`), y esa ruta no funciona pegada en el sitio (el sitio necesita el archivo subido a su propia carpeta, no un path local). Por eso toda imagen -- real del dosier o de banco/IA -- se resuelve de la misma forma: con un placeholder en el cuerpo y el bloque final listo para copiar y pegar (formato estándar `<figure>`/`<figcaption>`, ver sección 6), donde a Elvis solo le queda completar la ruta del archivo que subió. **Ninguna imagen del cuerpo va nunca sin su `<figcaption>`** -- el bloque `<figure>`/`<figcaption>` completo es obligatorio siempre, sin excepción, jamás un `<img>` suelto. **Usa pocas imágenes** — ver la regla de cantidad en la sección 6, no pongas una por cada párrafo o subtítulo.
 
-No agregues HTML, no inventes encabezados ni sintaxis nueva — el conversor de Elvis solo reconoce el formato descrito arriba (títulos, negrita moderada, cursiva, fórmulas en LaTeX, listas y tablas incluidas). El documento completo se entrega siempre como Markdown plano (nunca HTML): ese es el texto que Elvis pega directo, tal cual sale de este chat, en su Conversor a Git Page, que lo convierte al HTML final para publicar en el sitio -- nunca generes vos el HTML directamente.
+No inventes encabezados ni sintaxis nueva fuera de lo descrito arriba (títulos, negrita moderada, cursiva, fórmulas en LaTeX, listas y tablas incluidas) -- la única excepción es el bloque `<figure>`/`<figcaption>` de la sección 6, que va SOLO ahí, nunca sustituyendo el placeholder `[IMAGEN N]` del cuerpo. El documento completo se entrega siempre como Markdown plano: ese es el texto que Elvis pega directo, tal cual sale de este chat, en un archivo `.md` dentro de `_posts/` en el sitio (github.com, sin terminal) -- nunca generes vos el HTML del cuerpo del artículo.
 
 ---
 
 ## 6. Apéndice obligatorio: Guía de imágenes
 
-Al final del documento, DESPUÉS de "Referencias", agrega esta sección — nunca se publica en el sitio, es solo para uso de Elvis. Es la lista, imagen por imagen, de qué conseguir para cada `[IMAGEN N]` que dejaste en el cuerpo, dejada TAN lista que a Elvis solo le quede agregar el archivo y pegar el pie de foto debajo, sin redactar nada él.
+Al final del documento, DESPUÉS de "Referencias", agrega esta sección — nunca se publica en el sitio, es solo para uso de Elvis. Es la lista, imagen por imagen, de qué conseguir para cada `[IMAGEN N]` que dejaste en el cuerpo, dejada TAN lista que a Elvis solo le quede subir el archivo a `assets/imagenes/<slug-del-artículo>/` y reemplazar el placeholder `[IMAGEN N]` del cuerpo por el bloque `<figure>` ya armado, completando solo la ruta -- sin redactar nada él.
+
+**Formato estándar de imagen (fijo, para todo artículo):** toda imagen real del cuerpo del artículo (no decorativa) se publica como
+
+```html
+<figure class="post-figure">
+<img src="/assets/imagenes/<slug>/<archivo>" alt="descripción breve de la imagen">
+<figcaption>Figura N. Descripción breve. Fuente: Autor (Año).</figcaption>
+</figure>
+```
+
+El número de Figura sigue el orden de aparición en el artículo (Figura 1, Figura 2, ...), y "Fuente: Autor (Año)." es el mismo crédito APA que ya trae el dosier o que armaste para la imagen de banco/IA -- nunca inventes una fuente nueva.
 
 **Paso obligatorio, antes de escribir ninguna entrada: revisa TODAS las imágenes reales que trae el dosier** (la sección "Imagenes con atribucion completa" cerca del final, antes de Referencias) y, para cada `[IMAGEN N]` del cuerpo, fíjate primero si alguna de esas imágenes reales aplica a ese punto -- gráficos de laboratorio, datos experimentales, figuras de un estudio real. Esas imágenes valen más que una foto de banco o una generada por IA, porque son evidencia real del propio estudio, no una ilustración genérica. **No se puede saltar este chequeo e ir directo a banco/IA** -- eso fue justo lo que falló la primera vez que se probó este flujo (se generaron 2 imágenes de banco genéricas sin revisar antes si el dosier ya traía algo real que aplicara).
 
-- **Si una imagen real del dosier aplica a ese punto**, la entrada dice así -- Elvis solo tiene que ir a esa ruta en su propia carpeta, agregarla al artículo, y pegar el pie de foto debajo tal cual se lo diste, sin redactar nada:
+- **Si una imagen real del dosier aplica a ese punto**, la entrada dice así -- Elvis solo tiene que subir ese archivo a `assets/imagenes/<slug>/` y pegar el bloque `<figure>` ya armado en el cuerpo, completando la ruta:
   ```
   ### IMAGEN N — [mismo título que usaste en el cuerpo]
   - REAL (de tu biblioteca, agrégala tú al artículo): `ruta/tal-como-aparece-en-el-dosier.png`
-  - Pie de foto para pegar debajo de la imagen: Fuente: Autor (Año).
+  - Bloque para pegar en el cuerpo, reemplazando `[IMAGEN N]`:
+    <figure class="post-figure">
+    <img src="/assets/imagenes/<slug>/<archivo>" alt="[descripción breve de la imagen]">
+    <figcaption>Figura N. [descripción breve]. Fuente: Autor (Año).</figcaption>
+    </figure>
   ```
   La ruta y el "Fuente: Autor (Año)" salen de la línea `![Fuente: Autor (Año) -- referencia [N]](ruta)` que ya trae el dosier -- copia la ruta tal cual viene, y el crédito SIN el sufijo `-- referencia [N]` (ese número es solo control de calidad interno del dosier, nunca una cita válida para el lector, y no debe llegar al pie de foto publicado).
 - **Solo si el dosier de verdad NO trae ninguna imagen real aplicable a ese punto** (típicamente normativas, decretos, marcos legales, o conceptos filosóficos/conductuales/psicológicos, donde no existe ni tendría sentido una "foto de laboratorio" del concepto), genera banco/IA:
@@ -128,6 +154,7 @@ Al final del documento, DESPUÉS de "Referencias", agrega esta sección — nunc
   ### IMAGEN N — [mismo título que usaste en el cuerpo]
   - Búsqueda (inglés, para Unsplash / Pexels / Pixabay): "término de búsqueda corto y específico en inglés"
   - Prompt IA de respaldo (si no encuentras foto libre de derechos): "prompt detallado en inglés, estilo editorial/científico, describiendo composición, iluminación y encuadre"
+  - Bloque para pegar en el cuerpo (mismo formato `<figure>` de arriba), completando la ruta una vez que Elvis suba el archivo elegido.
   ```
 - Si el dosier trae una imagen candidata pero SIN línea de crédito resuelta (marcada como descartada por falta de autor/año/editorial completos), NO la uses ni la sustituyas por una de banco/IA -- simplemente no le asignes ninguna imagen a ese punto, tal como ya indica el propio dosier.
 - Nunca reemplaces una imagen real del dosier por una de banco o de IA solo por conveniencia o porque sea más rápido -- el valor probatorio de un dato experimental real no lo iguala una foto genérica.
@@ -173,5 +200,5 @@ Antes de entregar el texto, hacé esta autocrítica real, no un trámite — per
 - ¿Revisaste que CADA cita agrupada con punto y coma esté en orden alfabético? Es fácil que se rompa al reescribir un párrafo -- verificalo de nuevo antes de entregar, no solo la primera vez que armaste la cita.
 - ¿Desarrollaste un mínimo de 2 cálculos reales del dosier (si había 2 o más disponibles en "Material de apoyo"), no solo uno?
 - ¿Volviste a hacer la cuenta de cada resultado numérico que uses, sin importar si vino de texto o de una imagen? ¿Coincide tu propia cuenta con lo que dice la fuente?
-- ¿Toda fórmula y toda notación matemática suelta del artículo está en LaTeX real (`\[...\]`/`\(...\)`), sin ningún símbolo Unicode de fracción o subíndice colado?
-- ¿Quedó algún delimitador de fórmula mal cerrado (`\[` sin `\]`, `\(` sin `\)`) en algún punto del texto?
+- ¿Toda fórmula y toda notación matemática suelta del artículo está en LaTeX real (`\\[...\\]`/`\\(...\\)`, con el backslash duplicado en los 4 delimitadores), sin ningún símbolo Unicode de fracción o subíndice colado?
+- ¿Quedó algún delimitador de fórmula con un solo backslash en vez de dos (`\[` en vez de `\\[`), o mal cerrado (`\\[` sin `\\]`, `\\(` sin `\\)`) en algún punto del texto?
