@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {% seo %}
+  {%- comment -%}
+    Un post con `hidden: true` (el banco de pruebas) ya queda fuera de la
+    portada y del sitemap, pero su permalink sigue siendo una URL pública:
+    sin esto, un buscador que llegue por cualquier vía lo indexa igual.
+  {%- endcomment -%}
+  {% if page.hidden %}<meta name="robots" content="noindex, nofollow">
+  {% endif %}
   <link rel="stylesheet" href="/assets/css/styles.css">
 
   <!-- MathJax: renderiza LaTeX real (\(...\) inline, \[...\] en bloque) en el
