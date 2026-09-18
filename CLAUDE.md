@@ -17,16 +17,19 @@ web de github.com.
   cómo identificar la fuente principal (su segunda línea en cursiva
   "Sub-tema TEMA-XXXX -- tema padre: ..."), reglas de citas APA 7
   completas, el método Feynman para explicar cada término técnico nuevo,
-  la estructura narrativa fija de 7 bloques con títulos de sección
-  creativos, el bloque de front matter listo para pegar, el formato de
+  la estructura narrativa elegida caso por caso entre 7 bloques posibles
+  (solo Desarrollo técnico y Referencias son obligatorios; NotebookLM
+  propone la estructura en un mensaje corto y espera el "ok" de Elvis) con
+  títulos de sección creativos, el bloque de front matter listo para pegar, el formato de
   salida Markdown exacto (fórmulas en LaTeX real
   con el backslash **duplicado** en los 4 delimitadores -- `\\[...\\]`/
   `\\(...\\)`, ver la nota de kramdown más abajo), la Guía de imágenes y
   la sección de Vacíos del conocimiento.
 - **El prompt corto** ([03-prompt-notebooklm.txt](03-prompt-notebooklm.txt)):
   lo que Elvis pega en el chat de NotebookLM cada vez que pide un artículo
-  nuevo. Checklist resumido de las reglas ya subidas en la pieza anterior
-  -- no las reemplaza, es el recordatorio rápido para la sesión puntual.
+  nuevo. Ya no repite las reglas: remite al documento fuente y solo marca
+  los pasos de la sesión (identificar el dosier, proponer la estructura y
+  esperar el "ok", un bloque de código por mensaje, autocrítica final).
   Deja que NotebookLM decida en cuántos mensajes entregar la respuesta
   según el contenido real, esperando "continuar" entre cada uno.
 - **Publicar en github.com** (sin Conversor, sin Google Docs, sin build
@@ -161,6 +164,13 @@ web de github.com.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-18: la estructura narrativa deja de ser un esqueleto fijo -- la
+  sección 4 de `02-instrucciones-notebooklm.md` lista 7 bloques posibles (solo
+  Desarrollo técnico y Referencias obligatorios) y NotebookLM manda antes un
+  mensaje corto con la estructura elegida y espera el "ok". `03-prompt-notebooklm.txt`
+  se reescribe corto (212 palabras), remitiendo al documento en vez de repetir
+  sus reglas, y sin voseo.
 
 - 2026-09-18: NotebookLM entrega cada mensaje completo en un único bloque de
   código (si no, la interfaz renderiza el markdown y se pierden `##` y los
