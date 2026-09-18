@@ -101,6 +101,14 @@ blockquote {
   color: #ffffff;
   border-bottom-color: var(--accent);
 }
+.site-nav li a.pendiente {
+  opacity: .45;
+  cursor: default;
+}
+.site-nav li a.pendiente:hover {
+  color: #cfe0d9;
+  text-decoration: none;
+}
 
 /* ---- Contenido ---- */
 .page-body {
@@ -229,6 +237,19 @@ blockquote {
 .post-body blockquote.formula p {
   text-align: center !important;
   text-indent: 0 !important;
+}
+
+/* ==========================================================================
+   LATEX / MATHJAX -- bloques de fórmula del flujo nuevo (Elvis copia directo
+   desde el bloque de código de NotebookLM, sin pasar por Google Docs).
+   No reemplaza .fraccion/blockquote.formula de arriba (ver la nota en ese
+   bloque): conviven porque MathJax solo procesa el texto que trae sus
+   delimitadores \(...\)/\[...\], y el HTML viejo (Unicode) no los trae.
+   .formula-latex solo centra el párrafo contenedor -- el espaciado y el
+   centrado del propio bloque matemático los pone MathJax (mjx-container). */
+.post-body p.formula-latex {
+  text-align: center;
+  margin: 1.6em 0;
 }
 
 /* ---- Páginas simples (about.html) ---- */

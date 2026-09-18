@@ -6,6 +6,22 @@
   <title>[Ejemplo] Calidad del agua en cuencas urbanas | Elvis Salcedo</title>
   <meta name="description" content="Página de ejemplo -- prueba visual del índice flotante y los callouts, no es contenido real todavía.">
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- MathJax: renderiza LaTeX real (\(...\) inline, \[...\] en bloque) en el
+       navegador. Versión fijada (no "latest"), mismo criterio que Chart.js en
+       el Conversor a Blogger. Convive con las fracciones Unicode/CSS puro
+       (.fraccion) que ya usa el artículo del Venturi -- MathJax solo procesa
+       texto que trae esos delimitadores, así que el HTML que no los trae
+       queda intacto. -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
 </head>
 <body>
 
@@ -16,10 +32,10 @@
       <nav class="site-nav">
         <ul>
           <li><a href="index.html">Inicio</a></li>
-          <li><a href="index.html#agua">Agua</a></li>
-          <li><a href="index.html#aire">Aire</a></li>
-          <li><a href="index.html#suelo">Suelo</a></li>
-          <li><a href="index.html#residuos">Residuos</a></li>
+          <li><a href="#" class="pendiente" aria-disabled="true" title="Próximamente">Agua</a></li>
+          <li><a href="#" class="pendiente" aria-disabled="true" title="Próximamente">Aire</a></li>
+          <li><a href="#" class="pendiente" aria-disabled="true" title="Próximamente">Suelo</a></li>
+          <li><a href="#" class="pendiente" aria-disabled="true" title="Próximamente">Residuos</a></li>
         </ul>
       </nav>
     </div>
