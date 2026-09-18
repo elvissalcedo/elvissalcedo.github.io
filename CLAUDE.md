@@ -160,6 +160,9 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: `Gemfile.lock` suma la plataforma `x86_64-linux` -- se generó en
+  Windows y solo listaba `x64-mingw-ucrt`, así que el job de build del workflow
+  habría fallado en el runner Linux al hacer `bundle install`.
 - 2026-09-18: un post con `hidden: true` ahora también sale con
   `<meta name="robots" content="noindex, nofollow">`: estaba fuera de la portada
   y del sitemap, pero su permalink seguía siendo una URL pública indexable.
