@@ -121,6 +121,10 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: `Gemfile` simplificado -- `github-pages` (fijado en ~> 232) ya
+  trae Jekyll y los tres plugins, así que se borran las declaraciones sueltas
+  de `jekyll-feed`/`jekyll-sitemap`/`jekyll-seo-tag` que podían resolverse a
+  una versión distinta de la de producción.
 - 2026-09-18: jekyll-seo-tag queda como única fuente de metadatos -- se saca
   la barra "|" de `site.title` (kramdown la leía como tabla y el <title> de la
   portada salía roto), se agregan `tagline`, `author`, `twitter.card` y una
