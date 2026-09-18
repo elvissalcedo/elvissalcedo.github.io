@@ -54,7 +54,7 @@ web de github.com.
 - `_layouts/post.html` — plantilla de artículo: título, fecha (formateada
   en español vía `_includes/fecha-es.html`, GitHub Pages no permite
   plugins de localización), categoría, `.article-layout` (post-body + TOC
-  flotante armado por `assets/js/toc.js`, sin cambios de lógica).
+  flotante armado por `assets/js/articulo.js`).
 - `_layouts/category.html` — loop de `site.posts` filtrado por
   `page.category`, con aviso "próximamente" si la categoría está vacía.
 - `_posts/` — un artículo por archivo, `AAAA-MM-DD-slug.md`. El primer
@@ -65,7 +65,7 @@ web de github.com.
   + `category: <Nombre>`), uno por categoría del menú.
 - `index.html` — portada; `layout: default` + loop de Liquid sobre
   `site.posts`, ya no se edita a mano.
-- `assets/css/styles.css`, `assets/js/toc.js`, `assets/imagenes/<slug>/` —
+- `assets/css/styles.css`, `assets/js/articulo.js`, `assets/imagenes/<slug>/` —
   estilos, scripts e imágenes por artículo. `assets/hero-banner.jpg`,
   `foto-perfil.png`, `og-cover.jpg` son assets de marca, van sueltos en
   `assets/` (no por artículo).
@@ -121,11 +121,17 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: las tablas de artículo pasan a tener estilo propio en
+  `styles.css` (colgado de `.post-body table`, no de una clase, así una tabla
+  Markdown pelada ya sale bien) y `assets/js/toc.js` se renombra a
+  `assets/js/articulo.js`, que además de armar el índice envuelve cada tabla
+  en un `.tabla-scroll` accesible -- scroll horizontal en celular sin escribir
+  ningún `<div>` a mano en el Markdown.
 - 2026-09-18: limpieza de `assets/css/styles.css` -- se borran las reglas sin
   uso: `.fraccion`/`blockquote.formula` (fórmulas Unicode de la era Blogger,
   reemplazadas por LaTeX+MathJax), `.page-header`/`.page-section`/`.profile-photo`
   (about.html está retirada), `.miniatura-video` (galería inexistente) y
-  `.site-nav a.pendiente` (el nav no tiene links pendientes). 527 -> 399 líneas.
+  `.site-nav a.pendiente` (el nav no tiene links pendientes).
 - 2026-09-18: borra dos huérfanos de la etapa pre-Jekyll -- `conversor.html`
   (herramienta obsoleta, queda en el historial de git) y `prueba-latex.html`
   (duplicaba a mano header/nav/MathJax y se colaba en el sitemap pese al
