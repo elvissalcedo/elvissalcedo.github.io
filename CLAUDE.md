@@ -66,9 +66,12 @@ web de github.com.
 - `index.html` — portada; `layout: default` + loop de Liquid sobre
   `site.posts`, ya no se edita a mano.
 - `assets/css/styles.css`, `assets/js/articulo.js`, `assets/imagenes/<slug>/` —
-  estilos, scripts e imágenes por artículo. `assets/hero-banner.jpg`,
-  `foto-perfil.png`, `og-cover.jpg` son assets de marca, van sueltos en
-  `assets/` (no por artículo).
+  estilos, scripts e imágenes por artículo. `assets/hero-banner.jpg`
+  (2400x745, fondo del header), `og-cover.jpg` (1200x630, la tarjeta de Open
+  Graph que sale al compartir) y `foto-perfil.png` son assets de marca, van
+  sueltos en `assets/` (no por artículo). Antes de subir una imagen conviene
+  dejarla en el ancho que de verdad se usa: una foto de cámara o de banco sin
+  tocar pesa 3 MB y el sitio no necesita ni el 10 % de eso.
 - `02-instrucciones-notebooklm.md`, `03-prompt-notebooklm.txt` — excluidos
   del build (`exclude:` en `_config.yml`): se usan fuera del sitio (se
   suben a NotebookLM), no tienen por qué publicarse.
@@ -121,6 +124,11 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: optimización de imágenes -- `hero-banner.jpg` 2998 -> 261 KB
+  (2400 px de ancho), `og-cover.jpg` deja de ser una copia byte a byte del hero
+  y pasa a ser una tarjeta Open Graph real de 1200x630 (111 KB), y
+  `foto-perfil.png` se reescribe sin su canal alfa inútil (píxeles idénticos,
+  1051 -> 884 KB). Total de `assets/`: 7.1 MB -> 1.3 MB.
 - 2026-09-18: `Gemfile` simplificado -- `github-pages` (fijado en ~> 232) ya
   trae Jekyll y los tres plugins, así que se borran las declaraciones sueltas
   de `jekyll-feed`/`jekyll-sitemap`/`jekyll-seo-tag` que podían resolverse a
