@@ -135,6 +135,10 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: la grilla de tarjetas sale a `_includes/lista-posts.html` (la
+  repetían `index.html` y `_layouts/category.html` palabra por palabra, incluido
+  el filtro de `hidden`) y los `style=""` inline de los títulos de los dos
+  layouts pasan a la clase `.page-title` en el CSS.
 - 2026-09-18: el artículo del Venturi recupera su jerarquía de encabezados --
   sus 11 títulos de sección eran `<p><strong>`, no `<h2>`/`<h3>`, así que el
   artículo salía sin índice flotante (toc.js busca `h2`) y con el título

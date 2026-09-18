@@ -101,6 +101,17 @@ blockquote {
   color: #ffffff;
   border-bottom-color: var(--accent);
 }
+/* ---- Título de página (artículo y página de categoría) ---- */
+/* Estaba repetido como style="" en _layouts/post.html y en
+   _layouts/category.html, con la única diferencia del margen de abajo. */
+.page-title {
+  margin: 0 0 24px;
+  color: var(--heading);
+  font: 600 30px 'Spectral', serif;
+}
+.page-title-post { margin-bottom: 4px; }
+.post-meta-cabecera { margin: 0 0 24px; }
+
 /* ---- Contenido ---- */
 .page-body {
   max-width: 860px;

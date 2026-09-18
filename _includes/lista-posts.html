@@ -1,0 +1,20 @@
+{%- comment -%}
+  Grilla de tarjetas de artículo. La usan la portada y las 8 páginas de
+  categoría, que antes repetían este mismo bloque palabra por palabra.
+
+  Parámetros:
+    include.posts   -- la colección ya filtrada que hay que listar.
+    include.vacio   -- el texto del aviso cuando esa colección está vacía.
+{%- endcomment -%}
+    <div class="posts">
+      {%- assign visibles = include.posts | where_exp: "post", "post.hidden != true" %}
+      {%- if visibles.size > 0 %}
+        {%- for post in visibles %}
+{% include post-card.html post=post %}
+        {%- endfor %}
+      {%- else %}
+      <div class="post-card aviso">
+        <p class="post-excerpt">{{ include.vacio }}</p>
+      </div>
+      {%- endif %}
+    </div>
