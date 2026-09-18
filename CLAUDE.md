@@ -69,14 +69,9 @@ web de github.com.
   estilos, scripts e imágenes por artículo. `assets/hero-banner.jpg`,
   `foto-perfil.png`, `og-cover.jpg` son assets de marca, van sueltos en
   `assets/` (no por artículo).
-- `prueba-latex.html` — página de prueba técnica (`noindex`), suelta sin
-  front matter (Jekyll la copia tal cual). Rutas de assets ya apuntan a
-  `/assets/...`.
-- `conversor.html`, `02-instrucciones-notebooklm.md`,
-  `03-prompt-notebooklm.txt` — excluidos del build (`exclude:` en
-  `_config.yml`): el Conversor queda obsoleto como herramienta, pero se
-  deja en el repo como historial; las instrucciones de NotebookLM se usan
-  fuera del sitio (se suben a NotebookLM), no tienen por qué publicarse.
+- `02-instrucciones-notebooklm.md`, `03-prompt-notebooklm.txt` — excluidos
+  del build (`exclude:` en `_config.yml`): se usan fuera del sitio (se
+  suben a NotebookLM), no tienen por qué publicarse.
 - `robots.txt` — sin cambios. `sitemap.xml`/`feed.xml` ya no se escriben a
   mano -- los generan `jekyll-sitemap`/`jekyll-feed` en cada build.
 
@@ -126,6 +121,11 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: borra dos huérfanos de la etapa pre-Jekyll -- `conversor.html`
+  (herramienta obsoleta, queda en el historial de git) y `prueba-latex.html`
+  (duplicaba a mano header/nav/MathJax y se colaba en el sitemap pese al
+  `noindex`; el banco de pruebas real es `_posts/2026-09-17-articulo-ejemplo.md`,
+  que sí pasa por kramdown).
 - 2026-09-18: commit de la migración a Jekyll nativo -- tarjetas de
   artículo con miniatura (`post-card.html`, grid reusable en `.posts`)
   para portada y las 8 páginas de categoría (comparten `_layouts/category.html`,

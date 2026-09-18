@@ -25,7 +25,6 @@ categorias:
   - { name: "Filosofía y Decisión", slug: "filosofia-decision" }
 
 exclude:
-  - conversor.html
   - 02-instrucciones-notebooklm.md
   - 03-prompt-notebooklm.txt
   - CLAUDE.md
