@@ -18,7 +18,8 @@ web de github.com.
   "Sub-tema TEMA-XXXX -- tema padre: ..."), reglas de citas APA 7
   completas, el método Feynman para explicar cada término técnico nuevo,
   la estructura narrativa fija de 7 bloques con títulos de sección
-  creativos, el formato de salida Markdown exacto (fórmulas en LaTeX real
+  creativos, el bloque de front matter listo para pegar, el formato de
+  salida Markdown exacto (fórmulas en LaTeX real
   con el backslash **duplicado** en los 4 delimitadores -- `\\[...\\]`/
   `\\(...\\)`, ver la nota de kramdown más abajo), la Guía de imágenes y
   la sección de Vacíos del conocimiento.
@@ -30,12 +31,20 @@ web de github.com.
   según el contenido real, esperando "continuar" entre cada uno.
 - **Publicar en github.com** (sin Conversor, sin Google Docs, sin build
   local): Elvis crea un archivo nuevo en `_posts/AAAA-MM-DD-slug.md` desde
-  el editor web de GitHub, pega el front matter estándar (`layout: post`,
-  `title`, `date`, `category`, `excerpt`) seguido del Markdown que copió
-  del bloque de código de NotebookLM tal cual, reemplaza cada
-  `[IMAGEN N -- título]` por `![alt](/assets/imagenes/slug/archivo.jpg)`,
-  sube las imágenes a esa misma carpeta con **Add file → Upload files**, y
-  confirma el commit a `main`. Jekyll arma solo el índice, el menú de
+  el editor web de GitHub y pega, en este orden, el front matter y el
+  cuerpo tal como se los entregó NotebookLM. **El front matter lo redacta
+  NotebookLM**, no Elvis: viene en su propio bloque de código con `layout`,
+  `title`, `category`, `excerpt` e `image` ya completos, y solo hay que
+  poner la fecha real donde dice `date: AAAA-MM-DD`. El cuerpo arranca en
+  el primer `## ` -- el título no se repite ahí, lo imprime el layout.
+  Después reemplaza cada `[IMAGEN N — título]` por el bloque
+  `<figure class="post-figure">` que la Guía de imágenes ya dejó armado,
+  completando la ruta `/assets/imagenes/<slug>/<archivo>`, sube las
+  imágenes a esa misma carpeta con **Add file → Upload files**, y confirma
+  el commit a `main`. **Lo que NO se pega:** las secciones
+  `## Guía de imágenes` y `## Preguntas / Vacíos del conocimiento` se
+  quedan en el chat de NotebookLM -- nada las filtra, se publica
+  exactamente el texto pegado. Jekyll arma solo el índice, el menú de
   categorías y la plantilla del artículo -- no hay que tocar `index.html`
   ni ningún otro archivo a mano. Editar o borrar un artículo publicado es
   abrir su `.md` y usar el lápiz o el tacho del editor web, igual que con
@@ -124,6 +133,13 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: los tres documentos del flujo quedan consistentes entre sí --
+  se sacan las últimas referencias al Conversor (ya no filtra nada: se publica
+  lo que Elvis pega, así que ahora está escrito explícitamente qué secciones NO
+  se copian), NotebookLM pasa a entregar el bloque de front matter ya armado y
+  el cuerpo arranca en el primer `## ` (antes repetía el título y salía dos
+  veces), y se saca el voseo de los dos documentos, que lo prohíben y estaban
+  escritos en voseo.
 - 2026-09-18: optimización de imágenes -- `hero-banner.jpg` 2998 -> 261 KB
   (2400 px de ancho), `og-cover.jpg` deja de ser una copia byte a byte del hero
   y pasa a ser una tarjeta Open Graph real de 1200x630 (111 KB), y
