@@ -135,6 +135,11 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: el artículo del Venturi recupera su jerarquía de encabezados --
+  sus 11 títulos de sección eran `<p><strong>`, no `<h2>`/`<h3>`, así que el
+  artículo salía sin índice flotante (toc.js busca `h2`) y con el título
+  impreso dos veces. Solo cambian esas etiquetas: ni una palabra, cifra,
+  fórmula o referencia del texto se tocó.
 - 2026-09-18: los tres documentos del flujo quedan consistentes entre sí --
   se sacan las últimas referencias al Conversor (ya no filtra nada: se publica
   lo que Elvis pega, así que ahora está escrito explícitamente qué secciones NO
