@@ -4,7 +4,7 @@ title: "Del plato a la mina: el poder del maíz y la materia orgánica frente a 
 date: 2026-09-18
 category: Suelo
 excerpt: "Analizamos cómo la fitorremediación con Zea mays L. y vermicompost permite recuperar suelos impactados por relaves mineros, logrando eficiencias de remoción de cadmio de hasta un 84% y cumpliendo los Estándares de Calidad Ambiental."
-image: /assets/imagenes/fitorremediacion-maiz-relaves/fitorremediacion-maiz.jpg
+image: /assets/imagenes/fitorremediacion-maiz-relaves/esquema-fitorremediacion-maiz.jpg
 ---
 
 ## Del plato a la mina: el maíz como filtro biológico en relaves mineros
