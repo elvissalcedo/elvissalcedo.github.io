@@ -89,6 +89,31 @@ web de github.com.
 - `robots.txt` — sin cambios. `sitemap.xml`/`feed.xml` ya no se escriben a
   mano -- los generan `jekyll-sitemap`/`jekyll-feed` en cada build.
 
+## Automatización (GitHub Actions)
+
+- `.github/workflows/validar.yml` corre en cada push a `main` y en cada PR.
+  Dos trabajos, los dos de solo lectura: uno pasa
+  `.github/scripts/validar_articulos.py` sobre `_posts/`, el otro hace el
+  build real de Jekyll con el mismo bundle `github-pages` que usa producción
+  y comprueba que se generen `index.html`, `sitemap.xml` y `feed.xml` y que
+  el post oculto siga fuera del índice y del sitemap.
+- El validador revisa lo que ya se rompió alguna vez de verdad: front matter
+  incompleto, `category:` que no es ninguna de las 8 de `_config.yml`, fecha
+  del front matter distinta de la del nombre del archivo, `image:` o `<img>`
+  apuntando a un archivo que no se subió, imágenes sin `alt`, `<figure>` sin
+  su `<figcaption>`, delimitadores de fórmula con un solo backslash, el
+  título repetido al principio del cuerpo y assets pesados (aviso arriba de
+  500 KB, error arriba de 1500 KB).
+- **Es una red de seguridad, no un portón.** GitHub Pages publica por su
+  cuenta, en paralelo: si el workflow falla, el artículo igual salió, pero
+  Elvis recibe el aviso en vez de enterarse semanas después. Convertirlo en
+  portón real exige pasar el despliegue a Actions (`actions/deploy-pages`),
+  que es un cambio grande y no se hizo.
+- La regla del backslash tiene una salvedad que el validador respeta: en una
+  línea que arranca con un tag HTML de bloque, kramdown no parsea Markdown y
+  el backslash simple llega intacto. Por eso el artículo del Venturi, migrado
+  desde HTML plano, pasa la validación con `\[...\]` de un solo backslash.
+
 ## Decisiones de diseño importantes
 
 - **Fórmulas siempre en LaTeX real, renderizadas por MathJax.** El sitio
@@ -135,6 +160,10 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: se agrega `.github/workflows/validar.yml` -- valida el front
+  matter, las categorías, las fórmulas, las imágenes y el peso de los assets de
+  cada artículo, y corre el build de Jekyll en cada push. Solo lee, no modifica
+  nada, y no bloquea el despliegue de GitHub Pages.
 - 2026-09-18: la grilla de tarjetas sale a `_includes/lista-posts.html` (la
   repetían `index.html` y `_layouts/category.html` palabra por palabra, incluido
   el filtro de `hidden`) y los `style=""` inline de los títulos de los dos

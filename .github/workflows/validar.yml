@@ -1,0 +1,72 @@
+# Revisa cada push: que los artículos estén bien escritos y que el sitio
+# compile. Es una RED DE SEGURIDAD, no un portón: GitHub Pages construye y
+# publica el sitio por su cuenta, en paralelo a esto. Si acá sale una X roja,
+# el artículo igual se publicó -- lo que este workflow da es el aviso (por
+# correo y con la marca roja en el commit) de que hay algo que arreglar, en vez
+# de que el error se descubra semanas después mirando la página.
+#
+# Nada de esto modifica el repo: los dos trabajos solo leen.
+name: Validar artículos y build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Si Elvis sube el .md y después las imágenes en commits seguidos, solo se
+# corre la última tanda.
+concurrency:
+  group: validar-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  articulos:
+    name: Front matter, fórmulas e imágenes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # El script no usa dependencias: solo la librería estándar.
+      - name: Validar _posts/
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python .github/scripts/validar_articulos.py
+
+  build:
+    name: Build de Jekyll
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Misma versión del bundle github-pages que usa GitHub Pages para
+      # publicar, así un error de YAML o de Liquid aparece acá primero.
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Construir el sitio
+        run: bundle exec jekyll build --trace
+
+      - name: Revisar que las páginas clave se hayan generado
+        run: |
+          set -e
+          for pagina in _site/index.html _site/sitemap.xml _site/feed.xml; do
+            test -s "$pagina" || { echo "Falta o está vacío: $pagina"; exit 1; }
+          done
+          # El post oculto de pruebas nunca debe salir en el índice ni en el
+          # sitemap (hidden: true + sitemap: false).
+          if grep -q "articulo-ejemplo" _site/index.html _site/sitemap.xml; then
+            echo "El post oculto de pruebas se está publicando en el índice o el sitemap."
+            exit 1
+          fi
+          echo "Páginas generadas correctamente."
