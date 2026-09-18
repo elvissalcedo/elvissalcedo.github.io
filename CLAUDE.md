@@ -33,7 +33,9 @@ web de github.com.
   local): Elvis crea un archivo nuevo en `_posts/AAAA-MM-DD-slug.md` desde
   el editor web de GitHub y pega, en este orden, el front matter y el
   cuerpo tal como se los entregó NotebookLM. **El front matter lo redacta
-  NotebookLM**, no Elvis: viene en su propio bloque de código con `layout`,
+  NotebookLM**, no Elvis: viene al principio del bloque de código único del
+  primer mensaje (cada mensaje de la entrega va completo en un solo bloque,
+  sin bloques anidados) con `layout`,
   `title`, `category`, `excerpt` e `image` ya completos, y solo hay que
   poner la fecha real donde dice `date: AAAA-MM-DD`. El cuerpo arranca en
   el primer `## ` -- el título no se repite ahí, lo imprime el layout.
@@ -159,6 +161,12 @@ web de github.com.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-18: NotebookLM entrega cada mensaje completo en un único bloque de
+  código (si no, la interfaz renderiza el markdown y se pierden `##` y los
+  backslash duplicados al copiar); el front matter y las entradas de la Guía de
+  imágenes dejan de llevar bloque propio, que quedaba anidado y cerraba el de
+  afuera antes de tiempo.
 
 - 2026-09-18: `Gemfile.lock` suma la plataforma `x86_64-linux` -- se generó en
   Windows y solo listaba `x64-mingw-ucrt`, así que el job de build del workflow

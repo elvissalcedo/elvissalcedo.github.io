@@ -89,7 +89,7 @@ Referencias — lista completa en APA 7.
 
 Entrega el artículo en Markdown plano, exactamente así:
 
-- **Lo primero de todo es el bloque de front matter**, en su propio bloque de código, listo para que Elvis lo pegue como las primeras líneas del archivo. Es lo que le dice a Jekyll cómo publicar el artículo:
+- **Lo primero dentro del bloque de código del primer mensaje es el front matter, seguido directo del inicio del cuerpo del artículo** -- no va en un bloque de código separado ni anidado (un ``` adentro de otro cierra el de afuera antes de tiempo y rompe el markdown). Son las primeras líneas que Elvis pega en el archivo, y es lo que le dice a Jekyll cómo publicar el artículo. Tiene esta forma (el recuadro de abajo es solo para mostrarte la plantilla en este documento, no lo repitas en tu entrega):
 
   ```
   ---
@@ -103,6 +103,7 @@ Entrega el artículo en Markdown plano, exactamente así:
   ```
 
   `date` va con el placeholder `AAAA-MM-DD` tal cual -- tú no sabes qué día lo va a publicar Elvis, lo completa él. `category` tiene que ser una de las 8 de la lista, con esa ortografía exacta (tildes incluidas): si escribes una que no está, el artículo no aparece en ninguna página de categoría. `image` es la miniatura de la tarjeta en la portada: pon la ruta de la IMAGEN 1 del artículo con el mismo slug que uses en la Guía de imágenes; si el artículo no lleva ninguna imagen, borra esa línea entera.
+- **Cada mensaje de la entrega va completo dentro de su propio bloque de código markdown** (no solo el front matter en el primer mensaje) -- el bloque de código es lo único que garantiza que el texto se copie tal cual, sin que la interfaz de NotebookLM lo renderice (títulos grandes, fórmulas con su propio motor de $...$) antes de que Elvis lo copie. Si un mensaje de la entrega no viene envuelto en su bloque de código, se pierde el markdown real al copiarlo -- los encabezados #/##, los backslash duplicados de LaTeX, todo.
 - **El cuerpo del artículo arranca directo en el primer `## `.** No repitas el título del artículo como primera línea del cuerpo, ni con `# ` ni en negrita: el título ya está en el front matter y el sitio lo imprime solo, arriba del artículo. Si lo repites, sale dos veces en la página publicada.
 - `## ` para subtítulos de sección (H2).
 - `### ` para subsecciones (H3).
@@ -150,26 +151,28 @@ Al final del documento, DESPUÉS de "Referencias", agrega esta sección — nunc
 
 El número de Figura sigue el orden de aparición en el artículo (Figura 1, Figura 2, ...), y "Fuente: Autor (Año)." es el mismo crédito APA que ya trae el dosier o que armaste para la imagen de banco/IA -- nunca inventes una fuente nueva.
 
+**Las entradas de la Guía van como texto normal dentro del bloque de código único del mensaje que la trae** (ver sección 5) -- ni la entrada entera ni el `<figure>` llevan un bloque de código propio. Cualquier ``` dentro de ese bloque, aunque diga `html`, lo cierra antes de tiempo y rompe el resto del mensaje. Como el mensaje entero ya va en un bloque de código, las líneas del `<figure>` se copian tal cual sin necesitar su propio recuadro. Las plantillas de abajo muestran el contenido de cada entrada, sin ningún recuadro alrededor.
+
 **Paso obligatorio, antes de escribir ninguna entrada: revisa TODAS las imágenes reales que trae el dosier** (la sección "Imagenes con atribucion completa" cerca del final, antes de Referencias) y, para cada `[IMAGEN N]` del cuerpo, fíjate primero si alguna de esas imágenes reales aplica a ese punto -- gráficos de laboratorio, datos experimentales, figuras de un estudio real. Esas imágenes valen más que una foto de banco o una generada por IA, porque son evidencia real del propio estudio, no una ilustración genérica. **No se puede saltar este chequeo e ir directo a banco/IA** -- eso fue justo lo que falló la primera vez que se probó este flujo (se generaron 2 imágenes de banco genéricas sin revisar antes si el dosier ya traía algo real que aplicara).
 
 - **Si una imagen real del dosier aplica a ese punto**, la entrada dice así -- Elvis solo tiene que subir ese archivo a `assets/imagenes/<slug>/` y pegar el bloque `<figure>` ya armado en el cuerpo, completando la ruta:
-  ```
-  ### IMAGEN N — [mismo título que usaste en el cuerpo]
-  - REAL (de tu biblioteca, agrégala tú al artículo): `ruta/tal-como-aparece-en-el-dosier.png`
-  - Bloque para pegar en el cuerpo, reemplazando `[IMAGEN N]`:
-    <figure class="post-figure">
-    <img src="/assets/imagenes/<slug>/<archivo>" alt="[descripción breve de la imagen]">
-    <figcaption>Figura N. [descripción breve]. Fuente: Autor (Año).</figcaption>
-    </figure>
-  ```
+
+      ### IMAGEN N — [mismo título que usaste en el cuerpo]
+      - REAL (de tu biblioteca, agrégala tú al artículo): ruta/tal-como-aparece-en-el-dosier.png
+      - Bloque para pegar en el cuerpo, reemplazando [IMAGEN N]:
+      <figure class="post-figure">
+      <img src="/assets/imagenes/<slug>/<archivo>" alt="[descripción breve de la imagen]">
+      <figcaption>Figura N. [descripción breve]. Fuente: Autor (Año).</figcaption>
+      </figure>
+
   La ruta y el "Fuente: Autor (Año)" salen de la línea `![Fuente: Autor (Año) -- referencia [N]](ruta)` que ya trae el dosier -- copia la ruta tal cual viene, y el crédito SIN el sufijo `-- referencia [N]` (ese número es solo control de calidad interno del dosier, nunca una cita válida para el lector, y no debe llegar al pie de foto publicado).
 - **Solo si el dosier de verdad NO trae ninguna imagen real aplicable a ese punto** (típicamente normativas, decretos, marcos legales, o conceptos filosóficos/conductuales/psicológicos, donde no existe ni tendría sentido una "foto de laboratorio" del concepto), genera banco/IA:
-  ```
-  ### IMAGEN N — [mismo título que usaste en el cuerpo]
-  - Búsqueda (inglés, para Unsplash / Pexels / Pixabay): "término de búsqueda corto y específico en inglés"
-  - Prompt IA de respaldo (si no encuentras foto libre de derechos): "prompt detallado en inglés, estilo editorial/científico, describiendo composición, iluminación y encuadre"
-  - Bloque para pegar en el cuerpo (mismo formato `<figure>` de arriba), completando la ruta una vez que Elvis suba el archivo elegido.
-  ```
+
+      ### IMAGEN N — [mismo título que usaste en el cuerpo]
+      - Búsqueda (inglés, para Unsplash / Pexels / Pixabay): "término de búsqueda corto y específico en inglés"
+      - Prompt IA de respaldo (si no encuentras foto libre de derechos): "prompt detallado en inglés, estilo editorial/científico, describiendo composición, iluminación y encuadre"
+      - Bloque para pegar en el cuerpo (mismo formato <figure> de arriba, sin recuadro), completando la ruta una vez que Elvis suba el archivo elegido.
+
 - Si el dosier trae una imagen candidata pero SIN línea de crédito resuelta (marcada como descartada por falta de autor/año/editorial completos), NO la uses ni la sustituyas por una de banco/IA -- simplemente no le asignes ninguna imagen a ese punto, tal como ya indica el propio dosier.
 - Nunca reemplaces una imagen real del dosier por una de banco o de IA solo por conveniencia o porque sea más rápido -- el valor probatorio de un dato experimental real no lo iguala una foto genérica.
 
