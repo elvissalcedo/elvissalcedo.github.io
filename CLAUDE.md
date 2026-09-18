@@ -185,9 +185,9 @@ web de github.com.
   escritos en voseo.
 - 2026-09-18: optimización de imágenes -- `hero-banner.jpg` 2998 -> 261 KB
   (2400 px de ancho), `og-cover.jpg` deja de ser una copia byte a byte del hero
-  y pasa a ser una tarjeta Open Graph real de 1200x630 (111 KB), y
-  `foto-perfil.png` se reescribe sin su canal alfa inútil (píxeles idénticos,
-  1051 -> 884 KB). Total de `assets/`: 7.1 MB -> 1.3 MB.
+  y pasa a ser una tarjeta Open Graph real de 1200x630 (111 KB). Total de
+  `assets/`: 7.1 MB -> 1.5 MB. `foto-perfil.png` NO se toca: es la foto
+  personal de Elvis, se deja bit a bit como está hasta que él pida otra cosa.
 - 2026-09-18: `Gemfile` simplificado -- `github-pages` (fijado en ~> 232) ya
   trae Jekyll y los tres plugins, así que se borran las declaraciones sueltas
   de `jekyll-feed`/`jekyll-sitemap`/`jekyll-seo-tag` que podían resolverse a
