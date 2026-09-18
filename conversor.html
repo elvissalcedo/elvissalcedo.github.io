@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Conversor a Git Page</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f4f6f3;
+    --surface: #ffffff;
+    --surface-2: #eaf0ec;
+    --text: #3a453f;
+    --text-muted: #5c6a63;
+    --heading: #1a3c34;
+    --accent: #2c5f2d;
+    --accent-ink: #ffffff;
+    --link: #1a5c8a;
+    --warn: #b5622a;
+    --warn-bg: #fbeee4;
+    --warn-border: #e6bd9a;
+    --border: #dde4de;
+    --shadow: 0 1px 2px rgba(26,60,52,0.06), 0 10px 24px -16px rgba(26,60,52,0.35);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101c17;
+      --surface: #162620;
+      --surface-2: #1c2f27;
+      --text: #dbe6e0;
+      --text-muted: #93a69c;
+      --heading: #e7f2ea;
+      --accent: #6fae72;
+      --accent-ink: #0d1a14;
+      --link: #6fb6e0;
+      --warn: #e0925a;
+      --warn-bg: #2c2119;
+      --warn-border: #5a3f28;
+      --border: #26382f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 24px -16px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101c17;
+    --surface: #162620;
+    --surface-2: #1c2f27;
+    --text: #dbe6e0;
+    --text-muted: #93a69c;
+    --heading: #e7f2ea;
+    --accent: #6fae72;
+    --accent-ink: #0d1a14;
+    --link: #6fb6e0;
+    --warn: #e0925a;
+    --warn-bg: #2c2119;
+    --warn-border: #5a3f28;
+    --border: #26382f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 24px -16px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 15px/1.6 'Sora', sans-serif;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 24px 64px;
+  }
+
+  header.tool-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+  header.tool-head .eyebrow {
+    font: 600 11px 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  header.tool-head h1 {
+    margin: 0;
+    color: var(--heading);
+    font: 600 30px 'Spectral', serif;
+    text-wrap: balance;
+  }
+  header.tool-head p {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+    max-width: 68ch;
+  }
+  header.tool-head code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92em;
+    background: var(--surface-2);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-head h2 {
+    margin: 0;
+    font: 600 13px 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 420px;
+    resize: vertical;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font: 400 13.5px/1.55 'JetBrains Mono', monospace;
+    padding: 16px 18px;
+  }
+  textarea::placeholder { color: var(--text-muted); opacity: 0.75; }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  button {
+    font: 600 13px 'Sora', sans-serif;
+    letter-spacing: 0.01em;
+    border-radius: 7px;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-ghost:disabled, .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .field-title {
+    padding: 14px 18px 0;
+  }
+  .field-title label {
+    display: block;
+    font: 600 11px 'JetBrains Mono', monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .field-title input {
+    width: 100%;
+    font: 600 16px 'Spectral', serif;
+    color: var(--heading);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+
+  .tabs-row {
+    display: flex;
+    gap: 4px;
+    padding: 10px 18px 0;
+  }
+  .tab-btn {
+    font: 600 12px 'JetBrains Mono', monospace;
+    letter-spacing: 0.03em;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px 6px 0 0;
+    padding: 7px 14px;
+    border-bottom: none;
+    cursor: pointer;
+  }
+  .tab-btn[aria-selected="true"] {
+    color: var(--heading);
+    background: var(--surface);
+    border-color: var(--border);
+    position: relative;
+    top: 1px;
+  }
+
+  .output-body {
+    flex: 1;
+    overflow: auto;
+    min-height: 420px;
+    max-height: 640px;
+  }
+  .raw-html {
+    margin: 0;
+    padding: 16px 18px;
+    font: 400 12.5px/1.6 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+  }
+  .preview {
+    padding: 22px 24px;
+    color: var(--text);
+    font: 400 16px/1.6 'Lora', Georgia, serif;
+    display: none;
+  }
+  .preview.active { display: block; }
+  .raw-html.hidden { display: none; }
+
+  .preview h2 { color: var(--heading); font: 600 20px 'Spectral', serif; border-bottom: 2px solid var(--border); padding-bottom: 5px; margin: 1.3em 0 0.6em; }
+  .preview h3 { color: var(--accent); font: 600 16px 'Spectral', serif; margin: 1.1em 0 0.4em; }
+  .preview h4 { color: var(--heading); font: 600 14px 'Sora', sans-serif; margin: 1em 0 0.4em; }
+  .preview p { margin: 0 0 1em; }
+  .preview strong { color: var(--heading); }
+  .preview a { color: var(--link); }
+  .preview hr { border: none; border-top: 1px solid var(--border); margin: 1.6em 0; }
+  .preview ul, .preview ol { padding-left: 1.3em; margin: 0 0 1em; }
+  .preview li { margin-bottom: 0.4em; }
+  .preview p.formula-latex { text-align: center; margin: 1.6em 0; }
+  .preview img { max-width: 100%; border-radius: 4px; }
+
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+
+  .notice {
+    display: none;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 0 0 18px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: var(--text);
+    font-size: 13.5px;
+  }
+  .notice.show { display: flex; }
+  .notice strong { color: var(--warn); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 3px; }
+
+  .stat-row {
+    display: flex;
+    gap: 16px;
+    padding: 10px 18px 14px;
+    font: 500 12px 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    flex-wrap: wrap;
+  }
+  .stat-row span b { color: var(--text); }
+
+  .copied-flag {
+    font: 600 12px 'JetBrains Mono', monospace;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .copied-flag.show { opacity: 1; }
+
+  .mode-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 10px 16px;
+    margin: 0 0 18px;
+  }
+  .mode-row legend {
+    font: 600 11px 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 4px;
+  }
+  .mode-opt {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font: 500 13.5px 'Sora', sans-serif;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .mode-opt input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+</style>
+
+<!-- MathJax: mismo criterio de versión fijada que en el sitio publicado
+     (articulo-ejemplo.html / prueba-latex.html en Git_Page) -- para que la
+     Vista Previa de esta herramienta muestre las fórmulas YA renderizadas,
+     no solo el código \(...\)/\[...\] en crudo. -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['\\[', '\\]']]
+    },
+    startup: {
+      typeset: false
+    }
+  };
+</script>
+<script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+
+<div class="wrap">
+  <header class="tool-head">
+    <span class="eyebrow">Bitácora Verde — herramienta interna</span>
+    <h1>Conversor a Git Page (con LaTeX)</h1>
+    <p>Para el flujo nuevo: pegás acá el Markdown que copiaste <strong>directo del bloque de código de NotebookLM</strong>, sin pasar por Google Docs. Los bloques <code>\[...\]</code> y <code>\(...\)</code> quedan intactos en el HTML para que MathJax los renderice en el navegador. <code>## Guía de imágenes</code> se excluye siempre. <code>[IMAGEN N]</code> se deja tal cual, para reemplazo manual.</p>
+  </header>
+
+  <fieldset class="mode-row" id="mode-row">
+    <legend>Preguntas / Vacíos del conocimiento</legend>
+    <label class="mode-opt">
+      <input type="radio" name="modo-preguntas" value="excluir" checked>
+      <span>Excluir (guardarlas para mí, no publicar)</span>
+    </label>
+    <label class="mode-opt">
+      <input type="radio" name="modo-preguntas" value="conservar">
+      <span>Conservar al final del artículo</span>
+    </label>
+  </fieldset>
+
+  <div id="notice" class="notice">
+    <div>
+      <strong>Sección interna excluida</strong>
+      <span id="notice-text"></span>
+    </div>
+  </div>
+
+  <div class="panels">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Markdown de entrada</h2>
+      </div>
+      <textarea id="input" placeholder="Pegá acá el artículo completo tal como salió del bloque de código de NotebookLM (con \[...\] y \(...\) para las fórmulas) -- esta herramienta recorta lo que no va al sitio."></textarea>
+      <div class="actions">
+        <button class="btn-primary" id="btn-convert">Convertir</button>
+        <button class="btn-ghost" id="btn-clear">Limpiar</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Resultado</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="copied-flag" id="copied-flag">copiado ✓</span>
+          <button class="btn-ghost" id="btn-copy" disabled>Copiar HTML</button>
+        </div>
+      </div>
+      <div class="field-title" id="title-field" style="display:none;">
+        <label for="title-out">Título del post</label>
+        <input id="title-out" readonly>
+      </div>
+      <div class="tabs-row" id="tabs-row" style="display:none;">
+        <button class="tab-btn" data-tab="preview" aria-selected="true">Vista previa (con MathJax)</button>
+        <button class="tab-btn" data-tab="html" aria-selected="false">HTML</button>
+      </div>
+      <div class="output-body">
+        <div class="empty-state" id="empty-state">Pegá tu Markdown a la izquierda y dale a "Convertir". Esto reemplaza el contenido de <code>.post-body</code> en una copia de articulo-ejemplo.html.</div>
+        <div class="preview active" id="preview"></div>
+        <pre class="raw-html hidden" id="raw-html"></pre>
+      </div>
+      <div class="stat-row" id="stat-row" style="display:none;"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/"/g, '&quot;');
+  }
+
+  // ---- Protección de fórmulas LaTeX ----
+  // A diferencia del flujo de Google Docs, acá el Markdown NO se desescapa
+  // (no hace falta: no pasó por Docs, así que "\[", "\(", "\_" etc. son
+  // literales reales de LaTeX, no escapes de exportación). El riesgo es el
+  // opuesto: que el resto del parser (negrita "**", cursiva "*"/"_", etc.)
+  // le meta mano a texto que en realidad es matemática -- ej. "v_x" o un "*"
+  // suelto como multiplicación dentro de \(...\). Por eso cada bloque
+  // \[...\] o \(...\) se saca ANTES de tocar el texto con esas reglas, se
+  // guarda tal cual, y se reinserta (solo con escapeHtml, nunca con inline)
+  // al final -- así MathJax recibe exactamente lo que escribió NotebookLM.
+  var RX_MATH = /\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)/g;
+  var RX_PLACEHOLDER = / MATH(\d+) /g;
+
+  function protegerMath(raw, registro) {
+    return raw.replace(RX_MATH, function (m) {
+      registro.push(m);
+      return ' MATH' + (registro.length - 1) + ' ';
+    });
+  }
+  function restaurarMath(html, registro) {
+    return html.replace(RX_PLACEHOLDER, function (m, idx) {
+      return escapeHtml(registro[Number(idx)]);
+    });
+  }
+
+  function inline(raw) {
+    var maths = [];
+    var t = escapeHtml(protegerMath(raw, maths));
+    t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+    t = t.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (m, alt, url) {
+      return '<img src="' + url + '" alt="' + escapeAttr(alt) + '" loading="lazy">';
+    });
+    t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, txt, url) {
+      var externo = /^https?:\/\//.test(url);
+      return '<a href="' + url + '"' + (externo ? ' target="_blank" rel="noopener"' : '') + '>' + txt + '</a>';
+    });
+    t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    t = t.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    t = t.replace(/(^|[^A-Za-z0-9_])_([^_\n]+)_(?![A-Za-z0-9_])/g, '$1<em>$2</em>');
+    return restaurarMath(t, maths);
+  }
+
+  // "Guía de imágenes" se excluye siempre. "Preguntas / Vacíos del
+  // conocimiento" se excluye o se conserva según lo que elija Elvis. Mismas
+  // reglas exactas que 05-conversor-a-blogger-backup.html.
+  var RX_GUIA = /^##\s+gu[ií]a\s+de\s+im[aá]genes/i;
+  var RX_PREGUNTAS = /^##\s+preguntas\s*(\/|y)?\s*vac[ií]os\s+del\s+conocimiento/i;
+  var RX_REFERENCIAS = /^##\s+referencias\s*$/i;
+
+  function claveOrdenReferencia(texto) {
+    return texto
+      .replace(/^\s*[-*+]\s+/, '')
+      .replace(/^[\s*"“'']+/, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  function ordenarReferencias(lineasCrudas) {
+    var idxInicio = -1;
+    for (var i = 0; i < lineasCrudas.length; i++) {
+      if (RX_REFERENCIAS.test(lineasCrudas[i].trim())) { idxInicio = i; break; }
+    }
+    if (idxInicio === -1) return lineasCrudas;
+
+    var idxFin = lineasCrudas.length;
+    for (var j = idxInicio + 1; j < lineasCrudas.length; j++) {
+      var t = lineasCrudas[j].trim();
+      if (/^##\s+\S/.test(t) || /^-{3,}\s*$/.test(t)) { idxFin = j; break; }
+    }
+
+    var bloque = lineasCrudas.slice(idxInicio + 1, idxFin);
+    while (bloque.length && bloque[0].trim() === '') bloque.shift();
+    while (bloque.length && bloque[bloque.length - 1].trim() === '') bloque.pop();
+    if (!bloque.length) return lineasCrudas;
+
+    var esBullet = /^\s*[-*+]\s+/.test(bloque[0]);
+    var entradas = [];
+
+    if (esBullet) {
+      bloque.forEach(function (linea) {
+        if (linea.trim() !== '') entradas.push(linea);
+      });
+    } else {
+      var actual = [];
+      bloque.forEach(function (linea) {
+        if (linea.trim() === '') {
+          if (actual.length) { entradas.push(actual.join('\n')); actual = []; }
+        } else {
+          actual.push(linea);
+        }
+      });
+      if (actual.length) entradas.push(actual.join('\n'));
+    }
+
+    entradas.sort(function (a, b) {
+      return claveOrdenReferencia(a).localeCompare(claveOrdenReferencia(b), 'es', { sensitivity: 'base' });
+    });
+
+    var resultado = [];
+    entradas.forEach(function (e, idx) {
+      resultado = resultado.concat(e.split('\n'));
+      if (!esBullet && idx < entradas.length - 1) resultado.push('');
+    });
+
+    return lineasCrudas.slice(0, idxInicio + 1).concat(['']).concat(resultado).concat(lineasCrudas.slice(idxFin));
+  }
+
+  function esSeparadorTabla(l) {
+    return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l);
+  }
+  function partirFila(l) {
+    var f = l.trim();
+    if (f.startsWith('|')) f = f.slice(1);
+    if (f.endsWith('|')) f = f.slice(0, -1);
+    return f.split('|').map(function (c) { return c.trim(); });
+  }
+
+  // Un bloque de párrafo es "matemática en bloque" si, una vez unido y sin
+  // espacios en los extremos, es EXCLUSIVAMENTE un \[...\] -- nada de texto
+  // antes o después. Ese caso se centra igual que el viejo blockquote de
+  // fórmula (ver .formula-latex en css/styles.css); cualquier \(...\) o
+  // \[...\] que aparezca metido dentro de una oración normal sigue el
+  // camino de párrafo normal vía inline() -- MathJax igual lo renderiza en
+  // su estilo de bloque si es \[...\], solo que sin el centrado extra.
+  var RX_SOLO_DISPLAY = /^\\\[[\s\S]*\\\]$/;
+
+  // Lista de definiciones para el bloque "**Donde:**" que sigue a una
+  // fórmula -- misma idea que 05-conversor-a-blogger-backup.html, pero acá
+  // el símbolo de cada viñeta viene envuelto en \(...\) (ej. "**\(C_d\)**:
+  // coeficiente de arrastre"), así que inline() ya lo protege y MathJax lo
+  // renderiza -- no hace falta generar <sub> a mano.
+  function construirListaDefiniciones(items) {
+    var lis = items.map(function (it) {
+      var m = it.match(/^<strong>([\s\S]+?)<\/strong>\s*[:—-]?\s*([\s\S]*)$/);
+      if (!m || !m[2].trim()) {
+        return '<li style="margin:0 0 0.5em;">' + it + '</li>';
+      }
+      return '<li style="display:flex;gap:10px;align-items:baseline;margin:0 0 0.5em;list-style:none;">' +
+        '<strong style="min-width:70px;flex-shrink:0;">' + m[1] + '</strong>' +
+        '<span>' + m[2] + '</span></li>';
+    });
+    return '<ul style="padding-left:0;margin:0.8em 0 1.2em;">' + lis.join('') + '</ul>';
+  }
+
+  function esParrafoDonde(ultimoOut) {
+    return /^<p>\s*<strong>\s*Donde\s*:?\s*<\/strong>\s*:?\s*<\/p>$/i.test((ultimoOut || '').trim());
+  }
+
+  function mdALinea(md, conservarPreguntas) {
+    var lineasCrudas = md.replace(/\r\n/g, '\n').split('\n');
+    lineasCrudas = ordenarReferencias(lineasCrudas);
+
+    function idxDe(rx) {
+      for (var k = 0; k < lineasCrudas.length; k++) {
+        if (rx.test(lineasCrudas[k].trim())) return k;
+      }
+      return -1;
+    }
+
+    var idxGuia = idxDe(RX_GUIA);
+    var idxPreguntas = idxDe(RX_PREGUNTAS);
+
+    var excluidasTotal = [];
+    var lineas;
+
+    if (conservarPreguntas) {
+      if (idxGuia !== -1) {
+        var finGuia = lineasCrudas.length;
+        for (var g = idxGuia + 1; g < lineasCrudas.length; g++) {
+          if (/^##\s+\S/.test(lineasCrudas[g].trim())) { finGuia = g; break; }
+        }
+        excluidasTotal = lineasCrudas.slice(idxGuia, finGuia);
+        lineas = lineasCrudas.slice(0, idxGuia).concat(lineasCrudas.slice(finGuia));
+      } else {
+        lineas = lineasCrudas;
+      }
+    } else {
+      var candidatos = [idxGuia, idxPreguntas].filter(function (v) { return v !== -1; });
+      var idxCorte = candidatos.length ? Math.min.apply(null, candidatos) : -1;
+      if (idxCorte !== -1) {
+        excluidasTotal = lineasCrudas.slice(idxCorte);
+        lineas = lineasCrudas.slice(0, idxCorte);
+      } else {
+        lineas = lineasCrudas;
+      }
+    }
+
+    var corteInfo = null;
+    if (excluidasTotal.length) {
+      var tituloSeccion = excluidasTotal[0].replace(/^##\s+/, '').trim();
+      corteInfo = { titulo: tituloSeccion, lineas: excluidasTotal.filter(function (l) { return l.trim() !== ''; }).length, multiple: conservarPreguntas ? false : (idxGuia !== -1 && idxPreguntas !== -1) };
+    }
+
+    while (lineas.length && lineas[lineas.length - 1].trim() === '') lineas.pop();
+    while (lineas.length && lineas[0].trim() === '') lineas.shift();
+
+    var titulo = null;
+    if (lineas.length && /^#{1,2}\s+\S/.test(lineas[0])) {
+      titulo = lineas[0].replace(/^#{1,2}\s+/, '').trim();
+      lineas.shift();
+    }
+
+    var out = [];
+    var i = 0;
+    var n = lineas.length;
+    var enReferencias = false;
+
+    function esBlanco(l) { return l.trim() === ''; }
+    function esBloqueNuevo(l) {
+      return esBlanco(l) ||
+        /^#{2,4}\s+/.test(l) ||
+        /^\s*[-*+]\s+/.test(l) ||
+        /^\s*\d+\.\s+/.test(l) ||
+        /^(-{3,}|\*{3,}|_{3,})\s*$/.test(l.trim()) ||
+        (/^\s*\|.*\|\s*$/.test(l));
+    }
+
+    while (i < n) {
+      var linea = lineas[i];
+      if (esBlanco(linea)) { i++; continue; }
+
+      if (/^(-{3,}|\*{3,}|_{3,})\s*$/.test(linea.trim())) {
+        out.push('<hr>');
+        i++; continue;
+      }
+
+      var hMatch = linea.match(/^(#{2,4})\s+(.*)$/);
+      if (hMatch) {
+        var nivel = hMatch[1].length;
+        enReferencias = RX_REFERENCIAS.test(linea.trim());
+        out.push('<h' + nivel + '>' + inline(hMatch[2].trim()) + '</h' + nivel + '>');
+        i++; continue;
+      }
+
+      if (/^\s*[-*+]\s+/.test(linea)) {
+        var esDefiniciones = esParrafoDonde(out[out.length - 1]);
+        var uls = [];
+        while (i < n && /^\s*[-*+]\s+/.test(lineas[i])) {
+          uls.push(inline(lineas[i].replace(/^\s*[-*+]\s+/, '').trim()));
+          i++;
+        }
+        if (esDefiniciones) {
+          out.push(construirListaDefiniciones(uls));
+        } else {
+          var claseLi = enReferencias ? ' class="referencia"' : '';
+          out.push('<ul>' + uls.map(function (it) { return '<li' + claseLi + '>' + it + '</li>'; }).join('') + '</ul>');
+        }
+        continue;
+      }
+
+      if (/^\s*\d+\.\s+/.test(linea)) {
+        var ols = [];
+        while (i < n && /^\s*\d+\.\s+/.test(lineas[i])) {
+          ols.push(inline(lineas[i].replace(/^\s*\d+\.\s+/, '').trim()));
+          i++;
+        }
+        out.push('<ol>' + ols.map(function (it) { return '<li>' + it + '</li>'; }).join('') + '</ol>');
+        continue;
+      }
+
+      if (/^\s*\|.*\|\s*$/.test(linea) && i + 1 < n && esSeparadorTabla(lineas[i + 1])) {
+        var encabezados = partirFila(linea);
+        i += 2;
+        var filas = [];
+        while (i < n && /^\s*\|.*\|\s*$/.test(lineas[i])) {
+          filas.push(partirFila(lineas[i]));
+          i++;
+        }
+        var thead = '<thead><tr>' + encabezados.map(function (h) {
+          return '<th style="border:1px solid #dde4de;padding:8px 12px;text-align:left;background:#eaf0ec;color:#1a3c34;font-family:Sora,sans-serif;font-weight:600;">' + inline(h) + '</th>';
+        }).join('') + '</tr></thead>';
+        var tbody = '<tbody>' + filas.map(function (f) {
+          return '<tr>' + f.map(function (c) {
+            return '<td style="border:1px solid #dde4de;padding:8px 12px;text-align:left;vertical-align:top;">' + inline(c) + '</td>';
+          }).join('') + '</tr>';
+        }).join('') + '</tbody>';
+        out.push('<div class="tabla-scroll"><table class="tabla-datos" style="border-collapse:collapse;margin:1.4em 0;width:100%;">' + thead + tbody + '</table></div>');
+        continue;
+      }
+
+      var imgSola = linea.trim().match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+      if (imgSola) {
+        out.push('<img src="' + imgSola[2] + '" alt="' + escapeAttr(imgSola[1]) + '" loading="lazy">');
+        i++; continue;
+      }
+
+      var parr = [];
+      while (i < n && !esBloqueNuevo(lineas[i])) {
+        parr.push(lineas[i]);
+        i++;
+      }
+      if (parr.length) {
+        var textoParr = parr.join(' ').trim();
+        if (RX_SOLO_DISPLAY.test(textoParr)) {
+          out.push('<p class="formula-latex">' + escapeHtml(textoParr) + '</p>');
+        } else {
+          var claseP = enReferencias ? ' class="referencia"' : '';
+          out.push('<p' + claseP + '>' + inline(textoParr) + '</p>');
+        }
+      }
+    }
+
+    return { titulo: titulo, html: out.join('\n'), corte: corteInfo };
+  }
+
+  var $input = document.getElementById('input');
+  var $btnConvert = document.getElementById('btn-convert');
+  var $btnClear = document.getElementById('btn-clear');
+  var $btnCopy = document.getElementById('btn-copy');
+  var $copiedFlag = document.getElementById('copied-flag');
+  var $titleField = document.getElementById('title-field');
+  var $titleOut = document.getElementById('title-out');
+  var $tabsRow = document.getElementById('tabs-row');
+  var $emptyState = document.getElementById('empty-state');
+  var $preview = document.getElementById('preview');
+  var $rawHtml = document.getElementById('raw-html');
+  var $statRow = document.getElementById('stat-row');
+  var $notice = document.getElementById('notice');
+  var $noticeText = document.getElementById('notice-text');
+
+  var lastHtml = '';
+
+  function tipografiar() {
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise([$preview]).catch(function (e) { console.error(e); });
+    }
+  }
+
+  function setTab(tab) {
+    var buttons = $tabsRow.querySelectorAll('.tab-btn');
+    buttons.forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === tab)); });
+    $preview.classList.toggle('active', tab === 'preview');
+    $rawHtml.classList.toggle('hidden', tab !== 'html');
+    if (tab === 'preview') tipografiar();
+  }
+
+  $tabsRow.addEventListener('click', function (e) {
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    setTab(btn.dataset.tab);
+  });
+
+  function convertir() {
+    var md = $input.value;
+    if (!md.trim()) return;
+    var conservarPreguntas = document.querySelector('input[name="modo-preguntas"]:checked').value === 'conservar';
+    var r = mdALinea(md, conservarPreguntas);
+    lastHtml = r.html;
+
+    $emptyState.style.display = 'none';
+    $tabsRow.style.display = 'flex';
+    $btnCopy.disabled = false;
+
+    if (r.titulo) {
+      $titleField.style.display = 'block';
+      $titleOut.value = r.titulo;
+    } else {
+      $titleField.style.display = 'none';
+    }
+
+    $rawHtml.textContent = lastHtml;
+    $preview.innerHTML = lastHtml;
+    setTab('preview');
+
+    var palabras = md.trim().split(/\s+/).length;
+    $statRow.style.display = 'flex';
+    $statRow.innerHTML = '<span><b>' + palabras.toLocaleString('es') + '</b> palabras de entrada</span>' +
+      '<span><b>' + lastHtml.length.toLocaleString('es') + '</b> caracteres de HTML</span>';
+
+    if (r.corte) {
+      var extra = r.corte.multiple ? ' (y, si venía después, "Preguntas / Vacíos del conocimiento" también)' : '';
+      $noticeText.textContent = 'Se encontró "' + r.corte.titulo + '"' + extra + ' (~' + r.corte.lineas + ' líneas) y se excluyó del HTML — no se publica.' + (conservarPreguntas ? ' "Preguntas / Vacíos del conocimiento" sí se conservó, como elegiste arriba.' : '');
+      $notice.classList.add('show');
+    } else {
+      $notice.classList.remove('show');
+    }
+  }
+
+  document.getElementById('mode-row').addEventListener('change', function () {
+    if (lastHtml) convertir();
+  });
+
+  $btnConvert.addEventListener('click', convertir);
+  $btnClear.addEventListener('click', function () {
+    $input.value = '';
+    $input.focus();
+  });
+
+  $btnCopy.addEventListener('click', function () {
+    if (!lastHtml) return;
+    navigator.clipboard.writeText(lastHtml).then(function () {
+      $copiedFlag.classList.add('show');
+      setTimeout(function () { $copiedFlag.classList.remove('show'); }, 1400);
+    });
+  });
+})();
+</script>

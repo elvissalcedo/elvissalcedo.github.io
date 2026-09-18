@@ -1,0 +1,21 @@
+Vas a redactar un artículo de divulgación para mi sitio "Elvis Salcedo | Ingeniería Ambiental". Sigue EXACTAMENTE las reglas del documento "Instrucciones de síntesis". Antes de escribir, repasa esta lista de errores ya cometidos que NO se deben repetir:
+
+Identifica mi dosier SOLO por su segunda línea en cursiva: "Sub-tema TEMA-XXXX -- tema padre: ..." (siempre presente). Es la fuente principal; cualquier otra (radar, PDFs sueltos) es solo apoyo. Si ninguna fuente trae esa línea, o hay más de una, avísame antes de seguir.
+Español neutro: usa siempre "tú" (nunca "vos" ni "tenés", "sentís", "encendés" -- voseo rioplatense). Sin jerga marcada de ningún país.
+Citas: PROHIBIDO corchetes [1], [8]. Todo en APA 7: (Apellido, año) o (Apellido, s. f.). Nunca "&", siempre "y". Con 3+ autores, "Apellido et al." desde la primera cita. Varias obras juntas: orden alfabético, separadas por punto y coma.
+Nunca fusiones dos fuentes en una cita salvo publicación conjunta confirmada. Si el original mezcla títulos o autores de forma ambigua (con "/"), repórtalo como "fuente ambigua" -- no inventes autoría conjunta.
+Sin autor identificable: nunca "Autor Desconocido" -- cita por el título entre comillas; en Referencias, el título va en cursiva sin autor.
+Markdown plano: un solo "# " para el título, "## "/"### " para subtítulos. Negrita con moderación. Toda fórmula y toda notación matemática suelta va en LaTeX real: bloque envuelto en \[ ... \], inline envuelto en \( ... \). Nunca símbolos Unicode de fracción o subíndice.
+Estructura: Gancho → Analogía → Desarrollo técnico → Conflicto/complejidad → Digresión filosófica/psicológica/conductual → Cierre → Referencias. No omitas la digresión si el tema lo permite.
+Imágenes: en el cuerpo deja siempre [IMAGEN N — título], nunca ![...](...)
+(la ruta local no sirve en el sitio). Revisa TODAS las imágenes reales del dosier primero: si alguna aplica, la Guía dice "REAL: ruta.png" más el pie de foto APA limpio ("Fuente: Autor (Año).", sin "-- referencia [N]"). Si ninguna aplica, da término de búsqueda (inglés, Unsplash/Pexels/Pixabay) más un prompt de IA de respaldo. Pocas imágenes (2 a 4).
+"Preguntas / Vacíos del conocimiento": máximo 5 puntos, lista plana sin subcategorías, mismo tono narrativo.
+No incluyas códigos internos (como "TEMA-0007") en el cuerpo.
+Tablas: si es información genuinamente tabular, consérvala como tabla Markdown real, no la aplanes a lista.
+Tu trabajo es de FORMA, no de contenido: reordena y redacta con arco narrativo profesional, pero NUNCA agregues cifras, autores o datos que no vengan de las fuentes. Sigue cada regla al pie de la letra, sin omitir ninguna.
+
+TEMA de este artículo (opcional): [opcional]
+
+Antes de entregarme el texto: ¿cada dato técnico tiene fuente rastreable? ¿quedó "&", corchete numerado, autores fusionados sin confirmar, voseo, o algún símbolo Unicode de fórmula colado en vez de LaTeX? Corrígelo tú mismo antes de mostrármelo.
+
+Entrega tu respuesta dividida en varios mensajes de chat, pero me dices cuanto etapas serán en el orden natural de la estructura (Gancho → Analogía → Desarrollo técnico → Conflicto/complejidad → Digresión → Cierre → Referencias → Guía de imágenes → Preguntas). Vos decidís en cuántos mensajes dividirlo, según cuánto contenido real tengas para este tema puntual — la única regla dura es que nunca comprimas ni resumas contenido para que entre en menos mensajes. Después de cada mensaje, esperá que yo escriba "continuar" antes de mandar el siguiente.
