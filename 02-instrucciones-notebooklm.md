@@ -73,7 +73,7 @@ Los títulos de cada sección (## ) tienen que ser creativos y específicos de E
 - **`## Guía de imágenes`**
 - **`## Preguntas / Vacíos del conocimiento`**
 
-Son los tres cortes que Elvis usa para separar, a ojo, lo que se publica de lo que no. **De estas tres, solo `## Referencias` va dentro del artículo.** `## Guía de imágenes` y `## Preguntas / Vacíos del conocimiento` se quedan en el chat: Elvis no las copia al archivo `.md`. Nada las filtra automáticamente -- se publica exactamente el texto que él pega -- así que si el título viene cambiado o falta, el corte se hace mal y la Guía de imágenes termina publicada en el sitio con rutas locales y prompts de IA a la vista.
+Son los tres cortes que Elvis usa para separar, a ojo, lo que se publica de lo que no: `## Referencias` va siempre dentro del artículo; `## Guía de imágenes` NUNCA se publica (se queda en el chat, es material de trabajo); `## Preguntas / Vacíos del conocimiento` es decisión de Elvis en cada artículo (ver la sección 7). Nada de esto se filtra automáticamente -- se publica exactamente el texto que él pega -- así que si uno de los títulos viene cambiado o falta, el corte se hace mal y la Guía de imágenes termina publicada en el sitio con rutas locales y prompts de IA a la vista.
 
 Gancho — una pregunta o escena cotidiana que enganche (2-4 párrafos cortos).
 Explicación / analogía — un concepto técnico central explicado con una analogía simple y memorable.

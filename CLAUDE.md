@@ -41,10 +41,12 @@ web de github.com.
   `<figure class="post-figure">` que la Guía de imágenes ya dejó armado,
   completando la ruta `/assets/imagenes/<slug>/<archivo>`, sube las
   imágenes a esa misma carpeta con **Add file → Upload files**, y confirma
-  el commit a `main`. **Lo que NO se pega:** las secciones
-  `## Guía de imágenes` y `## Preguntas / Vacíos del conocimiento` se
-  quedan en el chat de NotebookLM -- nada las filtra, se publica
-  exactamente el texto pegado. Jekyll arma solo el índice, el menú de
+  el commit a `main`. **Lo que NO se pega:** la sección
+  `## Guía de imágenes` se queda siempre en el chat de NotebookLM (es
+  material de trabajo, trae rutas locales y prompts); `## Preguntas /
+  Vacíos del conocimiento` se publica o no según el artículo -- el del
+  Venturi la publica. Nada de esto se filtra solo: se publica exactamente
+  el texto pegado. Jekyll arma solo el índice, el menú de
   categorías y la plantilla del artículo -- no hay que tocar `index.html`
   ni ningún otro archivo a mano. Editar o borrar un artículo publicado es
   abrir su `.md` y usar el lápiz o el tacho del editor web, igual que con

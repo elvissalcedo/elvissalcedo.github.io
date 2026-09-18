@@ -18,6 +18,6 @@ TEMA de este artículo (opcional): [opcional]
 
 Antes de entregarme el texto: ¿cada dato técnico tiene fuente rastreable? ¿quedó "&", corchete numerado, autores fusionados sin confirmar, voseo, o algún símbolo Unicode de fórmula colado en vez de LaTeX? Corrígelo tú mismo antes de mostrármelo.
 
-Al pegar: solo el front matter, el cuerpo y "## Referencias" van al archivo .md. "## Guía de imágenes" y "## Preguntas / Vacíos del conocimiento" se quedan en el chat -- nada las filtra automáticamente, se publica tal cual lo que yo pegue, así que esos 3 títulos tienen que venir escritos letra por letra para poder cortar bien.
+Al pegar: el front matter, el cuerpo y "## Referencias" van al archivo .md; "## Guía de imágenes" nunca se publica, se queda en el chat; "## Preguntas / Vacíos del conocimiento" la publico o no según el artículo. Nada de eso se filtra automáticamente, se publica tal cual lo que yo pegue, así que esos 3 títulos tienen que venir escritos letra por letra para poder cortar bien.
 
 Entrega tu respuesta dividida en varios mensajes de chat, pero me dices cuanto etapas serán en el orden natural de la estructura (Gancho → Analogía → Desarrollo técnico → Conflicto/complejidad → Digresión → Cierre → Referencias → Guía de imágenes → Preguntas). Tú decides en cuántos mensajes dividirlo, según cuánto contenido real tengas para este tema puntual — la única regla dura es que nunca comprimas ni resumas contenido para que entre en menos mensajes. Después de cada mensaje, espera a que yo escriba "continuar" antes de mandar el siguiente.
