@@ -406,9 +406,9 @@ blockquote {
 /* ==========================================================================
    ÍNDICE FLOTANTE (tabla de contenidos del artículo)
    <nav class="toc"> lateral, listando los <h2> del post-body -- se arma y
-   se resalta (scroll-spy) con JS vanilla, ver js/toc.js. En pantallas
-   angostas se queda arriba del artículo, en vez de flotar (no hay espacio
-   lateral para eso en celular).
+   se resalta (scroll-spy) con JS vanilla, ver assets/js/articulo.js. En
+   pantallas angostas se queda arriba del artículo, en vez de flotar (no hay
+   espacio lateral para eso en celular).
    ========================================================================== */
 .toc {
   font: 500 13px 'Sora', sans-serif;
