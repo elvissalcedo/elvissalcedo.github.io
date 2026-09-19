@@ -165,6 +165,19 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-19: corrige el artículo de biofiltros publicado -- las 3 imágenes se
+  habían subido sueltas en `assets/imagenes/` en vez de la subcarpeta
+  `assets/imagenes/fitorremediacion-biofiltros-agua/` que pide el `.md`, se
+  mueven a su ruta correcta; los bloques `\[ ... \]` de Cálculo 1 y Cálculo 2
+  tenían un `<br>` metido adentro del LaTeX (MathJax no procesa HTML dentro de
+  `\[ \]`), se separan en dos bloques independientes; y un guion bajo repetido
+  en el mismo párrafo (`\text{Carga}_{...}`, `\text{DBO}_5`/`C_{\text{entrada}}`/
+  `E_{\text{DBO}_5}`) hacía que kramdown lo interpretara como cursiva y lo
+  convirtiera en `<em>`, corrompiendo la fórmula igual aunque el `<br>` ya
+  estuviera afuera -- se escapa como `\_` (escape estándar de Markdown, no el
+  bug de paréntesis/corchetes). De paso, `reactor-poae-electroquimica.png` baja
+  de 3.9 MB a 273 KB (foto de cámara sin redimensionar, mismo criterio que
+  `hero-banner`).
 - 2026-09-19: `02-instrucciones-notebooklm.md` corrige dos errores reales del
   artículo de biofiltros -- la sección 6 exige copiar el `[N, p. X]` de una
   imagen EXACTO tal como aparece en el dosier (nunca reconstruirlo de memoria,

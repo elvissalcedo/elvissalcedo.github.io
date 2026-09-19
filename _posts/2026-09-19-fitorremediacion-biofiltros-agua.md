@@ -52,7 +52,9 @@ Para un biofiltro acuático proyectado con una superficie de espejo de agua \\(A
 
 Sustituyendo los valores operativos:
 
-\\[ \text{Carga}_{\text{DBO, máx}} = 112\ \frac{\text{kg DBO}_5}{\text{ha} \cdot \text{día}} \cdot 1.0\ \text{ha} <br> \text{Carga}_{\text{DBO, máx}} = 112\ \frac{\text{kg DBO}_5}{\text{día}} \\]
+\\[ \text{Carga}\_{\text{DBO, máx}} = 112\ \frac{\text{kg DBO}_5}{\text{ha} \cdot \text{día}} \cdot 1.0\ \text{ha} \\]
+<br>
+\\[ \text{Carga}\_{\text{DBO, máx}} = 112\ \frac{\text{kg DBO}_5}{\text{día}} \\]
 
 Donde:
 - \\( \text{Carga}_{\text{DBO, máx}} \\): carga orgánica máxima diaria admisible por la unidad de biofiltro (\\(\text{kg DBO}_5/\text{día}\\)).
@@ -61,13 +63,15 @@ Donde:
 
 ### Cálculo 2: Concentración remanente de DBO₅ en el efluente y verificación normativa
 
-Los sistemas de biofiltración alcanzan eficiencias globales de remoción de \\(\text{DBO}_5\\) entre \\(60\%\\) y \\(80\%\\), de Sólidos Suspendidos Totales (SST) entre \\(50\%\\) y \\(90\%\\), y de Nitrógeno superior al \\(80\%\\) (Herrera Velásquez y Rey Calderón, 2018). Asumiendo una concentración de entrada \\(C_{\text{entrada}} = 40.0\ \text{mg/L}\\) de \\(\text{DBO}_5\\) y una eficiencia media de remoción \\(E_{\text{DBO}_5} = 75.0\%\\):
+Los sistemas de biofiltración alcanzan eficiencias globales de remoción de \\(\text{DBO}\_5\\) entre \\(60\%\\) y \\(80\%\\), de Sólidos Suspendidos Totales (SST) entre \\(50\%\\) y \\(90\%\\), y de Nitrógeno superior al \\(80\%\\) (Herrera Velásquez y Rey Calderón, 2018). Asumiendo una concentración de entrada \\(C\_{\text{entrada}} = 40.0\ \text{mg/L}\\) de \\(\text{DBO}\_5\\) y una eficiencia media de remoción \\(E\_{\text{DBO}\_5} = 75.0\%\\):
 
 \\[ C_{\text{salida}} = C_{\text{entrada}} \cdot \left(1 - \frac{E_{\text{DBO}_5}}{100}\right) \\]
 
 Sustituyendo numéricamente paso a paso:
 
-\\[ C_{\text{salida}} = 40.0\ \frac{\text{mg}}{\text{L}} \cdot \left(1 - \frac{75.0}{100}\right) <br> C_{\text{salida}} = 40.0\ \frac{\text{mg}}{\text{L}} \cdot 0.25 = 10.0\ \frac{\text{mg}}{\text{L}} \\]
+\\[ C_{\text{salida}} = 40.0\ \frac{\text{mg}}{\text{L}} \cdot \left(1 - \frac{75.0}{100}\right) \\]
+<br>
+\\[ C_{\text{salida}} = 40.0\ \frac{\text{mg}}{\text{L}} \cdot 0.25 = 10.0\ \frac{\text{mg}}{\text{L}} \\]
 
 Donde:
 - \\( C_{\text{salida}} \\): concentración remanente de \\(\text{DBO}_5\\) en el efluente tratado (\\(\text{mg/L}\\)).
