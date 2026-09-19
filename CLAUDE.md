@@ -165,6 +165,15 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-19: `02-instrucciones-notebooklm.md` suma dos reglas nuevas en la
+  sección de formato de fórmulas, a partir de los dos bugs reales del
+  artículo de biofiltros -- prohíbe explícitamente cualquier etiqueta HTML
+  (`<br>`, `<strong>`) dentro de un bloque `\\[ \\]`/`\\( \\)` (cada paso de
+  sustitución en forma de fórmula va en su propio bloque, separado por línea
+  en blanco) y exige escapar el guion bajo de subíndice pegado a `\text{...}`
+  (`\text{Carga}\_{...}`) para que kramdown no lo lea como cursiva. Suma
+  también un ítem de doble verificación específica al checklist de la
+  sección 8.
 - 2026-09-19: corrige el artículo de biofiltros publicado -- las 3 imágenes se
   habían subido sueltas en `assets/imagenes/` en vez de la subcarpeta
   `assets/imagenes/fitorremediacion-biofiltros-agua/` que pide el `.md`, se
