@@ -165,6 +165,14 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-19: `02-instrucciones-notebooklm.md` corrige dos errores reales del
+  artículo de biofiltros -- la sección 6 exige copiar el `[N, p. X]` de una
+  imagen EXACTO tal como aparece en el dosier (nunca reconstruirlo de memoria,
+  ni mezclar el autor de una entrada con la página de otra) y la sección 3
+  exige citar decretos/normas legales con el organismo emisor como autor
+  (nunca el código del decreto suelto) y agregar SIEMPRE su entrada en
+  Referencias aunque el dosier no lo liste como `[HECHO-N]`. Suma los dos
+  ítems correspondientes al checklist de la sección 8.
 - 2026-09-19: `02-instrucciones-notebooklm.md`, análisis de arquitecto de punta
   a punta -- eleva la regla de `[HECHO-N]` y las imágenes-como-fuente a la
   sección 2 (Jerarquía de fuentes), suma 3 ítems al checklist final de la
