@@ -165,6 +165,19 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-19: `02-instrucciones-notebooklm.md`, análisis de arquitecto de punta
+  a punta -- eleva la regla de `[HECHO-N]` y las imágenes-como-fuente a la
+  sección 2 (Jerarquía de fuentes), suma 3 ítems al checklist final de la
+  sección 8 (autor real por `[HECHO-N]`, apartarse del orden del dosier,
+  imágenes de texto revisadas) para que no queden solo mencionados y nunca
+  verificados, agrega reglas contra desarrollar una fórmula propia y contra
+  heredar el tono institucional del dosier, y permiso explícito de que
+  reordenar hechos no es un riesgo de inventar contenido. Elvis confirmó que
+  limpia el chat de NotebookLM antes de cada artículo nuevo, así que se
+  reformulan las reglas anti-repetición (títulos, tablas, digresión, mensaje
+  de estructura) que asumían memoria entre artículos -- pasan a ser
+  autochequeos dentro del artículo actual; esa misma corrección se aplicó a
+  dos reglas que se habían agregado en el mismo commit por el mismo motivo.
 - 2026-09-18: `02-instrucciones-notebooklm.md` corrige dos fallas reales de
   NotebookLM -- la sección 4 agrega la regla "no calques el orden del dosier"
   (el orden de ficha técnica del dosier no es un orden narrativo, y el
