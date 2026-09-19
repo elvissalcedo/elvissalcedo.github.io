@@ -165,6 +165,17 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: la sección 4 de `02-instrucciones-notebooklm.md` reemplaza el
+  menú fijo de 7 bloques (Gancho, Explicación/analogía, Desarrollo técnico,
+  Conflicto/complejidad, Digresión conectada, Cierre, Referencias) por
+  reglas concretas contra el "efecto fábrica" (nada de muletillas repetidas,
+  variar largo de párrafo y sintaxis, no repetir cantidad de subtítulos,
+  tabla solo si aporta, chequeo final de que no se parezca a los últimos
+  artículos) -- la estructura ya no se elige de una lista, la determina el
+  dosier de cada artículo. Se mantienen intactas la regla de títulos
+  creativos y la excepción de los 3 títulos fijos (`## Referencias`,
+  `## Guía de imágenes`, `## Preguntas / Vacíos del conocimiento`), que las
+  secciones 6 y 7 siguen usando tal cual.
 - 2026-09-18: la estructura narrativa deja de ser un esqueleto fijo -- la
   sección 4 de `02-instrucciones-notebooklm.md` lista 7 bloques posibles (solo
   Desarrollo técnico y Referencias obligatorios) y NotebookLM manda antes un
