@@ -165,6 +165,12 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: la sección 3 de `02-instrucciones-notebooklm.md` aclara que el
+  sistema `[HECHO-N]` del dosier siempre tiene un autor real y rastreable en
+  su propia lista de Referencias -- la regla de "sin autor identificable,
+  cita por el título" nunca aplica al dosier en sí mismo. Corrige un error
+  real encontrado en un artículo: 68 autocitas al título del dosier tratado
+  como autor anónimo.
 - 2026-09-18: la sección 4 de `02-instrucciones-notebooklm.md` reemplaza el
   menú fijo de 7 bloques (Gancho, Explicación/analogía, Desarrollo técnico,
   Conflicto/complejidad, Digresión conectada, Cierre, Referencias) por
