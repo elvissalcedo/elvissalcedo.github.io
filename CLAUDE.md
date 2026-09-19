@@ -165,6 +165,16 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-18: `02-instrucciones-notebooklm.md` corrige dos fallas reales de
+  NotebookLM -- la sección 4 agrega la regla "no calques el orden del dosier"
+  (el orden de ficha técnica del dosier no es un orden narrativo, y el
+  mensaje corto de estructura debe explicar en qué se aparta de él) y la
+  sección 6 aclara que una imagen de página de texto es fuente de contenido
+  a leer e incorporar al Desarrollo técnico, no solo una opción para la Guía
+  de imágenes. De paso se corrige voseo preexistente en la sección 4
+  ("planificá", "decidí vos", "buscá", "Variá", "alterná", "señalá", "hacé",
+  "cambiá", "mandale", "Esperá"), que violaba la regla de español neutro de
+  la sección 1.
 - 2026-09-18: la sección 3 de `02-instrucciones-notebooklm.md` aclara que el
   sistema `[HECHO-N]` del dosier siempre tiene un autor real y rastreable en
   su propia lista de Referencias -- la regla de "sin autor identificable,
