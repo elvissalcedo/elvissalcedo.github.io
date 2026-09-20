@@ -200,6 +200,13 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-20: `02-instrucciones-notebooklm.md` corrige la sección 6 (Guía de
+  imágenes) -- el `<img src>` de cada `<figure>` ya no lleva una ruta armada
+  (`/assets/imagenes/<slug>/<archivo>`), solo el nombre simple del archivo
+  (ej. `diagrama.jpg`), porque `publicar_articulo.py` arma la ruta final a
+  partir del nombre real de la carpeta de trabajo de Elvis y NotebookLM no
+  puede adivinarla. Encontrado por un error real: NotebookLM generó
+  `/_posts/articulos/lavador-venturi/diagrama.jpg`, una ruta que no existe.
 - 2026-09-20: `02-instrucciones-notebooklm.md` amplía el bloque de
   conflicto/complejidad de la sección 4 con reglas de pensamiento sistémico
   (interconexión, multicausalidad, dinámica temporal, bucles de
