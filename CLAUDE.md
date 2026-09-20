@@ -7,7 +7,9 @@ Ingeniería Ambiental" — publicado en GitHub Pages con Jekyll nativo
 Este repo es **el proyecto completo y autosuficiente**: instrucciones de
 redacción y el sitio en sí viven todos acá. Publicar un artículo nuevo no
 requiere terminal ni ningún build local -- se hace entero desde el editor
-web de github.com.
+web de github.com. Para cuando Elvis sí tiene el repo clonado (VS Code),
+hay además un script opcional que automatiza la organización de imágenes
+(`publicar_articulo.py`, ver la sección dedicada más abajo).
 
 ## El flujo de publicación (sin terminal)
 
@@ -56,6 +58,39 @@ web de github.com.
   ni ningún otro archivo a mano. Editar o borrar un artículo publicado es
   abrir su `.md` y usar el lápiz o el tacho del editor web, igual que con
   cualquier otro archivo del repo.
+
+## Alternativa con terminal: publicar_articulo.py
+
+- Cuando Elvis trabaja desde VS Code con el repo clonado (no siempre es el
+  editor web de github.com), `.github/scripts/publicar_articulo.py`
+  reemplaza los pasos manuales de armar a mano la ruta de cada imagen.
+  Elvis arma una única carpeta de trabajo con el .md del artículo y todas
+  sus imágenes juntas, con nombres simples (`esquema.jpg`, nunca una
+  ruta) -- convención sugerida: `_posts/articulos/<slug>/AAAA-MM-DD-slug.md`.
+  Los `<img src="archivo.jpg">` del cuerpo (y el `image:` del front
+  matter, si también es un nombre simple) se escriben sin pensar en
+  `/assets/imagenes/` ni en el slug final.
+- Se corre desde la raíz del repo: `python .github/scripts/publicar_articulo.py
+  _posts/articulos/<carpeta>`. Copia el .md a `_posts/`, copia las
+  imágenes a `assets/imagenes/<carpeta>/`, reescribe cada referencia de
+  imagen a su ruta real, imprime un resumen de qué copió y qué reescribió,
+  y hace `git add` + un commit local (`Publica artículo: <carpeta>`) --
+  nunca push, eso lo confirma Elvis siempre a mano.
+- Es todo o nada: para antes de copiar o reescribir nada si el nombre del
+  .md no empieza con `AAAA-MM-DD-`, si hay cero o más de un .md en la
+  carpeta, si la carpeta no tiene ninguna imagen, si un `<img src>` o una
+  imagen Markdown ya trae una ruta armada en vez de un nombre simple, o si
+  una imagen referenciada no está en la carpeta -- y explica cuál de estos
+  problemas encontró, en español simple.
+- `_posts/articulos/` está en el `exclude:` de `_config.yml` a propósito:
+  Jekyll reconoce como posts los archivos `AAAA-MM-DD-*.md` de cualquier
+  subcarpeta de `_posts/`, no solo los de la raíz, así que sin ese exclude
+  cualquier borrador que quede ahí adentro se publicaría dos veces -- la
+  copia real en `_posts/` y el original roto, con `<img src="archivo.jpg">`
+  sin resolver.
+- Es un agregado, no un reemplazo: el flujo sin terminal de la sección
+  anterior sigue funcionando igual para cuando Elvis publica desde el
+  editor web sin tener el repo clonado a mano.
 
 ## El sitio (Jekyll)
 
@@ -165,6 +200,15 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-20: agrega `.github/scripts/publicar_articulo.py` -- Elvis arma una
+  carpeta de trabajo con el .md y sus imágenes juntas, nombradas simple
+  (`esquema.jpg`, sin ruta), y el script copia el .md a `_posts/`, copia las
+  imágenes a `assets/imagenes/<carpeta>/`, reescribe cada `<img src>` (y el
+  `image:` del front matter) a su ruta real, y deja un commit local sin
+  push. `_posts/articulos/` se suma al `exclude:` de `_config.yml` porque
+  Jekyll también reconoce posts en subcarpetas de `_posts/`, no solo en la
+  raíz -- sin el exclude, cualquier borrador ahí adentro se publicaría dos
+  veces. Nueva sección "Alternativa con terminal" arriba.
 - 2026-09-20: `02-instrucciones-notebooklm.md` suma una regla a la sección 4
   (junto al mensaje corto de plan) que exige revisar TODAS las fuentes
   secundarias subidas al notebook -- no solo el dosier -- antes de proponer

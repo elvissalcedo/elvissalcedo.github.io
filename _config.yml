@@ -58,3 +58,9 @@ exclude:
   - Gemfile.lock
   - vendor
   - node_modules
+  # Carpetas de trabajo de publicar_articulo.py (ver .github/scripts/). Jekyll
+  # busca posts en subcarpetas de _posts/ tambien, asi que sin este exclude
+  # cualquier borrador con nombre AAAA-MM-DD-*.md ahi adentro se publicaria
+  # dos veces: una vez bien (la copia que hace el script en _posts/) y otra
+  # rota (el original, con <img src="archivo.jpg"> sin resolver).
+  - _posts/articulos
