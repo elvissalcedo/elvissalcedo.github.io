@@ -200,6 +200,12 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-20: `02-instrucciones-notebooklm.md` corrige la sección 5 -- el
+  `image:` del front matter usa SOLO el nombre simple del archivo (ej.
+  `diagrama.jpg`), no la ruta armada con slug adivinado
+  (`/assets/imagenes/[slug]/[archivo]`). Mismo criterio y mismo motivo que
+  la corrección de la sección 6 del commit anterior: `publicar_articulo.py`
+  reescribe ese campo solo cuando ya es un nombre simple.
 - 2026-09-20: `02-instrucciones-notebooklm.md` corrige la sección 6 (Guía de
   imágenes) -- el `<img src>` de cada `<figure>` ya no lleva una ruta armada
   (`/assets/imagenes/<slug>/<archivo>`), solo el nombre simple del archivo

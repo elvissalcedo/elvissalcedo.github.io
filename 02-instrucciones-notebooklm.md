@@ -133,11 +133,11 @@ Entrega el artículo en Markdown plano, exactamente así:
   date: AAAA-MM-DD
   category: [UNA de las 8, escrita exactamente así: Agua | Aire | Ruido | Suelo | Toxicología y Salud | Sostenibilidad y Energía | Gestión y Política | Filosofía y Decisión]
   excerpt: "[Una o dos oraciones que resuman el artículo: es el texto que se lee en la tarjeta de la portada, no una repetición del título.]"
-  image: /assets/imagenes/[slug-del-artículo]/[archivo de la IMAGEN 1]
+  image: [archivo de la IMAGEN 1]
   ---
   ```
 
-  `date` va con el placeholder `AAAA-MM-DD` tal cual -- tú no sabes qué día lo va a publicar Elvis, lo completa él. `category` tiene que ser una de las 8 de la lista, con esa ortografía exacta (tildes incluidas): si escribes una que no está, el artículo no aparece en ninguna página de categoría. `image` es la miniatura de la tarjeta en la portada: pon la ruta de la IMAGEN 1 del artículo con el mismo slug que uses en la Guía de imágenes; si el artículo no lleva ninguna imagen, borra esa línea entera.
+  `date` va con el placeholder `AAAA-MM-DD` tal cual -- tú no sabes qué día lo va a publicar Elvis, lo completa él. `category` tiene que ser una de las 8 de la lista, con esa ortografía exacta (tildes incluidas): si escribes una que no está, el artículo no aparece en ninguna página de categoría. `image` es la miniatura de la tarjeta en la portada: usa SOLO el nombre simple del archivo de la IMAGEN 1, sin ninguna ruta adelante -- ej. `image: diagrama.jpg` -- mismo criterio que la sección 6, `publicar_articulo.py` lo reescribe solo a su ruta final; si el artículo no lleva ninguna imagen, borra esa línea entera.
 - **Cada mensaje de la entrega va completo dentro de su propio bloque de código markdown** (no solo el front matter en el primer mensaje) -- el bloque de código es lo único que garantiza que el texto se copie tal cual, sin que la interfaz de NotebookLM lo renderice (títulos grandes, fórmulas con su propio motor de $...$) antes de que Elvis lo copie. Si un mensaje de la entrega no viene envuelto en su bloque de código, se pierde el markdown real al copiarlo -- los encabezados #/##, los backslash duplicados de LaTeX, todo.
 - **El cuerpo del artículo arranca directo en el primer `## `.** No repitas el título del artículo como primera línea del cuerpo, ni con `# ` ni en negrita: el título ya está en el front matter y el sitio lo imprime solo, arriba del artículo. Si lo repites, sale dos veces en la página publicada.
 - `## ` para subtítulos de sección (H2).
