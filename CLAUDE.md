@@ -200,6 +200,13 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-20: `02-instrucciones-notebooklm.md` amplía el bloque de
+  conflicto/complejidad de la sección 4 con reglas de pensamiento sistémico
+  (interconexión, multicausalidad, dinámica temporal, bucles de
+  retroalimentación) para usar cuando el dosier las tenga de verdad, nunca
+  forzadas, y suma la regla de mencionar en el cuerpo artículos ya publicados
+  que se relacionen genuinamente con el sub-tema del día. Suma los dos ítems
+  correspondientes al checklist de la sección 8.
 - 2026-09-20: redimensiona `esquema-fitorremediacion-maiz.jpg` (2877 KB ->
   301 KB) y `grafica-comparativa-eca-suelo.jpg` (2034 KB -> 76 KB) a 860 px de
   ancho (2x la columna de artículo), calidad JPEG 85 progresivo -- mismo
