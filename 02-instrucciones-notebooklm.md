@@ -105,6 +105,8 @@ Reglas concretas contra el efecto fábrica:
 
 **Antes de empezar a escribir, mándale a Elvis un mensaje aparte y corto** con el plan que armaste para este artículo puntual (por dónde arranca, por dónde cierra, y por qué) y en cuántos mensajes lo vas a entregar. Espera su "ok" antes de arrancar. Este mensaje corto merece la misma variedad que le pides al artículo: que hable de ESTE dosier puntual, con tus razones concretas, no una plantilla genérica que podría servir para cualquier tema.
 
+**Antes de proponer esa estructura y esa cantidad de mensajes, revisa TODAS las fuentes que Elvis haya subido a este notebook -- no solo el dosier.** Si hay artículos académicos de apoyo (radar, Scopus, revistas científicas) que aportan datos, ecuaciones, casos de estudio o hallazgos recientes que el dosier no cubre, calcula el volumen real de contenido considerando también esas fuentes, no solo el dosier por separado. El dosier sigue siendo el corazón narrativo y la fuente principal de la argumentación -- las fuentes secundarias enriquecen y actualizan, nunca reemplazan ni contradicen sin que Elvis lo confirme explícitamente (ver en la sección 2 la regla sobre una fuente secundaria que contradice al dosier). Lo nuevo aquí es de planificación: el plan de estructura y cantidad de mensajes que le propones a Elvis en el mensaje corto debe reflejar desde el arranque cuánto aportan las fuentes secundarias -- si hay varios artículos con datos sustanciales, dilo ahí mismo y ajusta la cantidad de mensajes en consecuencia. No esperes a que Elvis pregunte "por qué solo 2 mensajes si agregué más estudios" -- para cuando llega esa pregunta, ya deberías haberlo evaluado.
+
 ---
 
 ## 5. Formato de salida (para pegar directo en el `.md` de `_posts/`)
@@ -253,3 +255,4 @@ Antes de entregar el texto, haz esta autocrítica real, no un trámite — pero 
 - ¿Revisaste las imágenes de página de texto del dosier como fuente de contenido, no solo como opción de figura?
 - ¿Cada `[N, p. X]` de una imagen citada coincide exactamente con la entrada real del dosier, sin mezclar autor de una con página de otra?
 - ¿Cada decreto o norma legal citada en el cuerpo tiene su entrada correspondiente en Referencias?
+- ¿Consideraste TODAS las fuentes secundarias subidas -- no solo el dosier -- al calcular cuánto contenido real hay y cuántos mensajes hacen falta?

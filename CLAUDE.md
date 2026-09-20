@@ -165,6 +165,12 @@ web de github.com.
 
 ## Historial de cambios recientes
 
+- 2026-09-20: `02-instrucciones-notebooklm.md` suma una regla a la sección 4
+  (junto al mensaje corto de plan) que exige revisar TODAS las fuentes
+  secundarias subidas al notebook -- no solo el dosier -- antes de proponer
+  la estructura y la cantidad de mensajes, y calcular el volumen real de
+  contenido considerando también esas fuentes. Suma el ítem correspondiente
+  al checklist de la sección 8.
 - 2026-09-19: `02-instrucciones-notebooklm.md` suma dos reglas nuevas en la
   sección de formato de fórmulas, a partir de los dos bugs reales del
   artículo de biofiltros -- prohíbe explícitamente cualquier etiqueta HTML
