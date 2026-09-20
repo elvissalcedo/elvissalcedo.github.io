@@ -175,13 +175,15 @@ No inventes encabezados ni sintaxis nueva fuera de lo descrito arriba (títulos,
 
 ## 6. Apéndice obligatorio: Guía de imágenes
 
-Al final del documento, DESPUÉS de "Referencias", agrega esta sección — nunca se publica en el sitio, es solo para uso de Elvis. Es la lista, imagen por imagen, de qué conseguir para cada `[IMAGEN N]` que dejaste en el cuerpo, dejada TAN lista que a Elvis solo le quede subir el archivo a `assets/imagenes/<slug-del-artículo>/` y reemplazar el placeholder `[IMAGEN N]` del cuerpo por el bloque `<figure>` ya armado, completando solo la ruta -- sin redactar nada él.
+Al final del documento, DESPUÉS de "Referencias", agrega esta sección — nunca se publica en el sitio, es solo para uso de Elvis. Es la lista, imagen por imagen, de qué conseguir para cada `[IMAGEN N]` que dejaste en el cuerpo, dejada TAN lista que a Elvis solo le quede guardar cada archivo con el nombre simple que le diste y reemplazar el placeholder `[IMAGEN N]` del cuerpo por el bloque `<figure>` ya armado -- sin redactar nada él ni tener que armar ninguna ruta.
+
+**El bloque `<figure>` que armes en la Guía de imágenes usa SOLO el nombre simple del archivo en el `<img src>`, sin ninguna ruta adelante** -- ej. `<img src="diagrama.jpg">`, nunca `/assets/imagenes/...` ni ninguna otra ruta armada. Elvis guarda la imagen real con ese mismo nombre exacto en su carpeta de trabajo, y un script propio se encarga de moverla a la ruta final -- tú no necesitas ni debes adivinar esa ruta.
 
 **Formato estándar de imagen (fijo, para todo artículo):** toda imagen real del cuerpo del artículo (no decorativa) se publica como
 
 ```html
 <figure class="post-figure">
-<img src="/assets/imagenes/<slug>/<archivo>" alt="descripción breve de la imagen">
+<img src="<archivo>" alt="descripción breve de la imagen">
 <figcaption>Figura N. Descripción breve. Fuente: Autor (Año).</figcaption>
 </figure>
 ```
@@ -194,13 +196,14 @@ El número de Figura sigue el orden de aparición en el artículo (Figura 1, Fig
 
 **Las imágenes de página de texto SON fuente de contenido, no solo material para citar como figura.** Cuando la descripción de una imagen del dosier dice algo como "esta imagen es una página de texto que explica..." o "contiene texto informativo organizado con títulos, párrafos explicativos y listas" -- eso significa que esa página tiene información real y legible (cifras, límites técnicos, criterios de aplicabilidad) que tienes que leer y evaluar si aporta al Desarrollo técnico del artículo, igual que cualquier otro HECHO del dosier. No la trates solo como una opción de imagen para la Guía -- si tiene datos útiles, incorpóralos al cuerpo del artículo con su cita correspondiente, y AL MISMO TIEMPO puedes seguir ofreciéndola como imagen si aporta visualmente.
 
-- **Si una imagen real del dosier aplica a ese punto**, la entrada dice así -- Elvis solo tiene que subir ese archivo a `assets/imagenes/<slug>/` y pegar el bloque `<figure>` ya armado en el cuerpo, completando la ruta:
+- **Si una imagen real del dosier aplica a ese punto**, la entrada dice así -- Elvis solo tiene que guardar ese archivo con el nombre simple que le des y pegar el bloque `<figure>` ya armado en el cuerpo, tal cual:
 
       ### IMAGEN N — [mismo título que usaste en el cuerpo]
       - REAL (de tu biblioteca, agrégala tú al artículo): ruta/tal-como-aparece-en-el-dosier.png
+      - Guárdala como: [nombre-de-archivo-simple.ext]
       - Bloque para pegar en el cuerpo, reemplazando [IMAGEN N]:
       <figure class="post-figure">
-      <img src="/assets/imagenes/<slug>/<archivo>" alt="[descripción breve de la imagen]">
+      <img src="[nombre-de-archivo-simple.ext]" alt="[descripción breve de la imagen]">
       <figcaption>Figura N. [descripción breve]. Fuente: Autor (Año).</figcaption>
       </figure>
 
@@ -212,7 +215,8 @@ El número de Figura sigue el orden de aparición en el artículo (Figura 1, Fig
       ### IMAGEN N — [mismo título que usaste en el cuerpo]
       - Búsqueda (inglés, para Unsplash / Pexels / Pixabay): "término de búsqueda corto y específico en inglés"
       - Prompt IA de respaldo (si no encuentras foto libre de derechos): "prompt detallado en inglés, estilo editorial/científico, describiendo composición, iluminación y encuadre"
-      - Bloque para pegar en el cuerpo (mismo formato <figure> de arriba, sin recuadro), completando la ruta una vez que Elvis suba el archivo elegido.
+      - Guárdala como: [nombre-de-archivo-simple.ext]
+      - Bloque para pegar en el cuerpo (mismo formato <figure> de arriba, sin recuadro, con ese mismo nombre de archivo en el src), una vez que Elvis elija y guarde el archivo.
 
 - Si el dosier trae una imagen candidata pero SIN línea de crédito resuelta (marcada como descartada por falta de autor/año/editorial completos), NO la uses ni la sustituyas por una de banco/IA -- simplemente no le asignes ninguna imagen a ese punto, tal como ya indica el propio dosier.
 - Nunca reemplaces una imagen real del dosier por una de banco o de IA solo por conveniencia o porque sea más rápido -- el valor probatorio de un dato experimental real no lo iguala una foto genérica.
