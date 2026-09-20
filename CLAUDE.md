@@ -200,6 +200,14 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-20: redimensiona `esquema-fitorremediacion-maiz.jpg` (2877 KB ->
+  301 KB) y `grafica-comparativa-eca-suelo.jpg` (2034 KB -> 76 KB) a 860 px de
+  ancho (2x la columna de artículo), calidad JPEG 85 progresivo -- mismo
+  criterio que `hero-banner.jpg`/`reactor-poae-electroquimica.png`. Estas dos
+  imágenes, sin redimensionar desde que se subieron el 2026-09-18, hacían
+  fallar el job "Front matter, fórmulas e imágenes" del workflow en las 18
+  corridas siguientes por superar el límite de 1500 KB del validador; no era
+  un bug del workflow, que detectaba el problema real cada vez.
 - 2026-09-20: agrega `.github/scripts/publicar_articulo.py` -- Elvis arma una
   carpeta de trabajo con el .md y sus imágenes juntas, nombradas simple
   (`esquema.jpg`, sin ruta), y el script copia el .md a `_posts/`, copia las
