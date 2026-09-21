@@ -324,6 +324,22 @@ blockquote {
   margin: 1.6em 0;
 }
 
+/* ==========================================================================
+   MERMAID -- el SVG que genera assets/js/articulo.js (ver _layouts/default.html)
+   no trae ninguna regla del sitio por defecto: sin esto, un diagrama más
+   ancho que la columna del artículo (762px vs ~580px con el índice flotante
+   activo) igual se ve porque Mermaid ya pone width="100%", pero conviene
+   dejarlo explícito -- mismo criterio que .post-body img -- para que nunca
+   se desborde en pantallas angostas (celular). No arregla una etiqueta de
+   diagrama con el alto calculado demasiado justo -- eso se corrige en el
+   propio .md, acortando la etiqueta. */
+.post-body .mermaid-diagrama svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
 .back-link {
   display: inline-block;
   margin-bottom: 28px;

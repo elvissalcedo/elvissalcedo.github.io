@@ -43,7 +43,7 @@ graph LR
     A2[Entrada Gas] --> B
     
     %% Nodo central de proceso con descripción de alta velocidad
-    B -->|Alta Velocidad<br>Inyección de Agua| C[Gas + Gotas]
+    B -->|Alta Velocidad| C[Gas + Gotas]
     
     %% Nodo de salida
     C --> D([Hacia el Ciclón])

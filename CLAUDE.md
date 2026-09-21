@@ -200,6 +200,22 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: corrige el primer diagrama Mermaid del artículo del Venturi
+  ("Mecánica del cizallamiento"), que se veía apretado en el sitio real --
+  el SVG no tenía ninguna regla CSS del sitio (a diferencia de
+  `.post-body img`), así que `assets/css/styles.css` suma
+  `.post-body .mermaid-diagrama svg { max-width: 100%; height: auto;
+  display: block; margin: 0 auto; }`, mismo criterio que las imágenes.
+  Eso solo no alcanzaba: la etiqueta del edge "Alta Velocidad<br>Inyección
+  de Agua" tenía su `foreignObject` calculado en apenas 38 unidades de
+  alto para 2 líneas de texto -- ya ajustado a tamaño nativo, y peor
+  todavía una vez que el diagrama se achica ~24% para caber en la columna
+  real de ~580px (860px de `.page-body` menos el índice flotante de
+  200px + gap). Ese recorte está horneado en la geometría que genera
+  Mermaid, ningún CSS del sitio lo iba a arreglar después -- se acorta la
+  etiqueta a una sola línea ("Alta Velocidad", sin `<br>`) en el `.md`.
+  Confirmado con Edge headless (DOM ejecutado + captura de pantalla) que
+  el diagrama completo se ve sin cortes.
 - 2026-09-21: corrige el renderizado de `\begin{align*}` en el artículo del
   Venturi -- agrega el paquete `ams` a la config de MathJax en
   `_layouts/default.html` (`packages: {'[+]': ['ams']}`, faltaba junto a
