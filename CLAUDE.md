@@ -200,6 +200,15 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: restaura la etiqueta completa "Alta Velocidad / Inyección de
+  Agua" del primer diagrama Mermaid del Venturi -- el commit anterior la
+  había acortado a solo "Alta Velocidad" para resolver el corte de texto,
+  pero se perdía información real del diagrama. La solución correcta no
+  era acortar el contenido: era sacar el `<br>` y unir las dos frases en
+  una sola línea con "/", que es justo lo que hoy mide 19 unidades de alto
+  en el `foreignObject` (una sola línea real) en vez de las 38 que
+  necesitaba el `<br>` de 2 líneas -- confirmado sin corte con Edge
+  headless a 1280px.
 - 2026-09-21: corrige el primer diagrama Mermaid del artículo del Venturi
   ("Mecánica del cizallamiento"), que se veía apretado en el sitio real --
   el SVG no tenía ninguna regla CSS del sitio (a diferencia de
