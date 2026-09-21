@@ -8,10 +8,6 @@ image: /assets/imagenes/lavador-venturi/diagrama.jpg
 permalink: /lavador-venturi.html
 ---
 
-# La paradoja de la fuerza bruta: física, energía y eficiencia en los lavadores Venturi para gases complejos
-
----
-
 ## El dilema operativo de la depuración industrial y la respuesta de la ingeniería
 
 En el ejercicio de la ingeniería ambiental, pocas tareas demandan tanta resistencia técnica como el tratamiento de efluentes gaseosos industriales complejos. Cuando una planta siderúrgica, una caldera de biomasa, un incinerador de residuos o un secador de harina de pescado descarga una corriente de gas saturada de humedad, grasas, alquitranes o sustancias pegajosas, los sistemas convencionales de filtración seca colapsan de manera sistemática (Nevers, 1998; Kutz, 2018).

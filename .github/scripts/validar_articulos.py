@@ -115,8 +115,11 @@ def validar_post(ruta, categorias):
 
     fecha_fm = fm["date"].split()[0] if fm.get("date") else None
     if fecha_nombre and fecha_fm and fecha_fm != fecha_nombre:
-        error(rel, 1, "la fecha del front matter (%s) no coincide con la del "
-                      "nombre del archivo (%s)" % (fecha_fm, fecha_nombre))
+        aviso(rel, 1, "la fecha del front matter (%s) no coincide con la del "
+                      "nombre del archivo (%s). Puede ser intencional "
+                      "(backdating) o un error -- el validador no puede "
+                      "distinguirlo, asi que avisa sin bloquear."
+                      % (fecha_fm, fecha_nombre))
 
     if fm.get("excerpt") and len(fm["excerpt"]) < 40:
         aviso(rel, 1, "el `excerpt:` es muy corto (%d caracteres): es el texto "
@@ -171,20 +174,49 @@ def validar_imagenes(rel, texto, fm):
                       "siempre su pie de foto" % (figures, figcaptions))
 
 
+def bloques_codigo_con_lenguaje(texto):
+    """Rangos de linea (inclusive, 1-indexado) de cada bloque ```lenguaje ...
+    ``` con lenguaje declarado. Ninguno de estos se escanea buscando
+    delimitadores de formula: encontrado con un caso real, la sintaxis de
+    Mermaid usa corchetes con backslash (ej. [/Texto\\]) que no tiene nada
+    que ver con LaTeX y generaba un falso positivo. Un ``` sin lenguaje (los
+    bloques de sustitucion numerica con <br>) no cuenta como excluido -- ahi
+    si puede aparecer contenido real a revisar.
+    """
+    rangos = []
+    inicio = None
+    for n, linea in enumerate(texto.split("\n"), 1):
+        if inicio is None:
+            if re.match(r'^\s*```\w', linea):
+                inicio = n
+        elif re.match(r'^\s*```\s*$', linea):
+            rangos.append((inicio, n))
+            inicio = None
+    return rangos
+
+
 def validar_latex(rel, texto):
     """
     kramdown borra un backslash simple antes de ( ) [ ]. Por eso los 4
     delimitadores de formula van DUPLICADOS en el .md fuente. Ver la nota de
     kramdown en CLAUDE.md.
 
-    Salvedad: eso vale para el Markdown, no para el HTML crudo pegado en un
+    Salvedad 1: eso vale para el Markdown, no para el HTML crudo pegado en un
     .md. Si la linea arranca con un tag de bloque, kramdown no le parsea el
     contenido y el backslash simple llega intacto al sitio -- es el caso del
     articulo del Venturi, migrado desde HTML plano, cuyas formulas se ven
     bien. Esas lineas se saltan para no dar un falso positivo.
+
+    Salvedad 2: tampoco vale dentro de un bloque de codigo con lenguaje
+    declarado (```mermaid, ```python, etc.) -- ningun bloque de codigo
+    deberia escanearse buscando delimitadores de formula, esos backslash son
+    sintaxis de otra cosa.
     """
+    rangos_codigo = bloques_codigo_con_lenguaje(texto)
     for n, linea in enumerate(texto.split("\n"), 1):
         if BLOQUE_HTML.match(linea):
+            continue
+        if any(a <= n <= b for a, b in rangos_codigo):
             continue
         for m in re.finditer(r'(?<!\\)\\[()\[\]]', linea):
             error(rel, n, "delimitador de formula con un solo backslash: `%s`. "

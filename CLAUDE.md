@@ -200,6 +200,27 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: el workflow `validar.yml` venía en rojo desde el commit
+  748e8c0 (cuando `publicar_articulo.py` reemplazó el artículo del Venturi
+  entero con el contenido nuevo de NotebookLM) sin que nadie lo hubiera
+  revisado -- rastreado recién ahora con `git log -p` contra la corrida más
+  reciente en GitHub Actions (API pública, sin `gh` instalado). Tres
+  correcciones: (1) saca el título duplicado del cuerpo del Venturi (mismo
+  problema que ya se había corregido una vez en a84f90c, volvió al
+  reemplazar el artículo completo -- el cuerpo vuelve a arrancar en el
+  primer `## `); (2) `validar_articulos.py`, la regla de fecha del front
+  matter vs. fecha del nombre de archivo pasa de error a aviso -- un
+  desfase puede ser backdating intencional (como este mismo artículo,
+  `date: 2025-01-12` con permalink fijo para preservar la fecha de
+  publicación original) o un error real, y el validador no puede
+  distinguir la intención; (3) `validar_articulos.py`, la regla de
+  delimitador de fórmula con un solo backslash ahora excluye cualquier
+  bloque de código con lenguaje declarado (```mermaid, ```python, etc.) --
+  la sintaxis de nodo de Mermaid usa corchetes con backslash (`[/Texto\]`)
+  que no tiene nada que ver con LaTeX y generaba un falso positivo real en
+  los diagramas del Venturi. Confirmado con el validador local: 0 errores,
+  0 falsos positivos, solo 2 avisos no bloqueantes (el backdating y el peso
+  preexistente de `foto-perfil.png`).
 - 2026-09-21: corrige el corte de descendentes (g, j, q, y -- "gaseosa" salía
   "easeosa", "líquido" salía "líauido") en los 3 diagramas Mermaid del
   artículo del Venturi. Intento previo (CSS `line-height` sobre el `<div>`
