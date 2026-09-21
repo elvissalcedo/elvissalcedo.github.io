@@ -91,6 +91,45 @@ hay además un script opcional que automatiza la organización de imágenes
 - Es un agregado, no un reemplazo: el flujo sin terminal de la sección
   anterior sigue funcionando igual para cuando Elvis publica desde el
   editor web sin tener el repo clonado a mano.
+- Para antes de publicar si encuentra la palabra `PENDIENTE` en cualquier
+  parte del `.md` (front matter o cuerpo) -- son los campos que deja el
+  panel de control de la sección siguiente para completar con lo que
+  entregue NotebookLM. El mensaje de error señala las líneas exactas.
+
+## Panel de control local (panel-control-gitpage.bat)
+
+- Tercera vía para crear y eliminar artículos, sin editor web ni terminal
+  más allá de un doble clic. `panel-control-gitpage.bat` (raíz del repo)
+  arranca `.github/scripts/panel_control.py` -- un servidor HTTP en
+  `127.0.0.1:8420`, solo con librería estándar de Python (nada que
+  instalar) -- y abre el navegador solo en la pantalla principal.
+- **Crear artículo nuevo:** formulario con título, categoría (las 8 de
+  `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
+  tildes, espacios a guiones), avisa con una pantalla de confirmación
+  explícita si ya existe una carpeta o archivo con ese slug (nunca crea
+  el duplicado solo), y crea `_posts/articulos/<slug>/<fecha>-<slug>.md`
+  con el front matter listo salvo `excerpt:`/`image:` en `PENDIENTE` --
+  para que Elvis pegue ahí el contenido de NotebookLM. Igual que
+  `publicar_articulo.py`, esta carpeta de trabajo sigue sin publicarse
+  hasta que se corra ese script.
+- El `permalink:` del front matter se escribe siempre explícito
+  (`/<slug-categoría>/AAAA/MM/DD/slug.html`, con el slug prolijo de
+  `_config.yml`) -- nunca la ruta automática de Jekyll. Confirmado con una
+  build real en un clon aislado: Jekyll arma esa ruta a partir del
+  `category:` del front matter pero solo hace `.downcase`, sin sacar
+  tildes ni cambiar espacios por guiones, así que las 4 categorías de
+  nombre compuesto (Toxicología y Salud, Sostenibilidad y Energía, Gestión
+  y Política, Filosofía y Decisión) salían con una URL rota (espacio y
+  tilde literales). Decisión de Elvis del 2026-09-21 frente a la
+  alternativa de cambiar `_config.yml` para todo el sitio.
+- **Eliminar artículo publicado:** lista los artículos reales de
+  `_posts/` (título, fecha, archivo -- el post oculto de pruebas de
+  kramdown/MathJax no aparece, no es un artículo real gestionable). Pide
+  escribir `ELIMINAR` en un campo de texto para confirmar -- cualquier
+  otro texto no borra nada. Al confirmar: `git rm` del `.md` y de la
+  carpeta `assets/imagenes/<slug>/` si existe, commit LOCAL únicamente
+  (`Elimina artículo: <título>`) -- nunca push, igual que
+  `publicar_articulo.py`.
 
 ## El sitio (Jekyll)
 
@@ -200,6 +239,27 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: agrega el panel de control local (`panel-control-gitpage.bat`
+  + `.github/scripts/panel_control.py`) -- tercera vía para crear y eliminar
+  artículos con formulario web, sin editor de github.com ni terminal más
+  allá de un doble clic (sección dedicada más arriba). `publicar_articulo.py`
+  suma `verificar_sin_pendientes()`: para antes de copiar nada si encuentra
+  `PENDIENTE` en el `.md` (los campos que deja el panel para completar con
+  NotebookLM), señalando las líneas exactas. Encontrado durante la prueba en
+  un clon aislado (no una suposición): la URL automática de Jekyll para las
+  4 categorías de nombre compuesto sale rota (`.downcase` sin sacar tildes
+  ni cambiar espacios por guiones); Elvis eligió que el panel escriba
+  siempre un `permalink:` explícito con el slug prolijo de `_config.yml` en
+  vez de tocar la config del sitio entero. Probado de punta a punta en el
+  clon: creación con `permalink` correcto, detección de duplicados sin
+  crear doble, publicación bloqueada por `PENDIENTE` sin completar,
+  publicación real con `bundle exec jekyll build` generando la URL
+  calculada exacta y `validar_articulos.py` en 0 errores, y eliminación con
+  confirmación de texto exacta (`ELIMINAR`) que borra `.md` + carpeta de
+  imágenes en un commit local sin push. De paso se corrigió un bug real del
+  propio servidor: `http.server.HTTPServer` (no threaded) con HTTP/1.1 se
+  colgaba si una conexión anterior quedaba a medio cerrar, bloqueando todas
+  las peticiones siguientes -- se pasó a `ThreadingHTTPServer` + HTTP/1.0.
 - 2026-09-21: el workflow `validar.yml` venía en rojo desde el commit
   748e8c0 (cuando `publicar_articulo.py` reemplazó el artículo del Venturi
   entero con el contenido nuevo de NotebookLM) sin que nadie lo hubiera

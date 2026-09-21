@@ -164,6 +164,23 @@ def procesar_referencias(texto, nombre_carpeta, imagenes_disponibles):
     return texto, cambios, referenciadas
 
 
+def verificar_sin_pendientes(texto, nombre_carpeta):
+    """El panel de control crea la carpeta de trabajo con campos PENDIENTE
+    en el front matter (excerpt, image) para que Elvis los complete con lo
+    que entregue NotebookLM. Publicar con alguno sin completar dejaria un
+    articulo a medias en el sitio real."""
+    if "PENDIENTE" not in texto:
+        return
+    lineas = [
+        str(n) for n, linea in enumerate(texto.split("\n"), 1) if "PENDIENTE" in linea
+    ]
+    fallar(
+        "El articulo de «%s» todavia tiene campos sin completar (PENDIENTE) "
+        "-- revisalo antes de publicar. Lineas: %s"
+        % (nombre_carpeta, ", ".join(lineas))
+    )
+
+
 def copiar_articulo(carpeta_trabajo, nombre_carpeta, nombre_md, imagenes, texto_final):
     destino_md = os.path.join(RAIZ, "_posts", nombre_md)
     ya_existia_md = os.path.exists(destino_md)
@@ -270,6 +287,8 @@ def main():
 
         with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
             texto = fh.read()
+
+        verificar_sin_pendientes(texto, nombre_carpeta)
 
         texto_final, cambios, referenciadas = procesar_referencias(
             texto, nombre_carpeta, set(imagenes)
