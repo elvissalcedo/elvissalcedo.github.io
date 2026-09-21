@@ -200,6 +200,25 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: corrige el renderizado de `\begin{align*}` en el artículo del
+  Venturi -- agrega el paquete `ams` a la config de MathJax en
+  `_layouts/default.html` (`packages: {'[+]': ['ams']}`, faltaba junto a
+  `inlineMath`/`displayMath`), pero ese no era el único bug: kramdown
+  convierte un salto de línea real después de una corrida de backslashes en
+  un `<br>` sin importar cuántos backslashes tenga -- el separador de fila
+  `\\` de cada `align*` se estaba comiendo entero. Probado con 4 variantes
+  reales sobre un post de prueba temporal (borrado después): la única
+  combinación que sobrevive intacta es 4 backslashes SIN salto de línea
+  inmediato, así que los 4 bloques `align*` del artículo se colapsan a una
+  sola línea física cada uno. Confirmado con Edge headless (DOM ejecutado +
+  captura de pantalla) que las 4 ecuaciones renderizan multi-línea reales,
+  no texto crudo. De paso, se confirma a nivel de bytes que el `&` de cada
+  fila era y sigue siendo el carácter ASCII correcto -- el "ε=" que se veía
+  en el sitio era un efecto visual del fallo de MathJax, no una corrupción
+  del `.md`. `02-instrucciones-notebooklm.md` suma las dos reglas
+  aprendidas (separador de 4 backslashes en una sola línea; asterisco de
+  `align*` escapado como `\*`) junto al ítem correspondiente del checklist
+  de la sección 8.
 - 2026-09-21: agrega soporte real de Mermaid en `_layouts/default.html`
   (`mermaid@10` vía CDN fijado, reemplaza cada `pre > code.language-mermaid`
   por su SVG usando `.textContent`, nunca `.innerHTML` -- kramdown escapa

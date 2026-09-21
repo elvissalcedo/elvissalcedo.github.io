@@ -18,12 +18,15 @@
        -- no solo en los posts -- porque Liquid no permite que un layout hijo
        inyecte contenido en el <head> del padre; el script es async y no pesa
        en las páginas sin fórmulas. Delimitadores \(...\)/\[...\], no $...$,
-       para no chocar con montos en soles/dólares en el texto. -->
+       para no chocar con montos en soles/dólares en el texto. El paquete
+       "ams" habilita entornos como \begin{align}...\end{align} -- sin él,
+       MathJax no reconoce \begin{align} y lo deja como texto crudo. -->
   <script>
     window.MathJax = {
       tex: {
         inlineMath: [['\\(', '\\)']],
-        displayMath: [['\\[', '\\]']]
+        displayMath: [['\\[', '\\]']],
+        packages: {'[+]': ['ams']}
       }
     };
   </script>

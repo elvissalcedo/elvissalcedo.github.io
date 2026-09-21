@@ -97,15 +97,7 @@ Donde:
 
 ### Desarrollo numérico paso a paso:
 
-\\[
-\begin{align*}
-\text{Numerador} &= 1.5 \cdot 0.7 \cdot 1.20 \text{ kg/m}^3 \cdot (106.7 \text{ m/s})^2 \\
-\text{Numerador} &= 1.05 \cdot 1.20 \text{ kg/m}^3 \cdot 11384.89 \text{ m}^2/\text{s}^2 = 14344.96 \text{ kg}/(\text{m} \cdot \text{s}^2) \\
-\text{Denominador} &= 2 \cdot 0.0001 \text{ m} \cdot 1000 \text{ kg/m}^3 = 0.2 \text{ kg/m}^2 \\
-a &= \frac{14344.96 \text{ kg}/(\text{m} \cdot \text{s}^2)}{0.2 \text{ kg/m}^2} \\
-a &= 71724.8 \text{ m/s}^2 \approx 7.2 \cdot 10^4 \text{ m/s}^2
-\end{align*}
-\\]
+\\[ \begin{align\*} \text{Numerador} &= 1.5 \cdot 0.7 \cdot 1.20 \text{ kg/m}^3 \cdot (106.7 \text{ m/s})^2 \\\\ \text{Numerador} &= 1.05 \cdot 1.20 \text{ kg/m}^3 \cdot 11384.89 \text{ m}^2/\text{s}^2 = 14344.96 \text{ kg}/(\text{m} \cdot \text{s}^2) \\\\ \text{Denominador} &= 2 \cdot 0.0001 \text{ m} \cdot 1000 \text{ kg/m}^3 = 0.2 \text{ kg/m}^2 \\\\ a &= \frac{14344.96 \text{ kg}/(\text{m} \cdot \text{s}^2)}{0.2 \text{ kg/m}^2} \\\\ a &= 71724.8 \text{ m/s}^2 \approx 7.2 \cdot 10^4 \text{ m/s}^2 \end{align\*} \\]
 
 ***Nota técnica:*** La gota experimenta en la garganta una aceleración instantánea de aproximadamente \\(7.2 \cdot 10^4 \text{ m/s}^2\\). Al comparar este valor frente a la aceleración de la gravedad terrestre (\\(g = 9.81 \text{ m/s}^2\\)), constatamos que el líquido es acelerado a más de 7,300 veces la fuerza de la gravedad (o equivalente a 3,700 g si se evalúa en unidades imperiales relativas). Esta aceleración titánica es el motor físico que mantiene una altísima velocidad relativa entre la gota y el gas, permitiendo la captura de partículas finas.
 
@@ -128,31 +120,16 @@ Donde:
 
 #### Paso 1: Cálculo del caudal volumétrico de gas (\\(Q_G\\))
 
-\\[
-\begin{align*}
-Q_G &= A \cdot V \\
-Q_G &= 0.5 \text{ m}^2 \cdot 100 \text{ m/s} = 50 \text{ m}^3/\text{s}
-\end{align*}
-\\]
+\\[ \begin{align\*} Q_G &= A \cdot V \\\\ Q_G &= 0.5 \text{ m}^2 \cdot 100 \text{ m/s} = 50 \text{ m}^3/\text{s} \end{align\*} \\]
 
 #### Paso 2: Cálculo de la potencia consumida por el ventilador (\\(P\\))
 
-\\[
-\begin{align*}
-P &= 50 \text{ m}^3/\text{s} \cdot 9806 \text{ N/m}^2 \\
-P &= 490300 \text{ W} = 490.3 \text{ kW}
-\end{align*}
-\\]
+\\[ \begin{align\*} P &= 50 \text{ m}^3/\text{s} \cdot 9806 \text{ N/m}^2 \\\\ P &= 490300 \text{ W} = 490.3 \text{ kW} \end{align\*} \\]
 
 #### Paso 3: Cálculo del consumo energético y costo económico de operación anual
 Asumiendo una operación continua de la planta industrial de 8,760 horas al año y una tarifa eléctrica industrial conservadora de 0.05 USD por kilowatt-hora (\\(\text{USD/kWh}\\)) (Nevers, 1998):
 
-\\[
-\begin{align*}
-\text{Energía Anual} &= 490.3 \text{ kW} \cdot 8760 \text{ h/año} = 4295028 \text{ kWh/año} \\
-\text{Costo Anual} &= 4295028 \text{ kWh/año} \cdot 0.05 \text{ USD/kWh} = 214751.40 \text{ USD/año}
-\end{align*}
-\\]
+\\[ \begin{align\*} \text{Energía Anual} &= 490.3 \text{ kW} \cdot 8760 \text{ h/año} = 4295028 \text{ kWh/año} \\\\ \text{Costo Anual} &= 4295028 \text{ kWh/año} \cdot 0.05 \text{ USD/kWh} = 214751.40 \text{ USD/año} \end{align\*} \\]
 
 ***Nota técnica:*** Para vencer una caída de presión de \\(100 \text{ cm H}\_2\text{O}\\) en un flujo gaseoso de \\(50 \text{ m}^3/\text{s}\\), se requiere un ventilador de tiro inducido de casi \\(500 \text{ kW}\\) operando continuamente. En términos económicos, el costo de electricidad supera los 214,000 USD anuales solo para operar el ventilador. Esto demuestra por qué el gasto energético es la variable dominante del costo del ciclo de vida en un lavador Venturi: en muy pocos años de operación, la factura de energía supera con creces el costo inicial de compra e instalación del equipo.
 
