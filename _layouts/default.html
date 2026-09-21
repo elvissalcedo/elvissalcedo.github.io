@@ -40,11 +40,25 @@
        que de las flechas de Mermaid a la entidad &gt;, y solo .textContent
        lo decodifica de vuelta a texto plano antes de pasarlo a
        mermaid.render(). Import type="module" ya es asíncrono por
-       naturaleza -- no bloquea el resto de la página. -->
+       naturaleza -- no bloquea el resto de la página.
+       flowchart.htmlLabels: false -- Mermaid dibuja el texto como <text> SVG
+       puro en vez de HTML dentro de un <foreignObject>. Encontrado con
+       evidencia real: con htmlLabels true (el default), los descendentes
+       (g, j, q, y) de las etiquetas salen cortados o corrompidos en
+       cualquier diagrama que quede escalado por debajo de su tamaño nativo
+       (que es casi siempre, porque la columna del artículo es más angosta
+       que el ancho que Mermaid calcula) -- es un bug de rasterizado de
+       Chromium con foreignObject dentro de un SVG escalado vía CSS, no algo
+       que un ajuste de line-height pueda terminar de resolver (se probó y
+       solo tapaba parte del problema). Con htmlLabels:false esto desaparece
+       de raíz porque ya no hay HTML ni CSS involucrado en el texto del
+       diagrama. Costo real: las etiquetas de nodo ya NO aceptan <br>/<small>
+       -- un salto de línea dentro de una etiqueta se escribe con \n literal
+       (sintaxis propia de Mermaid), nunca con HTML. -->
   <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
 
-    mermaid.initialize({ startOnLoad: false });
+    mermaid.initialize({ startOnLoad: false, flowchart: { htmlLabels: false } });
 
     document.querySelectorAll("pre > code.language-mermaid").forEach(async (bloque, indice) => {
       const definicion = bloque.textContent;

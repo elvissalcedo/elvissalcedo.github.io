@@ -149,7 +149,7 @@ graph TD
     %% El contenedor superior se define en TD para alinear los subgrafos en columnas horizontales
 
     subgraph ConfigNoSumergida["Configuración No Sumergida"]
-        A1[Nivel de Agua<br><small>Menor a la altura del scrubber</small>]
+        A1["Nivel de Agua\nMenor a la altura del scrubber"]
         A1 --> B1[\Convergente/]
         B1 --> C1[=== Garganta ===]
         C1 --> D1[/Divergente\]
@@ -158,7 +158,7 @@ graph TD
 
     subgraph ConfigSumergida["Configuración Sumergida"]
         A2[Lecho de burbujeo]
-        A2 --> B2["~ Nivel de Agua ~<br><small>(Scrubber totalmente sumergido)</small>"]
+        A2 --> B2["~ Nivel de Agua ~\n(Scrubber totalmente sumergido)"]
         B2 --> C2[\Convergente/]
         C2 --> D2[=== Garganta ===]
         D2 --> E2[/Divergente\]
@@ -208,12 +208,12 @@ graph LR
 
     %% Bloque de la Interfaz
     subgraph Interfaz [Interfaz gas-líquido]
-        B["Adsorción en superficie<br>de Ceniza Volante<br><small>(Rica en CaO, MgO, Al₂O₃)</small>"]
+        B["Adsorción en superficie\nde Ceniza Volante\n(Rica en CaO, MgO, Al₂O₃)"]
     end
 
     %% Bloque de la Fase Líquida
     subgraph Fase_Liquida [Fase líquida: NaOH]
-        C["Reacción química<br>HCl + NaOH ➔ H₂O + NaCl"]
+        C["Reacción química\nHCl + NaOH ➔ H₂O + NaCl"]
     end
 
     %% Conexiones del flujo del proceso

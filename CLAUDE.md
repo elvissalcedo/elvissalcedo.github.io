@@ -200,6 +200,27 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: corrige el corte de descendentes (g, j, q, y -- "gaseosa" salía
+  "easeosa", "líquido" salía "líauido") en los 3 diagramas Mermaid del
+  artículo del Venturi. Intento previo (CSS `line-height` sobre el `<div>`
+  del `foreignObject`) mejoraba pero no eliminaba el bug -- confirmado con
+  capturas a `--force-device-scale-factor=4`, sin reescalado propio, que
+  incluso `line-height: 1` seguía mordiendo la "y" en el diagrama más
+  achicado: es un bug de rasterizado de Chromium con `foreignObject` dentro
+  de un SVG escalado vía CSS, no algo que un ajuste de CSS pueda terminar de
+  resolver. La solución real: `flowchart: { htmlLabels: false }` en
+  `_layouts/default.html`, que hace que Mermaid dibuje el texto como
+  `<text>` SVG puro -- verificado que elimina el bug de raíz (cero
+  `foreignObject` reales en los 3 diagramas tras el cambio). Costo real:
+  las etiquetas de nodo ya no aceptan `<br>`/`<small>`, así que las 4 que
+  los usaban en `_posts/2026-09-17-lavador-venturi.md` se reescriben con
+  `\n` (salto de línea propio de Mermaid, no HTML) -- se pierde el tamaño
+  reducido del texto secundario que daba `<small>`, y el estilo visual de
+  los subgrafos cambia levemente (título arriba del recuadro en vez del
+  estilo anterior). La regla CSS del intento previo se saca por quedar
+  código muerto (ya no hay ningún `foreignObject` en los diagramas).
+  `02-instrucciones-notebooklm.md` queda pendiente de sumar esta regla de
+  Mermaid si Elvis lo confirma en un commit aparte.
 - 2026-09-21: restaura la etiqueta completa "Alta Velocidad / Inyección de
   Agua" del primer diagrama Mermaid del Venturi -- el commit anterior la
   había acortado a solo "Alta Velocidad" para resolver el corte de texto,
