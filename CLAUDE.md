@@ -98,11 +98,12 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Panel de control local (panel-control-gitpage.bat)
 
-- Tercera vía para crear y eliminar artículos, sin editor web ni terminal
-  más allá de un doble clic. `panel-control-gitpage.bat` (raíz del repo)
-  arranca `.github/scripts/panel_control.py` -- un servidor HTTP en
+- Vía local para crear, publicar y eliminar artículos, sin editor web ni
+  terminal más allá de un doble clic. `panel-control-gitpage.bat` (raíz del
+  repo) arranca `.github/scripts/panel_control.py` -- un servidor HTTP en
   `127.0.0.1:8420`, solo con librería estándar de Python (nada que
-  instalar) -- y abre el navegador solo en la pantalla principal.
+  instalar) -- y abre el navegador solo en la pantalla principal, con tres
+  botones.
 - **Crear artículo nuevo:** formulario con título, categoría (las 8 de
   `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
   tildes, espacios a guiones), avisa con una pantalla de confirmación
@@ -122,6 +123,35 @@ hay además un script opcional que automatiza la organización de imágenes
   y Política, Filosofía y Decisión) salían con una URL rota (espacio y
   tilde literales). Decisión de Elvis del 2026-09-21 frente a la
   alternativa de cambiar `_config.yml` para todo el sitio.
+- **Publicar borrador:** reemplaza el paso manual de correr
+  `publicar_articulo.py` en la terminal, con vista previa real antes de
+  comitear. Lista las carpetas de `_posts/articulos/` (título del front
+  matter, fecha de última modificación del `.md`); al elegir una, reusa
+  las mismas funciones de `publicar_articulo.py` (todo-o-nada, chequeo de
+  `PENDIENTE`) pero se queda ahí -- copia el `.md` a `_posts/` y las
+  imágenes a `assets/imagenes/<slug>/` **sin `git add` ni commit**, corre
+  `validar_articulos.py` sobre ese artículo puntual (no sobre `assets/`
+  entero, para no mezclar avisos preexistentes de otros artículos) y
+  `bundle exec jekyll build` real, y embebe el HTML generado en un iframe
+  -- se ve exactamente como va a salir publicado, imágenes y fórmulas
+  incluidas. El iframe apunta a un segundo servidor HTTP en
+  `127.0.0.1:8421` que sirve `_site/` tal cual (necesario para sortear las
+  restricciones de `file://` con el `<script type="module">` de Mermaid).
+  Debajo, dos botones: **"Confirmar y publicar"** hace `git add` + commit
+  (`Publica artículo: <slug>`) + `git push` en un solo paso -- el clic de
+  Elvis en la vista previa real ya es la confirmación explícita, no hace
+  falta preguntar de nuevo. **"Volver a editar"** deshace la copia: si el
+  archivo ya estaba trackeado en git (una republicación sobre un artículo
+  existente), lo restaura con `git checkout` -- nunca lo borra --; si es
+  nuevo, lo borra. La carpeta de trabajo en `_posts/articulos/` nunca se
+  toca en ninguno de los dos casos.
+- En Windows, `bundle` es un shim `bundle.BAT` de RubyInstaller --
+  `subprocess.run(["bundle", ...])` sin más tira `FileNotFoundError`
+  aunque `bundle` funcione perfecto a mano en la terminal, porque
+  `CreateProcess` no resuelve extensiones de `PATHEXT` sin pasar por una
+  shell. `construir_sitio()` resuelve la ruta real con `shutil.which()`
+  antes de llamar a `subprocess.run` -- encontrado en una prueba real en
+  un clon aislado, no una suposición.
 - **Eliminar artículo publicado:** lista los artículos reales de
   `_posts/` (título, fecha, archivo -- el post oculto de pruebas de
   kramdown/MathJax no aparece, no es un artículo real gestionable). Pide
@@ -239,6 +269,28 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: agrega el tercer flujo del panel de control, "Publicar
+  borrador" (sección dedicada más arriba) -- reemplaza el paso manual de
+  correr `publicar_articulo.py` en la terminal, con vista previa real
+  (`bundle exec jekyll build` + iframe contra un segundo servidor HTTP en
+  `127.0.0.1:8421` sirviendo `_site/`, más los errores/avisos de
+  `validar_articulos.py` visibles junto a la vista previa) antes de
+  comitear. "Confirmar y publicar" hace commit + push en un solo paso;
+  "Volver a editar" deshace la copia -- restaura con `git checkout` si el
+  archivo ya estaba trackeado (republicación de un artículo existente,
+  nunca lo borra), o lo borra si es nuevo. Encontrado durante la prueba en
+  un clon aislado (con un remoto local de mentira para probar el push
+  real sin tocar GitHub ni este repo): en Windows, `subprocess.run(["bundle",
+  ...])` tira `FileNotFoundError` porque `bundle` es un shim `.BAT` de
+  RubyInstaller y `CreateProcess` no resuelve `PATHEXT` sin pasar por una
+  shell -- se resuelve con `shutil.which("bundle")` antes de llamar al
+  subprocess. Probado de punta a punta: bloqueo por `PENDIENTE` antes de
+  copiar nada, vista previa real con imagen y fórmula LaTeX renderizadas
+  (confirmado bajando el HTML servido en el puerto 8421, no solo mirando
+  el `.md`), descarte limpio verificado con `git status` y con un test
+  unitario aparte del caso "archivo ya trackeado" (restaura, no borra) vs.
+  "archivo nuevo" (borra), y confirmación real con commit + push al
+  remoto de prueba.
 - 2026-09-21: agrega el panel de control local (`panel-control-gitpage.bat`
   + `.github/scripts/panel_control.py`) -- tercera vía para crear y eliminar
   artículos con formulario web, sin editor de github.com ni terminal más
