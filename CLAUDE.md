@@ -200,6 +200,21 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: agrega soporte real de Mermaid en `_layouts/default.html`
+  (`mermaid@10` vía CDN fijado, reemplaza cada `pre > code.language-mermaid`
+  por su SVG usando `.textContent`, nunca `.innerHTML` -- kramdown escapa
+  las flechas de Mermaid). Corrige el artículo del Venturi: el cuerpo
+  entero usaba `$`/`$$` en vez de `\\(...\\)`/`\\[...\\]` (no solo la lista
+  `Donde:` de Cálculo 1, que fue lo pedido -- el resto del artículo estaba
+  igual de roto), se escapa el guion bajo pegado a `\text{...}` donde
+  correspondía, se agrega un paréntesis faltante antes de `\text{SO}_2`, y
+  se corrigen dos bugs reales de sintaxis en el segundo diagrama Mermaid
+  (`direction` dentro de un `subgraph` con título entre comillas rompe el
+  parser; subgraph IDs con espacios sin comillas). Verificado con Edge
+  headless (DOM ejecutado y captura de pantalla, no solo grep del HTML
+  estático). `02-instrucciones-notebooklm.md` suma la prohibición explícita
+  de `$`/`$$` y una nueva regla de Diagramas Mermaid (sección 5), con los
+  dos ítems correspondientes al checklist de la sección 8.
 - 2026-09-20: `02-instrucciones-notebooklm.md` corrige la sección 5 -- el
   `image:` del front matter usa SOLO el nombre simple del archivo (ej.
   `diagrama.jpg`), no la ruta armada con slug adivinado

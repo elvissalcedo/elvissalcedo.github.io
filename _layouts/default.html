@@ -28,6 +28,30 @@
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+
+  <!-- Mermaid: renderiza los bloques ```mermaid como diagramas SVG en el
+       navegador. Versión fijada (no "latest"), igual que MathJax. Kramdown
+       convierte un bloque ```mermaid en <pre><code class="language-mermaid">,
+       nunca en un <div>, así que buscamos ese selector puntual. Se usa
+       .textContent (no .innerHTML) porque kramdown escapa el símbolo mayor
+       que de las flechas de Mermaid a la entidad &gt;, y solo .textContent
+       lo decodifica de vuelta a texto plano antes de pasarlo a
+       mermaid.render(). Import type="module" ya es asíncrono por
+       naturaleza -- no bloquea el resto de la página. -->
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({ startOnLoad: false });
+
+    document.querySelectorAll("pre > code.language-mermaid").forEach(async (bloque, indice) => {
+      const definicion = bloque.textContent;
+      const { svg } = await mermaid.render("mermaid-diagrama-" + indice, definicion);
+      const contenedor = document.createElement("div");
+      contenedor.classList.add("mermaid-diagrama");
+      contenedor.innerHTML = svg;
+      bloque.closest("pre").replaceWith(contenedor);
+    });
+  </script>
 </head>
 <body>
 
