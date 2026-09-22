@@ -7,10 +7,15 @@ Arranca un servidor HTTP en 127.0.0.1, solo con la libreria estandar de
 Python (nada que instalar). Pensado para correr con doble clic en
 panel-control-gitpage.bat, que abre el navegador solo.
 
-Cuatro flujos: "Crear articulo nuevo" arma la carpeta de trabajo
+Cinco flujos: "Crear articulo nuevo" arma la carpeta de trabajo
 (_posts/articulos/<slug>/) con el .md y su front matter listos para que
-Elvis pegue el contenido de NotebookLM. "Publicar borrador" reemplaza el
-paso manual de correr publicar_articulo.py en la terminal -- copia el
+Elvis pegue el contenido de NotebookLM. "Editar articulo publicado" hace
+lo mismo pero partiendo de un articulo YA PUBLICADO -- copia su .md real
+(sin PENDIENTE) y sus imagenes a una carpeta de trabajo nueva, para seguir
+agregandole contenido; si esa carpeta ya existe (cambios sin publicar),
+avisa y deja elegir entre seguir con lo que hay o reiniciarla desde lo
+publicado, nunca sobreescribe en silencio. "Publicar borrador" reemplaza
+el paso manual de correr publicar_articulo.py en la terminal -- copia el
 borrador a _posts/ y assets/imagenes/ SIN commit, arma una vista previa
 real con `bundle exec jekyll build` embebida en un iframe, y solo hace
 `git add` + commit + push cuando Elvis aprieta "Confirmar y publicar"; si
@@ -265,6 +270,83 @@ def eliminar_articulo(nombre_archivo):
         )
 
     return titulo, mensaje, borra_imagenes
+
+
+# --------------------------------------------------------------------------
+# Flujo "Editar articulo publicado"
+# --------------------------------------------------------------------------
+def _slug_de_archivo_post(nombre_archivo):
+    m = re.match(r"^\d{4}-\d{2}-\d{2}-(.+)\.md$", nombre_archivo)
+    return m.group(1) if m else None
+
+
+def carpeta_trabajo_existe(slug):
+    return os.path.isdir(os.path.join(RAIZ, "_posts", "articulos", slug))
+
+
+def _convertir_a_rutas_simples(texto, slug):
+    """Inversa de lo que hace pa.procesar_referencias al publicar: el .md ya
+    publicado en _posts/ tiene las rutas de imagen completas
+    (/assets/imagenes/<slug>/archivo.ext, en <img>, en imagen Markdown y en
+    el `image:` del front matter) -- la carpeta de trabajo espera nombres
+    simples (archivo.ext), para que Publicar borrador / Vista previa en
+    vivo puedan reescribirlas de nuevo al republicar. Reemplazo de texto
+    simple (no regex): el prefijo es una cadena literal distintiva, no hace
+    falta distinguir <img> de Markdown de front matter por separado."""
+    return texto.replace("/assets/imagenes/%s/" % slug, "")
+
+
+def crear_carpeta_edicion(nombre_archivo):
+    """Copia un articulo YA PUBLICADO a una carpeta de trabajo nueva en
+    _posts/articulos/<slug>/, con sus imagenes, para seguir editandolo con
+    Vista previa en vivo / Publicar borrador. Nunca toca el articulo
+    publicado -- eso solo pasa si Elvis despues confirma la republicacion
+    desde Publicar borrador."""
+    if not PATRON_ARCHIVO_POST.match(nombre_archivo):
+        raise ErrorPanel("Nombre de archivo invalido: %s" % nombre_archivo)
+    ruta_md_publicado = os.path.join(RAIZ, "_posts", nombre_archivo)
+    if not os.path.isfile(ruta_md_publicado):
+        raise ErrorPanel("No encuentro «%s» en _posts/." % nombre_archivo)
+
+    slug = _slug_de_archivo_post(nombre_archivo)
+    if not slug:
+        raise ErrorPanel("No pude calcular el slug de «%s»." % nombre_archivo)
+
+    carpeta_trabajo = os.path.join(RAIZ, "_posts", "articulos", slug)
+    os.makedirs(carpeta_trabajo, exist_ok=True)
+
+    with open(ruta_md_publicado, encoding="utf-8") as fh:
+        texto = fh.read()
+    texto = _convertir_a_rutas_simples(texto, slug)
+
+    ruta_md_trabajo = os.path.join(carpeta_trabajo, nombre_archivo)
+    with open(ruta_md_trabajo, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(texto)
+
+    carpeta_imagenes_publicadas = os.path.join(RAIZ, "assets", "imagenes", slug)
+    imagenes_copiadas = []
+    if os.path.isdir(carpeta_imagenes_publicadas):
+        for nombre in sorted(os.listdir(carpeta_imagenes_publicadas)):
+            origen = os.path.join(carpeta_imagenes_publicadas, nombre)
+            if os.path.isfile(origen) and os.path.splitext(nombre)[1].lower() in pa.EXTENSIONES_IMAGEN:
+                shutil.copyfile(origen, os.path.join(carpeta_trabajo, nombre))
+                imagenes_copiadas.append(nombre)
+
+    return slug, carpeta_trabajo, ruta_md_trabajo, imagenes_copiadas
+
+
+def reiniciar_carpeta_edicion(nombre_archivo):
+    """Descarta lo que hubiera en la carpeta de trabajo (cambios sin
+    publicar) y la recrea de cero a partir del articulo publicado --
+    solo se llama cuando Elvis elige explicitamente "Reiniciar desde lo
+    publicado" en la pantalla de aviso, nunca en silencio."""
+    slug = _slug_de_archivo_post(nombre_archivo)
+    if not slug:
+        raise ErrorPanel("No pude calcular el slug de «%s»." % nombre_archivo)
+    carpeta_trabajo = os.path.join(RAIZ, "_posts", "articulos", slug)
+    if os.path.isdir(carpeta_trabajo):
+        shutil.rmtree(carpeta_trabajo)
+    return crear_carpeta_edicion(nombre_archivo)
 
 
 # --------------------------------------------------------------------------
@@ -709,6 +791,7 @@ CSS = """
   .boton-crear { background: #eaf3ec; color: #205b34; }
   .boton-publicar { background: #e8eef6; color: #1f3f6b; }
   .boton-vivo { background: #f3ecf6; color: #4d1f6b; }
+  .boton-editar { background: #fdf3d9; color: #7a5a10; }
   .boton-eliminar { background: #f6e9e7; color: #7a2b1f; }
   label { display: block; margin: 16px 0 6px; font-weight: 600; }
   input[type=text], input[type=date], select {
@@ -765,6 +848,7 @@ def pagina_principal():
     <p class="subtitulo">Crear, publicar o eliminar artículos, sin editor web ni terminal.</p>
     <div class="botones-principales">
       <a class="boton-grande boton-crear" href="/crear">Crear artículo nuevo</a>
+      <a class="boton-grande boton-editar" href="/editar">Editar artículo publicado</a>
       <a class="boton-grande boton-publicar" href="/publicar">Publicar borrador</a>
       <a class="boton-grande boton-vivo" href="/vivo">Vista previa en vivo</a>
       <a class="boton-grande boton-eliminar" href="/eliminar">Eliminar artículo publicado</a>
@@ -941,6 +1025,89 @@ def pagina_error(titulo, mensaje, volver):
     <a class="volver" href="%s">&larr; Volver</a>
     """ % (html.escape(titulo), html.escape(mensaje), html.escape(volver))
     return pagina(titulo, cuerpo)
+
+
+def pagina_lista_editar(articulos):
+    if not articulos:
+        filas = "<p>No hay artículos publicados en <code>_posts/</code>.</p>"
+    else:
+        items = []
+        for a in articulos:
+            items.append(
+                '<li><div><strong>%s</strong><br>'
+                '<span class="meta">%s -- %s -- %s</span></div>'
+                '<form method="post" action="/editar/elegir">'
+                '<input type="hidden" name="archivo" value="%s">'
+                '<button type="submit">Editar</button>'
+                '</form></li>'
+                % (
+                    html.escape(a["titulo"]),
+                    html.escape(a["fecha"]),
+                    html.escape(a["categoria"]),
+                    html.escape(a["archivo"]),
+                    html.escape(a["archivo"]),
+                )
+            )
+        filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
+    cuerpo = """
+    <h1>Editar artículo publicado</h1>
+    <p class="subtitulo">Reabre un artículo ya publicado en una carpeta de
+       trabajo para seguir agregándole contenido (imágenes, ecuaciones,
+       texto, tablas).</p>
+    <div class="tarjeta">%s</div>
+    <a class="volver" href="/">&larr; Volver</a>
+    """ % filas
+    return pagina("Editar artículo publicado", cuerpo)
+
+
+def pagina_editar_conflicto(archivo, slug, titulo):
+    cuerpo = """
+    <h1>Ya tenés una carpeta de trabajo para este artículo</h1>
+    <div class="aviso">
+      <p>«<strong>%s</strong>» ya tiene una carpeta de trabajo en
+         <code>_posts/articulos/%s/</code>, con cambios sin publicar.</p>
+      <p>¿Querés seguir en esa (se abre tal cual está) o reiniciarla desde
+         lo que ya está publicado (se pierde lo que tenías sin publicar
+         ahí)?</p>
+    </div>
+    <form class="form-en-linea" method="post" action="/editar/seguir">
+      <input type="hidden" name="archivo" value="%s">
+      <button type="submit">Seguir con la carpeta existente</button>
+    </form>
+    <form class="form-en-linea" method="post" action="/editar/reiniciar">
+      <input type="hidden" name="archivo" value="%s">
+      <button type="submit" class="boton-peligro">Reiniciar desde lo publicado</button>
+    </form>
+    <br>
+    <a class="volver" href="/editar">&larr; Elegir otro artículo</a>
+    """ % (
+        html.escape(titulo), html.escape(slug), html.escape(archivo), html.escape(archivo),
+    )
+    return pagina("Ya tenés una carpeta de trabajo para este artículo", cuerpo)
+
+
+def pagina_editar_listo(carpeta, imagenes):
+    ruta_rel = ruta_git(carpeta)
+    if imagenes is None:
+        bloque_imagenes = ""
+    elif imagenes:
+        bloque_imagenes = "<p>Imágenes copiadas: %s</p>" % html.escape(", ".join(imagenes))
+    else:
+        bloque_imagenes = "<p>Este artículo todavía no tiene imágenes.</p>"
+    cuerpo = """
+    <h1>Listo para seguir editando</h1>
+    <div class="exito">
+      <p>Carpeta de trabajo: <code>%s</code></p>
+      %s
+    </div>
+    <p>Ya podés seguir editando ahí. Usá <strong>"Vista previa en
+       vivo"</strong> para ir mirando cambios, y <strong>"Publicar
+       borrador"</strong> cuando quieras subir la actualización -- como el
+       nombre coincide con el artículo original, lo va a reemplazar, no va
+       a crear uno nuevo.</p>
+    <a class="volver" href="/">&larr; Volver al panel</a>
+    """ % (html.escape(ruta_rel), bloque_imagenes)
+    return pagina("Listo para seguir editando", cuerpo)
 
 
 def pagina_lista_publicar(borradores):
@@ -1202,6 +1369,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
             self.responder(formulario_crear(leer_categorias()))
         elif ruta == "/eliminar":
             self.responder(pagina_lista_eliminar(listar_articulos()))
+        elif ruta == "/editar":
+            self.responder(pagina_lista_editar(listar_articulos()))
         elif ruta == "/publicar":
             self.responder(pagina_lista_publicar(listar_borradores()))
         elif ruta == "/vivo":
@@ -1224,6 +1393,12 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 self.manejar_confirmar_eliminar()
             elif ruta == "/eliminar/ejecutar":
                 self.manejar_ejecutar_eliminar()
+            elif ruta == "/editar/elegir":
+                self.manejar_editar_elegir()
+            elif ruta == "/editar/seguir":
+                self.manejar_editar_seguir()
+            elif ruta == "/editar/reiniciar":
+                self.manejar_editar_reiniciar()
             elif ruta == "/publicar/revisar":
                 self.manejar_publicar_revisar()
             elif ruta == "/publicar/confirmar":
@@ -1295,6 +1470,50 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
             return
         titulo, mensaje_commit, borro_imagenes = eliminar_articulo(archivo)
         self.responder(pagina_eliminado(titulo, mensaje_commit, borro_imagenes))
+
+    def manejar_editar_elegir(self):
+        datos = self.leer_formulario()
+        archivo = datos.get("archivo") or ""
+        articulos = {a["archivo"]: a for a in listar_articulos()}
+        if archivo not in articulos:
+            self.responder(pagina_error(
+                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/editar"
+            ))
+            return
+
+        slug = _slug_de_archivo_post(archivo)
+        if slug and carpeta_trabajo_existe(slug):
+            self.responder(pagina_editar_conflicto(archivo, slug, articulos[archivo]["titulo"]))
+            return
+
+        _, carpeta, _, imagenes = crear_carpeta_edicion(archivo)
+        self.responder(pagina_editar_listo(carpeta, imagenes))
+
+    def manejar_editar_seguir(self):
+        datos = self.leer_formulario()
+        archivo = datos.get("archivo") or ""
+        slug = _slug_de_archivo_post(archivo)
+        if not slug or not carpeta_trabajo_existe(slug):
+            self.responder(pagina_error(
+                "No encuentro esa carpeta de trabajo",
+                "«%s» no tiene una carpeta de trabajo en _posts/articulos/ -- puede que ya se haya movido o borrado." % archivo,
+                "/editar",
+            ))
+            return
+        carpeta = os.path.join(RAIZ, "_posts", "articulos", slug)
+        self.responder(pagina_editar_listo(carpeta, None))
+
+    def manejar_editar_reiniciar(self):
+        datos = self.leer_formulario()
+        archivo = datos.get("archivo") or ""
+        articulos = {a["archivo"] for a in listar_articulos()}
+        if archivo not in articulos:
+            self.responder(pagina_error(
+                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/editar"
+            ))
+            return
+        _, carpeta, _, imagenes = reiniciar_carpeta_edicion(archivo)
+        self.responder(pagina_editar_listo(carpeta, imagenes))
 
     def manejar_publicar_revisar(self):
         datos = self.leer_formulario()

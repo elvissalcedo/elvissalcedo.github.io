@@ -98,13 +98,13 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Panel de control local (panel-control-gitpage.bat)
 
-- Vía local para crear, publicar, previsualizar en vivo y eliminar
+- Vía local para crear, editar, publicar, previsualizar en vivo y eliminar
   artículos, sin editor web ni terminal más allá de un doble clic.
   `panel-control-gitpage.bat` (raíz del repo) arranca
   `.github/scripts/panel_control.py` -- un servidor HTTP en
   `127.0.0.1:8420`, solo con librería estándar de Python (nada que
   instalar) -- y abre el navegador solo en la pantalla principal, con
-  cuatro botones.
+  cinco botones.
 - **Crear artículo nuevo:** formulario con título, categoría (las 8 de
   `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
   tildes, espacios a guiones), avisa con una pantalla de confirmación
@@ -203,6 +203,41 @@ hay además un script opcional que automatiza la organización de imágenes
   PENDIENTE.jpg` sin completar rompía la copia entera porque
   `pa.procesar_referencias` exige que ese nombre de archivo exista de
   verdad (corregido con la neutralización en memoria de arriba).
+- **Editar artículo publicado:** hasta ahora no había forma de volver a
+  abrir un artículo ya publicado para seguirle agregando contenido
+  (imágenes, ecuaciones, texto, tablas). Reusa la misma lista de
+  `listar_articulos()` que "Eliminar" (título, fecha, archivo). Al elegir
+  uno: si ya existe una carpeta de trabajo con ese slug en
+  `_posts/articulos/` (por ejemplo, porque Elvis ya la había empezado
+  antes), avisa explícitamente -- "Ya tenés una carpeta de trabajo para
+  este artículo, con cambios sin publicar" -- y deja elegir entre
+  **"Seguir con la carpeta existente"** (la abre tal cual está, no la
+  toca) o **"Reiniciar desde lo publicado"** (la borra y la recrea de
+  cero); nunca sobreescribe en silencio. Si no existe carpeta, crea
+  `_posts/articulos/<slug>/` y copia ahí el `.md` publicado real (con su
+  `title`/`date`/`category`/`excerpt`/`image`/`permalink` reales, nada de
+  `PENDIENTE`) más las imágenes de `assets/imagenes/<slug>/` que existan.
+  `_convertir_a_rutas_simples()` deshace, con un reemplazo de texto
+  literal (no regex), lo que `pa.procesar_referencias` hizo al publicar:
+  el `.md` real tiene las rutas completas
+  (`/assets/imagenes/<slug>/archivo.ext`, en `<img>`, en imagen Markdown y
+  en el `image:` del front matter) y la carpeta de trabajo espera nombres
+  simples, para que "Publicar borrador"/"Vista previa en vivo" puedan
+  reescribirlas de nuevo al republicar. El artículo publicado nunca se
+  toca hasta que Elvis confirme la republicación desde "Publicar
+  borrador" -- como el nombre del archivo coincide con el original, lo
+  reemplaza en vez de crear uno duplicado. Probado de punta a punta en un
+  clon aislado con un artículo real (3 imágenes): carpeta de trabajo
+  creada con el contenido real y las 3 imágenes; una oración y una imagen
+  nuevas agregadas a mano; "Vista previa en vivo" mostrando el contenido
+  viejo y el nuevo a la vez; "Publicar borrador" → "Confirmar y publicar"
+  modificando el mismo archivo en `_posts/` (356 líneas de diff sobre el
+  existente, no uno nuevo) con `validar_articulos.py` en 0 errores; y,
+  eligiendo el mismo artículo de nuevo con la carpeta de trabajo ya
+  existiendo (un cambio sin publicar simulado con un marcador de texto),
+  el aviso de conflicto apareció, "Seguir" dejó el archivo con el mismo
+  MD5 antes y después, y "Reiniciar" borró el marcador simulado y
+  reconstruyó limpio desde lo publicado.
 - **Eliminar artículo publicado:** lista los artículos reales de
   `_posts/` (título, fecha, archivo -- el post oculto de pruebas de
   kramdown/MathJax no aparece, no es un artículo real gestionable). Pide
@@ -320,6 +355,25 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: agrega el quinto flujo del panel de control, "Editar
+  artículo publicado" (sección dedicada más arriba) -- no había forma de
+  reabrir un artículo ya publicado para seguirle agregando contenido.
+  Copia el `.md` real (sin `PENDIENTE`) y sus imágenes a una carpeta de
+  trabajo nueva, convirtiendo las rutas completas de imagen de vuelta a
+  nombres simples (`_convertir_a_rutas_simples()`, inversa de lo que hace
+  `pa.procesar_referencias` al publicar). Si la carpeta de trabajo ya
+  existe (cambios sin publicar), avisa y deja elegir entre "Seguir con la
+  carpeta existente" o "Reiniciar desde lo publicado" -- nunca sobreescribe
+  en silencio. Como el nombre del archivo coincide con el original, una
+  republicación posterior desde "Publicar borrador" lo reemplaza en vez de
+  duplicarlo. Probado de punta a punta en un clon aislado con un artículo
+  real de 3 imágenes: carpeta creada con contenido real, edición con
+  "Vista previa en vivo" mostrando lo viejo y lo nuevo a la vez,
+  republicación que modificó el mismo archivo en `_posts/` (no uno nuevo)
+  con el validador en 0 errores, y el aviso de conflicto al re-elegir el
+  mismo artículo con cambios sin publicar simulados -- "Seguir" con MD5
+  idéntico antes/después, "Reiniciar" descartando el cambio simulado y
+  reconstruyendo limpio desde lo publicado.
 - 2026-09-21: "Vista previa en vivo" deja de bloquear por falta de
   imágenes -- antes fallaba duro si la carpeta de trabajo no tenía
   ninguna imagen (`pa.encontrar_imagenes` original), lo cual contradecía
