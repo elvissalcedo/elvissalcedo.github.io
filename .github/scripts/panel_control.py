@@ -7,7 +7,7 @@ Arranca un servidor HTTP en 127.0.0.1, solo con la libreria estandar de
 Python (nada que instalar). Pensado para correr con doble clic en
 panel-control-gitpage.bat, que abre el navegador solo.
 
-Tres flujos: "Crear articulo nuevo" arma la carpeta de trabajo
+Cuatro flujos: "Crear articulo nuevo" arma la carpeta de trabajo
 (_posts/articulos/<slug>/) con el .md y su front matter listos para que
 Elvis pegue el contenido de NotebookLM. "Publicar borrador" reemplaza el
 paso manual de correr publicar_articulo.py en la terminal -- copia el
@@ -15,6 +15,13 @@ borrador a _posts/ y assets/imagenes/ SIN commit, arma una vista previa
 real con `bundle exec jekyll build` embebida en un iframe, y solo hace
 `git add` + commit + push cuando Elvis aprieta "Confirmar y publicar"; si
 en cambio aprieta "Volver a editar", deshace la copia sin dejar rastro.
+"Vista previa en vivo" reemplaza a Ctrl+Shift+V de VS Code: copia el
+borrador igual que "Publicar borrador" pero sin chequear PENDIENTE ni
+correr el validador, arranca (o reusa) `bundle exec jekyll serve
+--livereload` en segundo plano, abre la URL directa del articulo y vigila
+la carpeta de trabajo cada 1.5 segundos para volver a copiar solo en cada
+cambio -- Jekyll se refresca solo via livereload. "Detener vista previa"
+corta la vigilancia y descarta la copia, sin commitear nada.
 "Eliminar articulo publicado" borra un articulo que ya esta en _posts/
 (con git rm + commit local, nunca push).
 
@@ -37,8 +44,11 @@ import shutil
 import subprocess
 import sys
 import threading
+import time
 import unicodedata
+import urllib.error
 import urllib.parse
+import urllib.request
 import webbrowser
 from datetime import date, datetime
 
@@ -48,6 +58,7 @@ import validar_articulos as va
 RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PUERTO = 8420
 PUERTO_VISTA_PREVIA = 8421
+PUERTO_SERVE_VIVO = 4000
 URL_SITIO = "https://elvissalcedo.github.io"
 SITE_DIR = os.path.join(RAIZ, "_site")
 
@@ -440,6 +451,238 @@ def iniciar_servidor_vista_previa():
 
 
 # --------------------------------------------------------------------------
+# Flujo "Vista previa en vivo"
+# --------------------------------------------------------------------------
+PATRON_MARCADOR_IMAGEN = re.compile(r'\[IMAGEN\s+\d+[^\]]*\]')
+
+PLACEHOLDER_IMAGEN_PENDIENTE = (
+    '<div style="background:#e2e0d8;border:1px dashed #a9a696;border-radius:8px;'
+    'padding:40px 20px;text-align:center;color:#6b6a63;font-family:sans-serif;">'
+    'Imagen pendiente</div>'
+)
+
+
+def _encontrar_imagenes_vivo(carpeta):
+    """Version tolerante de pa.encontrar_imagenes: a diferencia de Publicar
+    borrador, Vista previa en vivo no debe bloquear porque la carpeta de
+    trabajo todavia no tiene ninguna imagen -- el proposito de este flujo es
+    justo ir viendo el progreso (texto, formulas, estructura) mientras se
+    escribe, no exigir que el articulo este terminado. Devuelve una lista
+    vacia en vez de fallar."""
+    return sorted(
+        f for f in os.listdir(carpeta)
+        if os.path.splitext(f)[1].lower() in pa.EXTENSIONES_IMAGEN
+    )
+
+
+def _es_referencia_simple_faltante(ref, imagenes_disponibles):
+    if ref.startswith(("http://", "https://", "//")):
+        return False
+    if "/" in ref or "\\" in ref:
+        return False
+    return ref not in imagenes_disponibles
+
+
+def _reemplazar_imagenes_faltantes(texto, imagenes_disponibles):
+    """Reemplaza, SOLO en la copia en memoria usada para renderizar (nunca
+    en el .md real de la carpeta de trabajo), cada marcador
+    `[IMAGEN N -- titulo]` sin resolver y cada <img>/imagen Markdown que
+    apunte a un archivo simple que todavia no esta en la carpeta, por un
+    recuadro "Imagen pendiente" -- asi el resto del articulo (texto,
+    formulas, estructura) se sigue viendo aunque falten imagenes, en vez de
+    que pa.procesar_referencias corte la vista previa entera con un error
+    (ese chequeo estricto sigue intacto para "Publicar borrador", que si
+    debe bloquear por una imagen faltante)."""
+    texto = PATRON_MARCADOR_IMAGEN.sub(PLACEHOLDER_IMAGEN_PENDIENTE, texto)
+
+    def _sub_img(m):
+        ref = m.group(2)
+        if _es_referencia_simple_faltante(ref, imagenes_disponibles):
+            return PLACEHOLDER_IMAGEN_PENDIENTE
+        return m.group(0)
+
+    texto = pa.PATRON_IMG_TAG.sub(_sub_img, texto)
+    texto = pa.PATRON_MD_IMG.sub(_sub_img, texto)
+    return texto
+
+
+def _neutralizar_image_pendiente(texto, imagenes_disponibles):
+    """El scaffold de "Crear articulo nuevo" deja `image: PENDIENTE.jpg` en
+    el front matter hasta que Elvis pega el nombre real que entrega
+    NotebookLM. Ese campo solo alimenta metadatos (og:image, etc.) -- nunca
+    se ve en el cuerpo del articulo -- asi que no tiene sentido que bloquee
+    la vista previa en vivo por un campo a medio completar (a diferencia de
+    un <img> roto en el cuerpo, que si es una senal real de que falta subir
+    esa imagen y debe seguir fallando). Reescribe SOLO la copia en memoria
+    que se usa para renderizar -- el .md real de la carpeta de trabajo no se
+    toca -- a una ruta ya armada, para que pa.procesar_referencias (sin
+    tocarlo) la deje pasar por su propia rama tolerante en vez de fallar."""
+    m = re.search(r'^image:\s*(\S+)\s*$', texto, re.M)
+    if not m:
+        return texto
+    valor = m.group(1)
+    if valor.startswith(("http://", "https://", "//", "/")) or valor in imagenes_disponibles:
+        return texto
+    return re.sub(
+        r'^image:\s*\S+\s*$', "image: /assets/pendiente-vista-previa.jpg", texto, count=1, flags=re.M
+    )
+
+
+def copiar_para_vista_previa(nombre_carpeta):
+    """Igual que revisar_y_copiar_borrador, pero SIN pa.verificar_sin_pendientes
+    -- este flujo es solo para mirar mientras se escribe, tiene que funcionar
+    con campos a medio completar. Reusa pa.copiar_articulo (la funcion real
+    de copiado), no la reescribe."""
+    carpeta_abs = os.path.join(RAIZ, "_posts", "articulos", nombre_carpeta)
+    carpeta, nombre_validado = pa.resolver_carpeta(carpeta_abs)
+    nombre_md = pa.encontrar_md(carpeta, nombre_validado)
+    imagenes = _encontrar_imagenes_vivo(carpeta)
+
+    with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
+        texto = fh.read()
+
+    texto = _neutralizar_image_pendiente(texto, set(imagenes))
+    texto = _reemplazar_imagenes_faltantes(texto, set(imagenes))
+
+    texto_final, _cambios, _referenciadas = pa.procesar_referencias(
+        texto, nombre_validado, set(imagenes)
+    )
+
+    destino_md, _ya_existia, destino_imagenes, copiadas = pa.copiar_articulo(
+        carpeta, nombre_validado, nombre_md, imagenes, texto_final
+    )
+    return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas
+
+
+class _EstadoVistaPrevia:
+    """Estado de la (unica) vista previa en vivo activa. Solo una a la vez:
+    arrancar una segunda primero detiene y descarta la anterior."""
+    def __init__(self):
+        self.carpeta = None
+        self.nombre_md = None
+        self.copiadas = []
+        self.ruta_site = None
+        self.evento_detener = None
+        self.hilo = None
+        self.ultimo_error = None
+
+
+_vista_previa_activa = _EstadoVistaPrevia()
+_proceso_jekyll_serve = None
+_lock_jekyll_serve = threading.Lock()
+
+
+def jekyll_serve_activo():
+    return _proceso_jekyll_serve is not None and _proceso_jekyll_serve.poll() is None
+
+
+def iniciar_jekyll_serve():
+    """Arranca `bundle exec jekyll serve --livereload` en segundo plano si no
+    hay uno ya corriendo (se reusa entre vistas previas sucesivas). Devuelve
+    un mensaje de error, o None si ya estaba corriendo o si lo pudo arrancar.
+    Mismo motivo que construir_sitio(): shutil.which("bundle"), no la lista
+    ["bundle", ...] tal cual, por el shim .BAT de RubyInstaller en Windows."""
+    global _proceso_jekyll_serve
+    with _lock_jekyll_serve:
+        if jekyll_serve_activo():
+            return None
+        ejecutable = shutil.which("bundle")
+        if not ejecutable:
+            return (
+                "No encontré `bundle` instalado -- hace falta Ruby + Bundler "
+                "para la vista previa en vivo. Instalalos y corré `bundle "
+                "install` una vez en la raíz del repo."
+            )
+        _proceso_jekyll_serve = subprocess.Popen(
+            [ejecutable, "exec", "jekyll", "serve", "--livereload",
+             "--port", str(PUERTO_SERVE_VIVO)],
+            cwd=RAIZ, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        return None
+
+
+def esperar_jekyll_listo(tiempo_maximo=60):
+    """Espera a que el servidor de jekyll serve responda -- el primer build
+    real tarda unos segundos. Devuelve False si se cae o si se agota el
+    tiempo (por ejemplo, un error de sintaxis que rompe el build)."""
+    limite = time.time() + tiempo_maximo
+    url = "http://127.0.0.1:%d/" % PUERTO_SERVE_VIVO
+    while time.time() < limite:
+        if not jekyll_serve_activo():
+            return False
+        try:
+            urllib.request.urlopen(url, timeout=1)
+            return True
+        except (urllib.error.URLError, OSError):
+            time.sleep(0.5)
+    return False
+
+
+def _huella_carpeta(carpeta):
+    """mtime de cada archivo de la carpeta de trabajo -- alcanza para
+    detectar ediciones del .md y altas/bajas/cambios de imagenes, sin
+    dependencias nuevas (solo os.path.getmtime)."""
+    huella = {}
+    for nombre in os.listdir(carpeta):
+        ruta = os.path.join(carpeta, nombre)
+        if os.path.isfile(ruta):
+            huella[nombre] = os.path.getmtime(ruta)
+    return huella
+
+
+def _bucle_vigilancia(nombre_carpeta, evento_detener):
+    carpeta_trabajo = os.path.join(RAIZ, "_posts", "articulos", nombre_carpeta)
+    huella_anterior = None
+    while not evento_detener.wait(1.5):
+        try:
+            huella_actual = _huella_carpeta(carpeta_trabajo)
+        except OSError:
+            continue
+        if huella_actual == huella_anterior:
+            continue
+        try:
+            _, _, _, _, copiadas = copiar_para_vista_previa(nombre_carpeta)
+        except (ErrorPanel, pa.ErrorPublicacion) as e:
+            # No actualiza huella_anterior: reintenta en el proximo tick
+            # aunque el archivo no vuelva a cambiar (ej. quedo a medio
+            # guardar cuando se leyo).
+            _vista_previa_activa.ultimo_error = str(e)
+            continue
+        huella_anterior = huella_actual
+        _vista_previa_activa.ultimo_error = None
+        # Union con lo ya copiado, no reemplazo: si una imagen nueva aparece
+        # a mitad de sesion, "Detener vista previa" tiene que poder
+        # descartarla tambien (descartar_vista_previa solo revisa lo que
+        # esta en esta lista).
+        _vista_previa_activa.copiadas = sorted(set(_vista_previa_activa.copiadas) | set(copiadas))
+
+
+def _detener_vista_previa_activa():
+    """Corta la vigilancia y descarta la copia (misma logica de "Volver a
+    editar" de Publicar borrador, via descartar_vista_previa). No toca
+    `bundle exec jekyll serve`: se deja corriendo para reusar en la proxima
+    vista previa. Devuelve el nombre de la carpeta que estaba activa."""
+    if not _vista_previa_activa.carpeta:
+        return None
+    if _vista_previa_activa.evento_detener:
+        _vista_previa_activa.evento_detener.set()
+    if _vista_previa_activa.hilo:
+        _vista_previa_activa.hilo.join(timeout=3)
+    carpeta = _vista_previa_activa.carpeta
+    descartar_vista_previa(
+        _vista_previa_activa.carpeta, _vista_previa_activa.nombre_md, _vista_previa_activa.copiadas
+    )
+    _vista_previa_activa.carpeta = None
+    _vista_previa_activa.nombre_md = None
+    _vista_previa_activa.copiadas = []
+    _vista_previa_activa.ruta_site = None
+    _vista_previa_activa.evento_detener = None
+    _vista_previa_activa.hilo = None
+    _vista_previa_activa.ultimo_error = None
+    return carpeta
+
+
+# --------------------------------------------------------------------------
 # HTML
 # --------------------------------------------------------------------------
 CSS = """
@@ -465,6 +708,7 @@ CSS = """
   }
   .boton-crear { background: #eaf3ec; color: #205b34; }
   .boton-publicar { background: #e8eef6; color: #1f3f6b; }
+  .boton-vivo { background: #f3ecf6; color: #4d1f6b; }
   .boton-eliminar { background: #f6e9e7; color: #7a2b1f; }
   label { display: block; margin: 16px 0 6px; font-weight: 600; }
   input[type=text], input[type=date], select {
@@ -522,6 +766,7 @@ def pagina_principal():
     <div class="botones-principales">
       <a class="boton-grande boton-crear" href="/crear">Crear artículo nuevo</a>
       <a class="boton-grande boton-publicar" href="/publicar">Publicar borrador</a>
+      <a class="boton-grande boton-vivo" href="/vivo">Vista previa en vivo</a>
       <a class="boton-grande boton-eliminar" href="/eliminar">Eliminar artículo publicado</a>
     </div>
     """
@@ -837,6 +1082,91 @@ def pagina_descartado(nombre_carpeta):
     return pagina("Vista previa descartada", cuerpo)
 
 
+def pagina_lista_vivo(borradores):
+    if not borradores:
+        filas = "<p>No hay borradores en <code>_posts/articulos/</code>.</p>"
+    else:
+        items = []
+        for b in borradores:
+            if b["problema"]:
+                items.append(
+                    '<li><div><strong>%s</strong><br>'
+                    '<span class="meta">%s -- modificado: %s</span></div></li>'
+                    % (html.escape(b["titulo"]), html.escape(b["problema"]), html.escape(b["modificado"]))
+                )
+            else:
+                items.append(
+                    '<li><div><strong>%s</strong><br>'
+                    '<span class="meta">Modificado: %s</span></div>'
+                    '<form method="post" action="/vivo/iniciar">'
+                    '<input type="hidden" name="carpeta" value="%s">'
+                    '<button type="submit">Vista previa en vivo</button>'
+                    '</form></li>'
+                    % (html.escape(b["titulo"]), html.escape(b["modificado"]), html.escape(b["carpeta"]))
+                )
+        filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
+    cuerpo = """
+    <h1>Vista previa en vivo</h1>
+    <p class="subtitulo">Mirá el artículo actualizarse solo mientras lo escribís --
+       no chequea <code>PENDIENTE</code>, no corre el validador, no comitea nada.
+       Reemplaza a Ctrl+Shift+V de VS Code.</p>
+    <div class="tarjeta">%s</div>
+    <a class="volver" href="/">&larr; Volver</a>
+    """ % filas
+    return pagina("Vista previa en vivo", cuerpo)
+
+
+def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error):
+    if ruta_site:
+        src = "http://127.0.0.1:%d/%s" % (PUERTO_SERVE_VIVO, ruta_site)
+        bloque_iframe = '<iframe class="vista-previa-frame" src="%s"></iframe>' % html.escape(src)
+        link_directo = (
+            '<p><a href="%s" target="_blank" rel="noopener">Abrir en una pestaña aparte</a></p>'
+            % html.escape(src)
+        )
+    else:
+        bloque_iframe = (
+            '<div class="error">No pude calcular la URL del artículo -- revisá manualmente en '
+            '<a href="http://127.0.0.1:%d/" target="_blank">http://127.0.0.1:%d/</a></div>'
+            % (PUERTO_SERVE_VIVO, PUERTO_SERVE_VIVO)
+        )
+        link_directo = ""
+    bloque_error = (
+        '<div class="aviso">La última actualización automática falló (va a reintentar sola): %s</div>'
+        % html.escape(ultimo_error)
+    ) if ultimo_error else ""
+    cuerpo = """
+    <h1>Vista previa en vivo: %s</h1>
+    <p class="subtitulo">Se actualiza sola cada vez que guardás un cambio en
+       la carpeta de trabajo (cada 1-2 segundos). No chequea <code>PENDIENTE</code>,
+       no corre el validador, no comitea nada.</p>
+    %s
+    %s
+    %s
+    <form method="post" action="/vivo/detener">
+      <input type="hidden" name="carpeta" value="%s">
+      <button type="submit" class="boton-secundario">Detener vista previa</button>
+    </form>
+    """ % (
+        html.escape(nombre_carpeta), bloque_error, bloque_iframe, link_directo,
+        html.escape(nombre_carpeta),
+    )
+    return pagina("Vista previa en vivo", cuerpo)
+
+
+def pagina_vivo_detenida(nombre_carpeta):
+    cuerpo = """
+    <h1>Vista previa en vivo detenida</h1>
+    <div class="exito">
+      <p>Se dejó de vigilar la carpeta y se descartó la copia temporal --
+         nada quedó comiteado. <code>_posts/articulos/%s/</code> sigue
+         intacta, lista para seguir editando.</p>
+    </div>
+    <a class="volver" href="/vivo">&larr; Volver a Vista previa en vivo</a>
+    """ % html.escape(nombre_carpeta or "")
+    return pagina("Vista previa en vivo detenida", cuerpo)
+
+
 # --------------------------------------------------------------------------
 # Servidor
 # --------------------------------------------------------------------------
@@ -874,6 +1204,14 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
             self.responder(pagina_lista_eliminar(listar_articulos()))
         elif ruta == "/publicar":
             self.responder(pagina_lista_publicar(listar_borradores()))
+        elif ruta == "/vivo":
+            if _vista_previa_activa.carpeta:
+                self.responder(pagina_vivo_activa(
+                    _vista_previa_activa.carpeta, _vista_previa_activa.ruta_site,
+                    _vista_previa_activa.ultimo_error,
+                ))
+            else:
+                self.responder(pagina_lista_vivo(listar_borradores()))
         else:
             self.responder(pagina_error("Página no encontrada", ruta, "/"), status=404)
 
@@ -892,6 +1230,10 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 self.manejar_publicar_confirmar()
             elif ruta == "/publicar/descartar":
                 self.manejar_publicar_descartar()
+            elif ruta == "/vivo/iniciar":
+                self.manejar_vivo_iniciar()
+            elif ruta == "/vivo/detener":
+                self.manejar_vivo_detener()
             else:
                 self.responder(pagina_error("Página no encontrada", ruta, "/"), status=404)
         except (ErrorPanel, pa.ErrorPublicacion) as e:
@@ -1008,6 +1350,64 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         descartar_vista_previa(nombre_carpeta, nombre_md, copiadas)
         self.responder(pagina_descartado(nombre_carpeta))
 
+    def manejar_vivo_iniciar(self):
+        datos = self.leer_formulario()
+        nombre_carpeta = (datos.get("carpeta") or "").strip()
+
+        if _vista_previa_activa.carpeta and _vista_previa_activa.carpeta != nombre_carpeta:
+            _detener_vista_previa_activa()
+
+        if _vista_previa_activa.carpeta == nombre_carpeta:
+            self.responder(pagina_vivo_activa(
+                _vista_previa_activa.carpeta, _vista_previa_activa.ruta_site,
+                _vista_previa_activa.ultimo_error,
+            ))
+            return
+
+        nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas = copiar_para_vista_previa(
+            nombre_carpeta
+        )
+
+        error_bundle = iniciar_jekyll_serve()
+        if error_bundle:
+            descartar_vista_previa(nombre_validado, nombre_md, copiadas)
+            self.responder(pagina_error("No se pudo iniciar la vista previa en vivo", error_bundle, "/vivo"))
+            return
+
+        if not esperar_jekyll_listo():
+            descartar_vista_previa(nombre_validado, nombre_md, copiadas)
+            self.responder(pagina_error(
+                "No se pudo iniciar la vista previa en vivo",
+                "`bundle exec jekyll serve` no respondió a tiempo -- revisá si hay "
+                "algún error de sintaxis en el .md que rompa el build y volvé a intentar.",
+                "/vivo",
+            ))
+            return
+
+        fm = leer_front_matter(destino_md)
+        ruta_site = ruta_generada_en_site(fm, nombre_validado)
+
+        evento_detener = threading.Event()
+        hilo = threading.Thread(
+            target=_bucle_vigilancia, args=(nombre_validado, evento_detener), daemon=True,
+        )
+
+        _vista_previa_activa.carpeta = nombre_validado
+        _vista_previa_activa.nombre_md = nombre_md
+        _vista_previa_activa.copiadas = copiadas
+        _vista_previa_activa.ruta_site = ruta_site
+        _vista_previa_activa.evento_detener = evento_detener
+        _vista_previa_activa.hilo = hilo
+        _vista_previa_activa.ultimo_error = None
+
+        hilo.start()
+
+        self.responder(pagina_vivo_activa(nombre_validado, ruta_site, None))
+
+    def manejar_vivo_detener(self):
+        carpeta = _detener_vista_previa_activa()
+        self.responder(pagina_vivo_detenida(carpeta))
+
 
 def main():
     # Threading: una pestana/peticion colgada (ej. el navegador pidiendo un
@@ -1022,6 +1422,10 @@ def main():
         servidor.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        _detener_vista_previa_activa()
+        if jekyll_serve_activo():
+            _proceso_jekyll_serve.terminate()
 
 
 if __name__ == "__main__":

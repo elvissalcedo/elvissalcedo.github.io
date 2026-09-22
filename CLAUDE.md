@@ -98,12 +98,13 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Panel de control local (panel-control-gitpage.bat)
 
-- Vía local para crear, publicar y eliminar artículos, sin editor web ni
-  terminal más allá de un doble clic. `panel-control-gitpage.bat` (raíz del
-  repo) arranca `.github/scripts/panel_control.py` -- un servidor HTTP en
+- Vía local para crear, publicar, previsualizar en vivo y eliminar
+  artículos, sin editor web ni terminal más allá de un doble clic.
+  `panel-control-gitpage.bat` (raíz del repo) arranca
+  `.github/scripts/panel_control.py` -- un servidor HTTP en
   `127.0.0.1:8420`, solo con librería estándar de Python (nada que
-  instalar) -- y abre el navegador solo en la pantalla principal, con tres
-  botones.
+  instalar) -- y abre el navegador solo en la pantalla principal, con
+  cuatro botones.
 - **Crear artículo nuevo:** formulario con título, categoría (las 8 de
   `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
   tildes, espacios a guiones), avisa con una pantalla de confirmación
@@ -152,6 +153,56 @@ hay además un script opcional que automatiza la organización de imágenes
   shell. `construir_sitio()` resuelve la ruta real con `shutil.which()`
   antes de llamar a `subprocess.run` -- encontrado en una prueba real en
   un clon aislado, no una suposición.
+- **Vista previa en vivo:** reemplaza a Ctrl+Shift+V de VS Code para mirar
+  un borrador mientras se edita -- a diferencia de "Publicar borrador", NO
+  chequea `PENDIENTE`, NO corre `validar_articulos.py` y NO comitea nada;
+  es solo para ver cómo va quedando el artículo. Lista las mismas carpetas
+  de `_posts/articulos/`; al elegir una, copia el `.md` y las imágenes a
+  `_posts/`/`assets/imagenes/<slug>/` (misma función de copiado que
+  "Publicar borrador", `pa.copiar_articulo`, pero sin el chequeo de
+  `PENDIENTE`), arranca -- o reusa, si ya está corriendo -- `bundle exec
+  jekyll serve --livereload` en segundo plano en `127.0.0.1:4000`, y abre
+  la URL directa del artículo (calculada con la misma `ruta_generada_en_site`
+  que ya usa "Publicar borrador", nunca la portada) en un iframe. Un hilo
+  en segundo plano vigila la carpeta de trabajo cada 1.5 segundos (mtime de
+  cada archivo, sin dependencias nuevas) y, ante cualquier cambio, vuelve a
+  copiar -- eso dispara la reconstrucción automática de `jekyll serve
+  --livereload`, que ya refresca el navegador solo. El campo `image:
+  PENDIENTE.jpg` que deja el scaffold de "Crear artículo nuevo" se
+  neutraliza SOLO en la copia en memoria usada para renderizar (nunca en el
+  `.md` real de la carpeta de trabajo): ese campo es metadato puro
+  (`og:image`), no se ve en el cuerpo. Tampoco bloquea que la carpeta de
+  trabajo todavía no tenga ninguna imagen, ni que el `.md` tenga
+  marcadores `[IMAGEN N -- título]` sin reemplazar por su `<figure>`: el
+  propósito de este flujo es ir viendo el progreso (texto, fórmulas,
+  estructura) mientras se escribe, no exigir que el artículo esté
+  terminado. `_encontrar_imagenes_vivo()` (tolerante -- lista vacía en vez
+  de fallar, a diferencia de `pa.encontrar_imagenes`) y
+  `_reemplazar_imagenes_faltantes()` sustituyen, también SOLO en la copia
+  en memoria, cada marcador `[IMAGEN N]` sin resolver y cada `<img>`/imagen
+  Markdown que apunte a un archivo que todavía no está en la carpeta, por
+  un recuadro "Imagen pendiente" -- en vez de que `pa.procesar_referencias`
+  corte la vista previa entera con un error. Ese chequeo estricto sigue
+  intacto, sin tocar, para "Publicar borrador" (confirmado con el mismo
+  borrador sin imágenes: sigue bloqueando con el mismo mensaje de
+  siempre), que ahí sí debe exigir que no falte nada antes de publicar.
+  **"Detener vista previa"** corta la vigilancia y descarta la copia (misma
+  lógica de "Volver a editar" de "Publicar borrador", vía
+  `descartar_vista_previa`) -- pero deja corriendo `jekyll serve` para
+  reusarlo en la próxima vista previa. Solo una vista previa activa a la
+  vez: arrancar una segunda detiene y descarta la anterior sola. Probado de
+  punta a punta en un clon aislado: URL directa confirmada (no portada),
+  edición del `.md` reflejada en el HTML servido en unos segundos sin
+  tocar nada más, imagen nueva agregada a mitad de sesión servida con 200,
+  "Detener vista previa" con `git status` limpio y carpeta de trabajo
+  intacta, y el borrador con `PENDIENTE` sin completar renderizando bien.
+  Encontrados y corregidos dos bugs reales en esa prueba (no hipotéticos):
+  una imagen agregada a mitad de sesión quedaba huérfana en
+  `assets/imagenes/` al detener (el hilo de vigilancia no acumulaba la
+  lista de copiadas -- corregido a unión, no reemplazo) y `image:
+  PENDIENTE.jpg` sin completar rompía la copia entera porque
+  `pa.procesar_referencias` exige que ese nombre de archivo exista de
+  verdad (corregido con la neutralización en memoria de arriba).
 - **Eliminar artículo publicado:** lista los artículos reales de
   `_posts/` (título, fecha, archivo -- el post oculto de pruebas de
   kramdown/MathJax no aparece, no es un artículo real gestionable). Pide
@@ -269,6 +320,44 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-21: "Vista previa en vivo" deja de bloquear por falta de
+  imágenes -- antes fallaba duro si la carpeta de trabajo no tenía
+  ninguna imagen (`pa.encontrar_imagenes` original), lo cual contradecía
+  el propósito del flujo (mirar el progreso mientras se escribe, no exigir
+  que esté terminado). Suma `_encontrar_imagenes_vivo()` (lista vacía en
+  vez de fallar) y `_reemplazar_imagenes_faltantes()`, que sustituye, SOLO
+  en la copia en memoria usada para renderizar, cada marcador
+  `[IMAGEN N -- título]` sin reemplazar y cada `<img>`/imagen Markdown que
+  apunte a un archivo que todavía no está en la carpeta, por un recuadro
+  "Imagen pendiente". "Publicar borrador" no se tocó -- sigue usando
+  `pa.encontrar_imagenes` y `pa.procesar_referencias` sin cambios, con el
+  mismo rigor de siempre. Probado en un clon aislado con un borrador sin
+  ninguna imagen y dos marcadores `[IMAGEN N]` sin resolver: la vista
+  previa cargó igual (antes fallaba), el HTML servido no tiene ningún
+  marcador literal (los dos se reemplazaron por el recuadro), todo el
+  texto y la estructura del artículo se ven completos, la carpeta
+  `assets/imagenes/<slug>/` vacía se crea y se borra sola al detener (sin
+  quedar huérfana), y "Publicar borrador" sobre el mismo borrador siguió
+  bloqueando con el mensaje de siempre.
+- 2026-09-21: agrega el cuarto flujo del panel de control, "Vista previa
+  en vivo" (sección dedicada más arriba) -- reemplaza a Ctrl+Shift+V de VS
+  Code, sin chequear `PENDIENTE` ni correr el validador ni comitear nada.
+  Reusa `pa.copiar_articulo` y `descartar_vista_previa` (mismas funciones
+  de "Publicar borrador"), arranca o reusa `bundle exec jekyll serve
+  --livereload` en segundo plano y abre la URL directa del artículo; un
+  hilo vigila la carpeta de trabajo cada 1.5 segundos (mtime) y vuelve a
+  copiar ante cualquier cambio, dejando que `--livereload` refresque el
+  navegador solo. Probado de punta a punta en un clon aislado: URL directa
+  (no portada), edición reflejada en segundos, imagen nueva servida sola,
+  descarte limpio (`git status` sin nada pendiente, carpeta de trabajo
+  intacta) y funcionamiento con `PENDIENTE` sin completar. Encontrados y
+  corregidos dos bugs reales en esa prueba: una imagen agregada a mitad de
+  sesión quedaba huérfana al detener (el hilo no acumulaba la lista de
+  copiadas -- corregido a unión, no reemplazo) y `image: PENDIENTE.jpg`
+  rompía la copia entera porque `pa.procesar_referencias` exige que ese
+  nombre de archivo exista de verdad (corregido neutralizando ese campo
+  SOLO en la copia en memoria usada para renderizar, nunca en el `.md`
+  real de la carpeta de trabajo).
 - 2026-09-21: agrega el tercer flujo del panel de control, "Publicar
   borrador" (sección dedicada más arriba) -- reemplaza el paso manual de
   correr `publicar_articulo.py` en la terminal, con vista previa real
