@@ -88,8 +88,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   _posts/articulos/<carpeta>`. Copia el .md a `_posts/`, copia las
   imágenes a `assets/imagenes/<carpeta>/`, reescribe cada referencia de
   imagen a su ruta real, imprime un resumen de qué copió y qué reescribió,
-  y hace `git add` + un commit local (`Publica artículo: <carpeta>`) --
-  nunca push, eso lo confirma Elvis siempre a mano.
+  hace `git fetch origin` + `git rebase origin/main` para traer cualquier
+  cambio que haya en el remoto antes de comitear (evita el rechazo
+  "rejected... fetch first" si origin avanzó mientras tanto -- otra
+  publicación, una edición en github.com; si el rebase no aplica solo,
+  para sin comitear nada y nunca fuerza nada), y recién ahí hace `git add`
+  + un commit local (`Publica artículo: <carpeta>`) -- nunca push, eso lo
+  confirma Elvis siempre a mano.
 - Es todo o nada: para antes de copiar o reescribir nada si el nombre del
   .md no empieza con `AAAA-MM-DD-`, si hay cero o más de un .md en la
   carpeta, si la carpeta no tiene ninguna imagen, si un `<img src>` o una
@@ -152,10 +157,14 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   incluidas. El iframe apunta a un segundo servidor HTTP en
   `127.0.0.1:8421` que sirve `_site/` tal cual (necesario para sortear las
   restricciones de `file://` con el `<script type="module">` de Mermaid).
-  Debajo, dos botones: **"Confirmar y publicar"** hace `git add` + commit
-  (`Publica artículo: <slug>`) + `git push` en un solo paso -- el clic de
-  Elvis en la vista previa real ya es la confirmación explícita, no hace
-  falta preguntar de nuevo. **"Volver a editar"** deshace la copia: si el
+  Debajo, dos botones: **"Confirmar y publicar"** hace `git fetch origin` +
+  `git rebase origin/main` (vía `pa.confirmar_commit`, para evitar el
+  rechazo "rejected... fetch first" si origin avanzó mientras tanto -- si
+  el rebase no aplica solo, para sin comitear nada y nunca fuerza nada) +
+  `git add` + commit (`Publica artículo: <slug>`) + `git push` en un solo
+  paso -- el clic de Elvis en la vista previa real ya es la confirmación
+  explícita, no hace falta preguntar de nuevo. **"Volver a editar"** deshace
+  la copia: si el
   archivo ya estaba trackeado en git (una republicación sobre un artículo
   existente), lo restaura con `git checkout` -- nunca lo borra --; si es
   nuevo, lo borra. La carpeta de trabajo en `_posts/articulos/` nunca se
@@ -376,6 +385,17 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## Historial de cambios recientes
 
+- 2026-09-22: agrega `sincronizar_con_remoto()` a `publicar_articulo.py`
+  (usada por `confirmar_commit`, y por lo tanto también por "Confirmar y
+  publicar" del panel de control) -- hace `git fetch origin` + `git rebase
+  origin/main` automáticamente antes de cada commit de publicación, para
+  evitar el rechazo real "rejected... fetch first" que sufrió Elvis cuando
+  origin/main avanzó por edición web de GitHub mientras él tenía commits
+  locales sin pushear. Nunca fuerza nada: si el rebase no puede aplicarse
+  solo, aborta y devuelve el error sin comitear. Distingue dos casos reales
+  probados en este mismo incidente -- cambios sin comitear que chocan con
+  el intento de traer origin (mensaje claro, distinto de un conflicto) vs.
+  un conflicto de contenido real entre commits.
 - 2026-09-22: Elvis borra el post oculto de pruebas
   `_posts/2026-09-17-articulo-ejemplo.md` (banco de pruebas real del
   comportamiento de kramdown con los delimitadores `\\(...\\)`/`\\[...\\]`

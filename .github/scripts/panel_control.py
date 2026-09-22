@@ -18,8 +18,11 @@ publicado, nunca sobreescribe en silencio. "Publicar borrador" reemplaza
 el paso manual de correr publicar_articulo.py en la terminal -- copia el
 borrador a _posts/ y assets/imagenes/ SIN commit, arma una vista previa
 real con `bundle exec jekyll build` embebida en un iframe, y solo hace
-`git add` + commit + push cuando Elvis aprieta "Confirmar y publicar"; si
-en cambio aprieta "Volver a editar", deshace la copia sin dejar rastro.
+`git fetch` + `git rebase origin/main` (via pa.confirmar_commit, para
+evitar el rechazo "rejected... fetch first" si origin avanzo mientras
+tanto) + `git add` + commit + push cuando Elvis aprieta "Confirmar y
+publicar"; si en cambio aprieta "Volver a editar", deshace la copia sin
+dejar rastro.
 "Vista previa en vivo" reemplaza a Ctrl+Shift+V de VS Code: copia el
 borrador igual que "Publicar borrador" pero sin chequear PENDIENTE ni
 correr el validador, arranca (o reusa) `bundle exec jekyll serve

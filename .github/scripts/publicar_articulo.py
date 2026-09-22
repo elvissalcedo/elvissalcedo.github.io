@@ -15,7 +15,12 @@ script:
   3. reescribe cada referencia de imagen del .md copiado a su ruta real
      (/assets/imagenes/<carpeta>/archivo.ext);
   4. muestra un resumen de que copio y que reescribio;
-  5. hace `git add` + `git commit` local de los archivos nuevos -- nunca
+  5. antes de comitear, hace `git fetch origin` + `git rebase origin/main`
+     para traer cualquier cambio que haya en el remoto (otra publicacion,
+     una edicion en github.com) y evitar el rechazo "rejected... fetch
+     first" mas adelante -- si el rebase no se puede aplicar solo (conflicto
+     real), aborta y para sin comitear nada, nunca fuerza nada;
+  6. hace `git add` + `git commit` local de los archivos nuevos -- nunca
      hace push, eso lo confirma Elvis siempre a mano.
 
 Si algo no encaja (falta la fecha en el nombre del .md, una imagen
@@ -210,8 +215,58 @@ def ruta_git(ruta_absoluta):
     return os.path.relpath(ruta_absoluta, RAIZ).replace(os.sep, "/")
 
 
+def sincronizar_con_remoto():
+    """Trae los commits nuevos de origin/main y los combina con la rama local
+    ANTES de comitear. Sin esto, un `git push` automatico (el del panel de
+    control) puede chocar con "rejected... fetch first" si origin avanzo
+    mientras tanto -- otra publicacion, un borrado, una edicion desde el
+    editor web de github.com. Devuelve None si quedo al dia (o si no hizo
+    falta ningun cambio), o un mensaje de error listo para mostrar si el
+    rebase no se pudo aplicar solo.
+
+    Nunca fuerza nada: si hay un conflicto real de contenido, aborta el
+    rebase y para antes de tocar el commit -- jamas `--force`/`--force-with-lease`,
+    eso lo resuelve Elvis a mano.
+    """
+    resultado_fetch = git("fetch", "origin")
+    if resultado_fetch.returncode != 0:
+        return "`git fetch origin` fallo:\n%s" % (resultado_fetch.stderr or resultado_fetch.stdout)
+
+    resultado_rebase = git("rebase", "origin/main")
+    if resultado_rebase.returncode != 0:
+        salida = resultado_rebase.stderr or resultado_rebase.stdout
+        if "cannot rebase" in salida and (
+            "unstaged changes" in salida or "uncommitted changes" in salida
+        ):
+            # No llego a arrancar el rebase -- la copia de trabajo tiene
+            # cambios sueltos (ajenos a este articulo) que chocarian al
+            # traer origin/main. No es un conflicto de contenido real.
+            return (
+                "No se pudo sincronizar con origin/main porque hay cambios "
+                "sin comitear en la copia local que no tienen que ver con "
+                "este articulo (revisa `git status` en la terminal). "
+                "Comitealos o descartalos y volve a intentar publicar.\n\n%s"
+                % salida
+            )
+        git("rebase", "--abort")
+        return (
+            "origin/main tiene commits que tu copia local no tenia todavia "
+            "(otra publicacion, un borrado, una edicion en github.com) y no "
+            "se pudieron combinar solos -- probable conflicto real de "
+            "contenido.\nResuelvelo a mano en la terminal: `git fetch origin` "
+            "y despues `git rebase origin/main` (o `git pull --rebase origin "
+            "main`), arregla los archivos en conflicto, y volve a intentar "
+            "publicar.\n\n%s" % salida
+        )
+    return None
+
+
 def confirmar_commit(nombre_carpeta, destino_md, destino_imagenes, copiadas):
     """Devuelve (mensaje_commit, error). Si no hay nada nuevo, (None, None)."""
+    error_sync = sincronizar_con_remoto()
+    if error_sync:
+        return None, error_sync
+
     rutas_rel = [ruta_git(destino_md)] + [
         ruta_git(os.path.join(destino_imagenes, i)) for i in copiadas
     ]
