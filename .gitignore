@@ -8,3 +8,9 @@ _site/
 # Bundler local (si se instalan las gemas dentro del repo en vez de global)
 .bundle/
 vendor/
+
+# Documentos de trabajo con NotebookLM -- retirados del repo el 2026-09-22
+# (decisión de Elvis), pero siguen existiendo en el disco como referencia
+# personal fuera de control de versiones. Nunca se comitean ni se suben.
+02-instrucciones-notebooklm.md
+03-prompt-notebooklm.txt

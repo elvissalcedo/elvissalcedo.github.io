@@ -4,36 +4,50 @@ Sitio personal de Elvis Salcedo, ingeniero ambiental — "Elvis Salcedo |
 Ingeniería Ambiental" — publicado en GitHub Pages con Jekyll nativo
 (`elvissalcedo.github.io`, repo `elvissalcedo/elvissalcedo.github.io`).
 
-Este repo es **el proyecto completo y autosuficiente**: instrucciones de
-redacción y el sitio en sí viven todos acá. Publicar un artículo nuevo no
-requiere terminal ni ningún build local -- se hace entero desde el editor
-web de github.com. Para cuando Elvis sí tiene el repo clonado (VS Code),
-hay además un script opcional que automatiza la organización de imágenes
-(`publicar_articulo.py`, ver la sección dedicada más abajo).
+Este repo es **el proyecto completo y autosuficiente**: el sitio en sí vive
+acá. Publicar un artículo nuevo no requiere terminal ni ningún build local
+-- se hace entero desde el editor web de github.com. Para cuando Elvis sí
+tiene el repo clonado (VS Code), hay además un script opcional que
+automatiza la organización de imágenes (`publicar_articulo.py`, ver la
+sección dedicada más abajo).
+
+Las instrucciones de redacción para NotebookLM (`02-instrucciones-notebooklm.md`,
+el documento fuente, y `03-prompt-notebooklm.txt`, el prompt corto) **ya no
+forman parte de este repo** -- Elvis los sacó de git y GitHub el 2026-09-22
+a propósito. Siguen existiendo en el disco de Elvis, en la raíz de esta
+misma carpeta, como archivos sueltos sin versionar: `.gitignore` los
+excluye explícitamente para que git nunca los vuelva a rastrear ni a
+subir. Sirven como referencia personal de Elvis para operar NotebookLM,
+pero un clon nuevo de este repo NO los va a traer, y ninguna instrucción
+de este archivo debe asumir que existen en el repo -- si hace falta
+consultar su contenido, hay que pedírselo a Elvis o leerlos directo del
+disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## El flujo de publicación (sin terminal)
 
-- **La skill de NotebookLM** ([02-instrucciones-notebooklm.md](02-instrucciones-notebooklm.md)):
-  documento fuente que se sube a NotebookLM junto con el PDF del dosier y
-  los artículos del radar. Define todo lo que no es contenido técnico:
-  cómo identificar la fuente principal (su segunda línea en cursiva
-  "Sub-tema TEMA-XXXX -- tema padre: ..."), reglas de citas APA 7
-  completas, el método Feynman para explicar cada término técnico nuevo,
-  la estructura narrativa elegida caso por caso entre 7 bloques posibles
-  (solo Desarrollo técnico y Referencias son obligatorios; NotebookLM
-  propone la estructura en un mensaje corto y espera el "ok" de Elvis) con
-  títulos de sección creativos, el bloque de front matter listo para pegar, el formato de
-  salida Markdown exacto (fórmulas en LaTeX real
-  con el backslash **duplicado** en los 4 delimitadores -- `\\[...\\]`/
-  `\\(...\\)`, ver la nota de kramdown más abajo), la Guía de imágenes y
-  la sección de Vacíos del conocimiento.
-- **El prompt corto** ([03-prompt-notebooklm.txt](03-prompt-notebooklm.txt)):
-  lo que Elvis pega en el chat de NotebookLM cada vez que pide un artículo
-  nuevo. Ya no repite las reglas: remite al documento fuente y solo marca
-  los pasos de la sesión (identificar el dosier, proponer la estructura y
-  esperar el "ok", un bloque de código por mensaje, autocrítica final).
-  Deja que NotebookLM decida en cuántos mensajes entregar la respuesta
-  según el contenido real, esperando "continuar" entre cada uno.
+- **La skill de NotebookLM** (`02-instrucciones-notebooklm.md`, local, no
+  versionado -- ver nota arriba): documento fuente que se sube a
+  NotebookLM junto con el PDF del dosier y los artículos del radar. Define
+  todo lo que no es contenido técnico: cómo identificar la fuente
+  principal (su segunda línea en cursiva "Sub-tema TEMA-XXXX -- tema
+  padre: ..."), reglas de citas APA 7 completas, el método Feynman para
+  explicar cada término técnico nuevo, la estructura narrativa elegida
+  caso por caso entre 7 bloques posibles (solo Desarrollo técnico y
+  Referencias son obligatorios; NotebookLM propone la estructura en un
+  mensaje corto y espera el "ok" de Elvis) con títulos de sección
+  creativos, el bloque de front matter listo para pegar, el formato de
+  salida Markdown exacto (fórmulas en LaTeX real con el backslash
+  **duplicado** en los 4 delimitadores -- `\\[...\\]`/`\\(...\\)`, ver la
+  nota de kramdown más abajo), la Guía de imágenes y la sección de Vacíos
+  del conocimiento.
+- **El prompt corto** (`03-prompt-notebooklm.txt`, local, no versionado --
+  ver nota arriba): lo que Elvis pega en el chat de NotebookLM cada vez
+  que pide un artículo nuevo. Ya no repite las reglas: remite al documento
+  fuente y solo marca los pasos de la sesión (identificar el dosier,
+  proponer la estructura y esperar el "ok", un bloque de código por
+  mensaje, autocrítica final). Deja que NotebookLM decida en cuántos
+  mensajes entregar la respuesta según el contenido real, esperando
+  "continuar" entre cada uno.
 - **Publicar en github.com** (sin Conversor, sin Google Docs, sin build
   local): Elvis crea un archivo nuevo en `_posts/AAAA-MM-DD-slug.md` desde
   el editor web de GitHub y pega, en este orden, el front matter y el
@@ -278,9 +292,13 @@ hay además un script opcional que automatiza la organización de imágenes
   sueltos en `assets/` (no por artículo). Antes de subir una imagen conviene
   dejarla en el ancho que de verdad se usa: una foto de cámara o de banco sin
   tocar pesa 3 MB y el sitio no necesita ni el 10 % de eso.
-- `02-instrucciones-notebooklm.md`, `03-prompt-notebooklm.txt` — excluidos
-  del build (`exclude:` en `_config.yml`): se usan fuera del sitio (se
-  suben a NotebookLM), no tienen por qué publicarse.
+- `02-instrucciones-notebooklm.md`, `03-prompt-notebooklm.txt` — desde el
+  2026-09-22 ya NO viven en este repo (ver nota al principio del archivo):
+  son archivos locales sueltos en el disco de Elvis, ignorados por git vía
+  `.gitignore`. `_config.yml` todavía los lista en `exclude:` de una época
+  en que sí estaban versionados -- esa entrada quedó inofensiva (Jekyll no
+  falla por excluir una ruta que no existe) pero ya no cumple ninguna
+  función real.
 - `robots.txt` — sin cambios. `sitemap.xml`/`feed.xml` ya no se escriben a
   mano -- los generan `jekyll-sitemap`/`jekyll-feed` en cada build.
 
@@ -329,11 +347,14 @@ hay además un script opcional que automatiza la organización de imágenes
   `\frac`, `\cdot`, `\rho`, etc. -- va con backslash simple, normal, ya
   que las letras no están en el set de caracteres que kramdown escapa).
   Con eso, kramdown deja pasar exactamente `\(...\)`/`\[...\]` al HTML, y
-  MathJax los renderiza sin tocar nada más del diseño. El post oculto
-  `_posts/2026-09-17-articulo-ejemplo.md` (no aparece en el índice ni en
-  el sitemap, `hidden: true` + `sitemap: false`) es el banco de pruebas
-  real de este comportamiento -- si alguna vez se toca `_config.yml` o se
-  actualiza kramdown, revisar ese artículo primero.
+  MathJax los renderiza sin tocar nada más del diseño. El post oculto que
+  servía de banco de pruebas real de este comportamiento
+  (`_posts/2026-09-17-articulo-ejemplo.md`, `hidden: true` + `sitemap: false`)
+  fue borrado por Elvis el 2026-09-22 -- si alguna vez se toca
+  `_config.yml` o se actualiza kramdown y hace falta revalidar este
+  comportamiento, ya no hay un artículo de prueba dedicado; conviene armar
+  uno nuevo con el mismo criterio (oculto del índice y del sitemap) antes
+  de tocar nada.
 - **HTML crudo pegado en un `.md`: cuidado con tags inline pegados a
   tags de bloque en la misma línea.** kramdown solo reconoce un bloque de
   HTML crudo si la línea empieza con un tag de bloque conocido (`<p>`,
@@ -355,6 +376,19 @@ hay además un script opcional que automatiza la organización de imágenes
 
 ## Historial de cambios recientes
 
+- 2026-09-22: Elvis borra el post oculto de pruebas
+  `_posts/2026-09-17-articulo-ejemplo.md` (banco de pruebas real del
+  comportamiento de kramdown con los delimitadores `\\(...\\)`/`\\[...\\]`
+  -- ver la nota de diseño correspondiente más abajo, que se actualiza
+  para reflejar que ya no existe).
+- 2026-09-22: Elvis retira `02-instrucciones-notebooklm.md` y
+  `03-prompt-notebooklm.txt` del repo (borrados en GitHub vía editor web,
+  decisión intencional -- no un accidente). Siguen existiendo en su disco
+  como archivos sueltos sin versionar; se agregan a `.gitignore` para que
+  git nunca vuelva a rastrearlos ni preguntar por ellos, y este archivo se
+  actualiza en la introducción y en la sección "El sitio (Jekyll)" para
+  dejar constancia de que ya no forman parte del proyecto versionado --
+  un clon nuevo de este repo no los va a traer.
 - 2026-09-21: agrega el quinto flujo del panel de control, "Editar
   artículo publicado" (sección dedicada más arriba) -- no había forma de
   reabrir un artículo ya publicado para seguirle agregando contenido.
