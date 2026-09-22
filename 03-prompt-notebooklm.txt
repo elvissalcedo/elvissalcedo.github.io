@@ -1,9 +1,0 @@
-Vas a redactar un artículo nuevo para mi sitio "Elvis Salcedo | Ingeniería Ambiental". Sigue exactamente las reglas del documento "Instrucciones de síntesis" que ya subí como fuente -- no te las repito acá, aplícalas todas, incluida la sección 4 sobre cómo elegir la estructura narrativa de este artículo puntual.
-
-TEMA de este artículo (opcional): [opcional]
-
-Antes de escribir: identifica mi dosier por su segunda línea en cursiva ("Sub-tema TEMA-XXXX -- tema padre: ..."). Si ninguna fuente la trae, o hay más de una, avísame antes de seguir.
-
-Como dice el documento: elige tú la estructura según este sub-tema puntual, mándame un mensaje corto aparte con la estructura elegida y en cuántos mensajes vas a entregar el artículo, y espera mi "ok" antes de arrancar a escribir. Después de cada mensaje del artículo, espera que yo escriba "continuar" antes de mandar el siguiente -- nunca comprimas contenido para que entre en menos mensajes. Cada mensaje de la entrega va completo dentro de su propio bloque de código, no solo el front matter -- es lo que se rompió la última vez.
-
-Antes de entregarme el texto final, haz la autocrítica de la sección 8 del documento (citas, cálculos, LaTeX, cruce de Referencias) y corrige tú mismo lo que encuentres antes de mostrármelo.
