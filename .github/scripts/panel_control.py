@@ -46,6 +46,7 @@ igual -- decision de Elvis del 2026-09-21 frente a esta alternativa.
 import functools
 import html
 import http.server
+import json
 import os
 import re
 import shutil
@@ -53,6 +54,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import unicodedata
 import urllib.error
 import urllib.parse
@@ -110,15 +112,50 @@ def slugify(texto):
     return slug
 
 
+# Windows sin LongPathsEnabled corta en 260 caracteres la ruta completa, y el
+# .md repite el slug dos veces (carpeta + nombre de archivo): un titulo de 105
+# caracteres de slug dio una ruta de 286 y un FileNotFoundError en el open().
+LARGO_MAXIMO_SLUG = 60
+LARGO_MAXIMO_RUTA = 240  # margen bajo 260 para imagenes y copias posteriores
+LARGO_MAXIMO_RUTA_WINDOWS = 259  # MAX_PATH menos el nulo final
+
+
+def slug_de_titulo(titulo):
+    """slugify() recortado a LARGO_MAXIMO_SLUG, cortando en un guion completo
+    (nunca a mitad de palabra). El titulo completo sigue en `title:`."""
+    slug = slugify(titulo)
+    if len(slug) <= LARGO_MAXIMO_SLUG:
+        return slug
+    recortado = slug[:LARGO_MAXIMO_SLUG + 1]
+    corte = recortado.rfind("-")
+    if corte > 0:
+        return recortado[:corte].strip("-")
+    return slug[:LARGO_MAXIMO_SLUG].strip("-")  # una sola palabra gigante
+
+
+# Clave interna (no es YAML valido, no choca con ningun campo real): el .md
+# no esta en UTF-8 -- tipico al guardarlo desde el Bloc de notas en ANSI.
+# Antes un solo archivo asi tiraba abajo la lista entera con ERR_EMPTY_RESPONSE.
+NO_UTF8 = " no_utf8"
+AVISO_NO_UTF8 = ("el .md no está guardado en UTF-8 -- abrilo en VS Code y "
+                 "guardalo con la codificación UTF-8")
+
+
 def leer_front_matter(ruta):
-    with open(ruta, encoding="utf-8") as fh:
-        texto = fh.read()
+    try:
+        with open(ruta, encoding="utf-8") as fh:
+            texto = fh.read()
+        no_utf8 = False
+    except UnicodeDecodeError:
+        with open(ruta, encoding="utf-8", errors="replace") as fh:
+            texto = fh.read()
+        no_utf8 = True
+    datos = {NO_UTF8: True} if no_utf8 else {}
     if not texto.startswith("---"):
-        return {}
+        return datos
     fin = texto.find("\n---", 3)
     if fin == -1:
-        return {}
-    datos = {}
+        return datos
     for linea in texto[3:fin].split("\n"):
         m = re.match(r'^([a-zA-Z_][\w-]*):\s*(.*)$', linea)
         if m:
@@ -240,8 +277,22 @@ def buscar_duplicado(slug):
     return None
 
 
-def crear_carpeta_articulo(titulo, categoria, fecha, categorias):
-    slug = slugify(titulo)
+def slug_libre(slug):
+    """slug, o slug-2, slug-3... el primero que no choque con nada. Con el
+    recorte a LARGO_MAXIMO_SLUG, dos titulos largos distintos pueden dar el
+    mismo slug; "Continuar de todas formas" antes reusaba la carpeta y
+    sobrescribia su .md (misma fecha) o le metia un segundo .md (otra
+    fecha), y un post publicado con el mismo slug compartia la carpeta de
+    imagenes -- el mismo choque que costo las imagenes de fitorremediacion."""
+    candidato, n = slug, 2
+    while buscar_duplicado(candidato):
+        candidato = "%s-%d" % (slug, n)
+        n += 1
+    return candidato
+
+
+def crear_carpeta_articulo(titulo, categoria, fecha, categorias, slug=None):
+    slug = slug or slug_de_titulo(titulo)
     if not slug:
         raise ErrorPanel(
             "Ese titulo no genera un nombre de archivo valido -- probá con "
@@ -253,9 +304,19 @@ def crear_carpeta_articulo(titulo, categoria, fecha, categorias):
         raise ErrorPanel("La categoria «%s» no es ninguna de las 8 validas." % categoria)
 
     carpeta = os.path.join(RAIZ, "_posts", "articulos", slug)
-    os.makedirs(carpeta, exist_ok=True)
     nombre_md = "%s-%s.md" % (fecha, slug)
     ruta_md = os.path.join(carpeta, nombre_md)
+    if len(ruta_md) > LARGO_MAXIMO_RUTA:
+        raise ErrorPanel(
+            "La ruta del archivo quedaría de %d caracteres (máximo %d en este "
+            "Windows): %s -- no se creó nada. Probá con un título más corto."
+            % (len(ruta_md), LARGO_MAXIMO_RUTA, ruta_md)
+        )
+    if os.path.exists(ruta_md):
+        raise ErrorPanel(
+            "Ya existe %s -- no lo sobrescribo. No se creó nada." % ruta_git(ruta_md)
+        )
+    carpeta_ya_existia = os.path.isdir(carpeta)
 
     anio, mes, dia = fecha.split("-")
     permalink = "/%s/%s/%s/%s/%s.html" % (slug_cat, anio, mes, dia, slug)
@@ -273,8 +334,18 @@ def crear_carpeta_articulo(titulo, categoria, fecha, categorias):
         "---\n"
     ) % (titulo_yaml, fecha, categoria, permalink)
 
-    with open(ruta_md, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(front_matter)
+    try:
+        os.makedirs(carpeta, exist_ok=True)
+        with open(ruta_md, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(front_matter)
+    except OSError as e:
+        # No dejar una carpeta vacia a medias si la creamos nosotros ahora.
+        if not carpeta_ya_existia and os.path.isdir(carpeta) and not os.listdir(carpeta):
+            os.rmdir(carpeta)
+        raise ErrorPanel(
+            "No se pudo escribir el archivo %s (%s). No quedó nada creado a medias."
+            % (ruta_md, e.strerror or e)
+        )
 
     url_final = URL_SITIO + permalink
     return slug, carpeta, ruta_md, nombre_md, url_final
@@ -294,9 +365,12 @@ def listar_articulos():
         if fm.get("hidden", "").strip().lower() == "true":
             # Banco de pruebas de kramdown/MathJax, no un articulo real.
             continue
+        titulo = fm.get("title", nombre)
+        if fm.get(NO_UTF8):
+            titulo += " (aviso: %s)" % AVISO_NO_UTF8
         articulos.append({
             "archivo": nombre,
-            "titulo": fm.get("title", nombre),
+            "titulo": titulo,
             "fecha": fm.get("date", "?"),
             "categoria": fm.get("category", "?"),
         })
@@ -362,8 +436,19 @@ def eliminar_articulo(nombre_archivo):
     mensaje = "Elimina articulo: %s" % titulo
     resultado_commit = git("commit", "-m", mensaje)
     if resultado_commit.returncode != 0:
+        # Sin esto el git rm quedaba hecho a medias: archivos borrados del
+        # disco y del indice, sin commit, y sin decir como volver atras.
+        git("reset", "-q", "HEAD", "--", *rutas_rm)
+        restaurado = git("checkout", "HEAD", "--", *rutas_rm).returncode == 0
+        estado = (
+            "No se borró nada: el artículo y sus imágenes quedaron restaurados como estaban."
+            if restaurado else
+            "ATENCIÓN: no pude restaurar los archivos solo. Para recuperarlos corré "
+            "`git checkout HEAD -- %s`." % " ".join(rutas_rm)
+        )
         raise ErrorPanel(
-            "`git commit` fallo:\n%s" % (resultado_commit.stderr or resultado_commit.stdout)
+            "`git commit` falló, así que la eliminación se deshizo.\n%s\n\n%s"
+            % (estado, resultado_commit.stderr or resultado_commit.stdout)
         )
 
     return titulo, mensaje, borra_imagenes, compartida_con
@@ -410,26 +495,60 @@ def crear_carpeta_edicion(nombre_archivo):
         raise ErrorPanel("No pude calcular el slug de «%s»." % nombre_archivo)
 
     carpeta_trabajo = os.path.join(RAIZ, "_posts", "articulos", slug)
-    os.makedirs(carpeta_trabajo, exist_ok=True)
+    ruta_md_trabajo = os.path.join(carpeta_trabajo, nombre_archivo)
 
-    with open(ruta_md_publicado, encoding="utf-8") as fh:
-        texto = fh.read()
+    try:
+        with open(ruta_md_publicado, encoding="utf-8") as fh:
+            texto = fh.read()
+    except UnicodeDecodeError:
+        raise ErrorPanel("No puedo abrir «%s» para editarlo: %s." % (nombre_archivo, AVISO_NO_UTF8))
     texto = _convertir_a_rutas_simples(texto, slug)
 
-    ruta_md_trabajo = os.path.join(carpeta_trabajo, nombre_archivo)
-    with open(ruta_md_trabajo, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(texto)
-
     carpeta_imagenes_publicadas = os.path.join(RAIZ, "assets", "imagenes", slug)
-    imagenes_copiadas = []
+    imagenes = []
     if os.path.isdir(carpeta_imagenes_publicadas):
-        for nombre in sorted(os.listdir(carpeta_imagenes_publicadas)):
-            origen = os.path.join(carpeta_imagenes_publicadas, nombre)
-            if os.path.isfile(origen) and os.path.splitext(nombre)[1].lower() in pa.EXTENSIONES_IMAGEN:
-                shutil.copyfile(origen, os.path.join(carpeta_trabajo, nombre))
-                imagenes_copiadas.append(nombre)
+        imagenes = [
+            n for n in sorted(os.listdir(carpeta_imagenes_publicadas))
+            if os.path.isfile(os.path.join(carpeta_imagenes_publicadas, n))
+            and os.path.splitext(n)[1].lower() in pa.EXTENSIONES_IMAGEN
+        ]
 
-    return slug, carpeta_trabajo, ruta_md_trabajo, imagenes_copiadas
+    # La carpeta de trabajo repite el slug (carpeta + nombre del .md), asi
+    # que su ruta es mas larga que la del publicado. Limite real de Windows,
+    # no el de Crear: con 240, el articulo del mercado de carbono (252) ya
+    # no se podria editar.
+    mas_larga = max([ruta_md_trabajo] + [os.path.join(carpeta_trabajo, n) for n in imagenes], key=len)
+    if len(mas_larga) > LARGO_MAXIMO_RUTA_WINDOWS:
+        raise ErrorPanel(
+            "No puedo armar la carpeta de trabajo: la ruta %s quedaría de %d "
+            "caracteres y este Windows corta en %d. No se creó nada y el "
+            "artículo publicado no se tocó. Para editarlo desde el panel hay que "
+            "activar las rutas largas de Windows (LongPathsEnabled); si no, "
+            "editá el .md directamente en _posts/."
+            % (ruta_git(mas_larga), len(mas_larga), LARGO_MAXIMO_RUTA_WINDOWS)
+        )
+
+    carpeta_ya_existia = os.path.isdir(carpeta_trabajo)
+    try:
+        os.makedirs(carpeta_trabajo, exist_ok=True)
+        with open(ruta_md_trabajo, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(texto)
+        for nombre in imagenes:
+            shutil.copyfile(os.path.join(carpeta_imagenes_publicadas, nombre),
+                            os.path.join(carpeta_trabajo, nombre))
+    except OSError as e:
+        # Una carpeta a medio armar despues se confunde con "cambios sin
+        # publicar" en el aviso de conflicto. Si la creamos recien, se va.
+        if not carpeta_ya_existia:
+            shutil.rmtree(carpeta_trabajo, ignore_errors=True)
+        raise ErrorPanel(
+            "No se pudo armar la carpeta de trabajo (%s: %s). Se borró lo que "
+            "había alcanzado a crearse; el artículo publicado no se tocó. Si una "
+            "imagen está abierta en otro programa, cerralo y volvé a intentar."
+            % (type(e).__name__, e.strerror or e)
+        )
+
+    return slug, carpeta_trabajo, ruta_md_trabajo, imagenes
 
 
 def reiniciar_carpeta_edicion(nombre_archivo):
@@ -442,7 +561,20 @@ def reiniciar_carpeta_edicion(nombre_archivo):
         raise ErrorPanel("No pude calcular el slug de «%s»." % nombre_archivo)
     carpeta_trabajo = os.path.join(RAIZ, "_posts", "articulos", slug)
     if os.path.isdir(carpeta_trabajo):
-        shutil.rmtree(carpeta_trabajo)
+        # Primero un rename, que es atomico: si algo de adentro esta abierto
+        # en otro programa, Windows lo rechaza entero y no se borra nada. Un
+        # rmtree directo borraba hasta el archivo bloqueado y dejaba la
+        # carpeta a medias. Nombre corto a proposito (rutas largas).
+        descarte = os.path.join(RAIZ, "_posts", "articulos", ".descarte-%d" % (time.time_ns() % 10**9))
+        try:
+            os.rename(carpeta_trabajo, descarte)
+        except OSError as e:
+            raise ErrorPanel(
+                "No pude reiniciar la carpeta de trabajo: algún archivo de adentro "
+                "está en uso (%s). Cerrá el programa que lo tenga abierto y volvé a "
+                "intentar. No se borró nada." % (e.strerror or e)
+            )
+        shutil.rmtree(descarte, ignore_errors=True)
     return crear_carpeta_edicion(nombre_archivo)
 
 
@@ -456,14 +588,16 @@ def listar_borradores():
     borradores = []
     for nombre in sorted(os.listdir(base)):
         carpeta = os.path.join(base, nombre)
-        if not os.path.isdir(carpeta):
-            continue
+        if not os.path.isdir(carpeta) or nombre.startswith("."):
+            continue  # .descarte-*: resto de un "Reiniciar", no un borrador
         mds = [f for f in os.listdir(carpeta) if f.endswith(".md")]
         problema = None
         if len(mds) == 1:
             fm = leer_front_matter(os.path.join(carpeta, mds[0]))
             titulo = fm.get("title", nombre)
             mtime = os.path.getmtime(os.path.join(carpeta, mds[0]))
+            if fm.get(NO_UTF8):
+                problema = AVISO_NO_UTF8
         else:
             titulo = nombre
             mtime = os.path.getmtime(carpeta)
@@ -511,10 +645,13 @@ def revisar_y_copiar_borrador(nombre_carpeta):
     # cambio sin comitear que tuviera.
     respaldo = proteger_articulo_publicado(nombre_md)
 
-    destino_md, _ya_existia, destino_imagenes, copiadas = pa.copiar_articulo(
-        carpeta, nombre_validado, nombre_md, imagenes, texto_final
-    )
-    registrar_copia(destino_md, *[os.path.join(destino_imagenes, i) for i in copiadas])
+    tocados = []
+    try:
+        destino_md, _ya_existia, destino_imagenes, copiadas = _copiar_registrando(
+            carpeta, nombre_validado, nombre_md, imagenes, texto_final, tocados
+        )
+    except Exception as e:
+        raise ErrorPanel(_mensaje_copia_fallida(e, *deshacer_copia_parcial(tocados, nombre_validado)))
     return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas, respaldo
 
 
@@ -634,6 +771,86 @@ def descartar_vista_previa(nombre_carpeta, nombre_md, copiadas):
     return respaldos
 
 
+def _es_md_de_posts(ruta_absoluta):
+    return (os.path.normcase(os.path.dirname(ruta_absoluta))
+            == os.path.normcase(os.path.join(RAIZ, "_posts")))
+
+
+def _imagenes_de(tocados):
+    return [os.path.basename(r) for r in tocados if not _es_md_de_posts(r)]
+
+
+def _copiar_registrando(carpeta, nombre_carpeta, nombre_md, imagenes, texto_final, tocados):
+    """pa.copiar_articulo registrando cada archivo en el momento en que queda
+    escrito, no al final: antes, si una imagen fallaba a mitad de la copia, el
+    .md y las imagenes anteriores quedaban en el repo sin registrar -- sin
+    boton para descartarlas, y un descarte posterior las mandaba a un stash
+    en vez de revertirlas. `tocados` se llena aunque la copia falle."""
+    def al_escribir(ruta):
+        registrar_copia(ruta)
+        if ruta not in tocados:
+            tocados.append(ruta)
+    return pa.copiar_articulo(
+        carpeta, nombre_carpeta, nombre_md, imagenes, texto_final, al_escribir=al_escribir
+    )
+
+
+def deshacer_copia_parcial(tocados, nombre_carpeta):
+    """Deshace una copia que fallo a mitad (misma logica que "Volver a
+    editar", archivo por archivo). Devuelve (stashes creados, archivos que
+    no se pudieron deshacer) -- sigue con los demas aunque uno falle."""
+    respaldos, fallidos = [], []
+    for ruta in tocados:
+        try:
+            etiqueta = _revertir_o_borrar(ruta)
+            if etiqueta:
+                respaldos.append(etiqueta)
+        except Exception as e:
+            fallidos.append("%s (%s)" % (ruta_git(ruta), e))
+    carpeta_imagenes = os.path.join(RAIZ, "assets", "imagenes", nombre_carpeta)
+    try:
+        if os.path.isdir(carpeta_imagenes) and not os.listdir(carpeta_imagenes):
+            os.rmdir(carpeta_imagenes)
+    except OSError:
+        pass
+    return respaldos, fallidos
+
+
+def _mensaje_fallo_tras_copia(error, descartar):
+    """Para un fallo inesperado DESPUES de una copia completa (build,
+    validador, arranque de jekyll serve): descarta la copia con `descartar`
+    (devuelve la lista de stashes) y arma el mensaje para la pantalla."""
+    mensaje = "%s: %s -- el detalle completo quedó en la consola del panel." % (
+        type(error).__name__, error)
+    try:
+        respaldos = descartar()
+    except Exception as e:
+        traceback.print_exc()
+        return mensaje + ("\n\nTampoco pude descartar la copia al sitio (%s): revisá "
+                          "`git status` antes de seguir." % e)
+    mensaje += "\n\nSe descartó la copia al sitio; tu carpeta de trabajo no se tocó."
+    if respaldos:
+        mensaje += (" Había cambios sin comitear en el artículo publicado: quedaron "
+                    "guardados en %s (`git stash list` / `git stash pop`)." % ", ".join(respaldos))
+    return mensaje
+
+
+def _mensaje_copia_fallida(error, respaldos, fallidos):
+    detalle = getattr(error, "strerror", None) or error
+    mensaje = ("La copia al sitio falló a mitad de camino (%s: %s). Se deshizo lo "
+               "que alcanzó a copiarse; tu carpeta de trabajo no se tocó. Si una "
+               "imagen está abierta en otro programa, cerralo y volvé a intentar."
+               % (type(error).__name__, detalle))
+    if respaldos:
+        mensaje += ("\n\nHabía cambios sin comitear en el artículo publicado: quedaron "
+                    "guardados en %s (recuperalos con `git stash list` / `git stash pop`)."
+                    % ", ".join(respaldos))
+    if fallidos:
+        mensaje += ("\n\nNo pude deshacer estos archivos, revisalos a mano con "
+                    "`git status`: %s" % "; ".join(fallidos))
+    return mensaje
+
+
 def url_actions():
     resultado = git("remote", "get-url", "origin")
     if resultado.returncode != 0:
@@ -740,11 +957,17 @@ def _neutralizar_image_pendiente(texto, imagenes_disponibles):
     )
 
 
-def copiar_para_vista_previa(nombre_carpeta):
+def copiar_para_vista_previa(nombre_carpeta, tocados=None, deshacer_si_falla=True):
     """Igual que revisar_y_copiar_borrador, pero SIN pa.verificar_sin_pendientes
     -- este flujo es solo para mirar mientras se escribe, tiene que funcionar
     con campos a medio completar. Reusa pa.copiar_articulo (la funcion real
-    de copiado), no la reescribe."""
+    de copiado), no la reescribe.
+
+    deshacer_si_falla=False es para el hilo de vigilancia: con la vista previa
+    ya andando no se deshace nada, el hilo suma a su lista lo que quedo en
+    `tocados` para que "Detener vista previa" lo limpie despues."""
+    if tocados is None:
+        tocados = []
     carpeta_abs = os.path.join(RAIZ, "_posts", "articulos", nombre_carpeta)
     carpeta, nombre_validado = pa.resolver_carpeta(carpeta_abs)
     nombre_md = pa.encontrar_md(carpeta, nombre_validado)
@@ -766,10 +989,14 @@ def copiar_para_vista_previa(nombre_carpeta):
     # el archivo ya es una copia nuestra, asi que esto no vuelve a hacer nada.
     respaldo = proteger_articulo_publicado(nombre_md)
 
-    destino_md, _ya_existia, destino_imagenes, copiadas = pa.copiar_articulo(
-        carpeta, nombre_validado, nombre_md, imagenes, texto_final
-    )
-    registrar_copia(destino_md, *[os.path.join(destino_imagenes, i) for i in copiadas])
+    try:
+        destino_md, _ya_existia, destino_imagenes, copiadas = _copiar_registrando(
+            carpeta, nombre_validado, nombre_md, imagenes, texto_final, tocados
+        )
+    except Exception as e:
+        if not deshacer_si_falla:
+            raise
+        raise ErrorPanel(_mensaje_copia_fallida(e, *deshacer_copia_parcial(tocados, nombre_validado)))
     return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas, respaldo
 
 
@@ -859,13 +1086,28 @@ def _bucle_vigilancia(nombre_carpeta, evento_detener):
             continue
         if huella_actual == huella_anterior:
             continue
+        tocados = []
         try:
-            _, _, _, _, copiadas, _respaldo = copiar_para_vista_previa(nombre_carpeta)
-        except (ErrorPanel, pa.ErrorPublicacion) as e:
+            _, _, _, _, copiadas, _respaldo = copiar_para_vista_previa(
+                nombre_carpeta, tocados, deshacer_si_falla=False
+            )
+        except Exception as e:
+            # Cualquier excepcion, no solo las previstas: antes un OSError
+            # (imagen bloqueada o a medio guardar) mataba el hilo sin aviso y
+            # la vista previa dejaba de actualizarse en silencio.
             # No actualiza huella_anterior: reintenta en el proximo tick
             # aunque el archivo no vuelva a cambiar (ej. quedo a medio
-            # guardar cuando se leyo).
-            _vista_previa_activa.ultimo_error = str(e)
+            # guardar cuando se leyo). Lo que alcanzo a copiarse se suma a la
+            # lista, para que "Detener vista previa" tambien lo limpie.
+            _vista_previa_activa.copiadas = sorted(
+                set(_vista_previa_activa.copiadas) | set(_imagenes_de(tocados))
+            )
+            if isinstance(e, (ErrorPanel, pa.ErrorPublicacion)):
+                _vista_previa_activa.ultimo_error = str(e)
+            else:
+                traceback.print_exc()
+                _vista_previa_activa.ultimo_error = "%s: %s -- se reintenta sola en unos segundos." % (
+                    type(e).__name__, e)
             continue
         huella_anterior = huella_actual
         _vista_previa_activa.ultimo_error = None
@@ -928,8 +1170,7 @@ CSS = """
   .boton-crear { background: #eaf3ec; color: #205b34; }
   .boton-publicar { background: #e8eef6; color: #1f3f6b; }
   .boton-vivo { background: #f3ecf6; color: #4d1f6b; }
-  .boton-editar { background: #fdf3d9; color: #7a5a10; }
-  .boton-eliminar { background: #f6e9e7; color: #7a2b1f; }
+  .boton-gestionar { background: #fdf3d9; color: #7a5a10; }
   label { display: block; margin: 16px 0 6px; font-weight: 600; }
   input[type=text], input[type=date], select {
     width: 100%; padding: 10px; font-size: 1rem;
@@ -968,6 +1209,31 @@ CSS = """
   .lista-articulos li:last-child { border-bottom: none; }
   .meta { color: #6b6a63; font-size: 0.9rem; }
   .volver { display: inline-block; margin-top: 20px; color: #4a4940; }
+
+  /* "Gestionar artículos": buscador + tabla ordenable */
+  .buscador-articulos {
+    width: 100%; padding: 12px 14px; font-size: 1rem; margin-bottom: 16px;
+    border: 1px solid #cbc8bc; border-radius: 6px; background: #fff;
+  }
+  .tabla-articulos { width: 100%; border-collapse: collapse; }
+  .tabla-articulos th {
+    text-align: left; padding: 10px 8px; border-bottom: 2px solid #d8d5c8;
+    font-size: 0.85rem; color: #4a4940; white-space: nowrap;
+  }
+  .tabla-articulos th.ordenable { cursor: pointer; user-select: none; }
+  .tabla-articulos th.ordenable:hover { color: #2b6b45; }
+  .tabla-articulos th .flecha { color: #2b6b45; margin-left: 4px; }
+  .tabla-articulos td {
+    padding: 10px 8px; border-bottom: 1px solid #eceae1; vertical-align: middle;
+  }
+  .tabla-articulos td.col-titulo { max-width: 320px; }
+  .tabla-articulos .acciones { white-space: nowrap; text-align: right; }
+  .tabla-articulos .acciones form { display: inline-block; margin: 0 0 0 6px; }
+  .boton-mini {
+    margin-top: 0; padding: 6px 12px; font-size: 0.85rem;
+  }
+  .sin-resultados { padding: 20px 8px; color: #6b6a63; }
+  .pie-tabla { text-align: center; margin-top: 16px; }
 </style>
 """
 
@@ -985,10 +1251,8 @@ def pagina_principal():
     <p class="subtitulo">Crear, publicar o eliminar artículos, sin editor web ni terminal.</p>
     <div class="botones-principales">
       <a class="boton-grande boton-crear" href="/crear">Crear artículo nuevo</a>
-      <a class="boton-grande boton-editar" href="/editar">Editar artículo publicado</a>
       <a class="boton-grande boton-publicar" href="/publicar">Publicar borrador</a>
-      <a class="boton-grande boton-vivo" href="/vivo">Vista previa en vivo</a>
-      <a class="boton-grande boton-eliminar" href="/eliminar">Eliminar artículo publicado</a>
+      <a class="boton-grande boton-gestionar" href="/gestionar">Gestionar artículos</a>
     </div>
     """
     return pagina("Panel de control", cuerpo)
@@ -1033,13 +1297,14 @@ def formulario_crear(categorias, valores=None, error=None):
     return pagina("Crear artículo nuevo", cuerpo)
 
 
-def pagina_duplicado(valores, duplicado):
+def pagina_duplicado(valores, duplicado, slug_alternativo):
     cuerpo = """
     <h1>Ya existe un artículo con este nombre</h1>
     <div class="aviso">
       <p><strong>%s</strong> (%s)</p>
       <p>Encontrado en: %s</p>
-      <p>¿Continuar de todas formas? Esto puede generar un duplicado si no era tu intención.</p>
+      <p>¿Continuar de todas formas? El existente no se toca: el nuevo se crea
+         con el nombre <code>%s</code>, en su propia carpeta.</p>
     </div>
     <form method="post" action="/crear">
       <input type="hidden" name="titulo" value="%s">
@@ -1053,6 +1318,7 @@ def pagina_duplicado(valores, duplicado):
         html.escape(duplicado["titulo"]),
         html.escape(duplicado["fecha"]),
         html.escape(duplicado["donde"]),
+        html.escape(slug_alternativo),
         html.escape(valores["titulo"]),
         html.escape(valores["categoria"]),
         html.escape(valores["fecha"]),
@@ -1080,34 +1346,133 @@ def pagina_creado(carpeta, ruta_md, nombre_md, url_final):
     return pagina("Artículo creado", cuerpo)
 
 
-def pagina_lista_eliminar(articulos):
-    if not articulos:
-        filas = "<p>No hay artículos publicados en <code>_posts/</code>.</p>"
-    else:
-        items = []
-        for a in articulos:
-            items.append(
-                '<li><div><strong>%s</strong><br>'
-                '<span class="meta">%s -- %s -- %s</span></div>'
-                '<form method="post" action="/eliminar/confirmar">'
-                '<input type="hidden" name="archivo" value="%s">'
-                '<button type="submit" class="boton-peligro">Eliminar</button>'
-                '</form></li>'
-                % (
-                    html.escape(a["titulo"]),
-                    html.escape(a["fecha"]),
-                    html.escape(a["categoria"]),
-                    html.escape(a["archivo"]),
-                    html.escape(a["archivo"]),
-                )
-            )
-        filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
+# Fusiona lo que antes eran 3 pantallas separadas (Editar / Eliminar / Vista
+# previa en vivo) en una sola tabla buscable y ordenable, con los 3 botones
+# de accion al final de cada fila. Escala mejor que 3 listas <ul> con un solo
+# boton cada una: buscar/ordenar/paginar se hace en JS sobre los datos ya
+# incluidos en la pagina (nada de recargar ni pegarle al servidor por cada
+# letra tipeada), asi que sigue andando sin depender de ninguna libreria.
+#
+# Los articulos que TODAVIA no se publicaron ni una vez (creados con "Crear
+# articulo nuevo" pero nunca llevados a "Publicar borrador") no aparecen
+# aca -- no existen en _posts/, que es de donde sale esta lista. Para esos,
+# el boton "Vista previa" quedo en la pantalla de "Publicar borrador", que
+# ya lista esas carpetas de trabajo.
+def pagina_gestionar(articulos):
+    filas_json = json.dumps([
+        {"archivo": a["archivo"], "titulo": a["titulo"], "fecha": a["fecha"], "categoria": a["categoria"]}
+        for a in articulos
+    ]).replace("</", "<\\/")  # </script> dentro de un titulo no debe cortar el bloque
     cuerpo = """
-    <h1>Eliminar artículo publicado</h1>
-    <div class="tarjeta">%s</div>
+    <h1>Gestionar artículos</h1>
+    <p class="subtitulo">Buscá, ordená y elegí Editar, Vista previa o Eliminar
+       para cualquier artículo ya publicado.</p>
+    <input type="text" id="buscador" class="buscador-articulos"
+           placeholder="Buscar por título, categoría o nombre de archivo…">
+    <div class="tarjeta">
+      <table class="tabla-articulos" id="tabla-articulos">
+        <thead>
+          <tr>
+            <th class="ordenable" data-clave="fecha">Fecha<span class="flecha"></span></th>
+            <th class="ordenable" data-clave="categoria">Categoría<span class="flecha"></span></th>
+            <th class="ordenable" data-clave="titulo">Título<span class="flecha"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-tabla"></tbody>
+      </table>
+      <p id="sin-resultados" class="sin-resultados" style="display:none;">
+        Ningún artículo coincide con la búsqueda.</p>
+      <div class="pie-tabla">
+        <button type="button" id="boton-mas" class="boton-secundario" style="display:none;">
+          Mostrar 25 más</button>
+      </div>
+    </div>
     <a class="volver" href="/">&larr; Volver</a>
-    """ % filas
-    return pagina("Eliminar artículo publicado", cuerpo)
+    <script>
+    (function () {
+      var TODOS = %s;
+      var TANDA = 25;
+      var estado = { orden: "fecha", desc: true, mostrados: TANDA };
+      var cuerpo = document.getElementById("cuerpo-tabla");
+      var buscador = document.getElementById("buscador");
+      var botonMas = document.getElementById("boton-mas");
+      var sinResultados = document.getElementById("sin-resultados");
+      var encabezados = document.querySelectorAll("th.ordenable");
+
+      function filtrados() {
+        var q = buscador.value.trim().toLowerCase();
+        if (!q) return TODOS;
+        return TODOS.filter(function (a) {
+          return (a.titulo + " " + a.categoria + " " + a.archivo).toLowerCase().indexOf(q) !== -1;
+        });
+      }
+
+      function crearCeldaTexto(texto) {
+        var td = document.createElement("td");
+        td.textContent = texto;
+        return td;
+      }
+
+      function crearFormAccion(accion, archivo, etiqueta, clase) {
+        var form = document.createElement("form");
+        form.method = "post";
+        form.action = accion;
+        var input = document.createElement("input");
+        input.type = "hidden"; input.name = "archivo"; input.value = archivo;
+        var boton = document.createElement("button");
+        boton.type = "submit"; boton.className = "boton-mini" + (clase ? " " + clase : "");
+        boton.textContent = etiqueta;
+        form.appendChild(input); form.appendChild(boton);
+        return form;
+      }
+
+      function render() {
+        var lista = filtrados();
+        lista.sort(function (a, b) {
+          var x = a[estado.orden], y = b[estado.orden];
+          var cmp = x < y ? -1 : x > y ? 1 : 0;
+          return estado.desc ? -cmp : cmp;
+        });
+        cuerpo.innerHTML = "";
+        sinResultados.style.display = lista.length ? "none" : "block";
+        var visibles = lista.slice(0, estado.mostrados);
+        visibles.forEach(function (a) {
+          var tr = document.createElement("tr");
+          tr.appendChild(crearCeldaTexto(a.fecha));
+          tr.appendChild(crearCeldaTexto(a.categoria));
+          var tdTitulo = crearCeldaTexto(a.titulo);
+          tdTitulo.className = "col-titulo";
+          tr.appendChild(tdTitulo);
+          var tdAcciones = document.createElement("td");
+          tdAcciones.className = "acciones";
+          tdAcciones.appendChild(crearFormAccion("/editar/elegir", a.archivo, "Editar"));
+          tdAcciones.appendChild(crearFormAccion("/gestionar/vivo", a.archivo, "Vista previa"));
+          tdAcciones.appendChild(crearFormAccion("/eliminar/confirmar", a.archivo, "Eliminar", "boton-peligro"));
+          tr.appendChild(tdAcciones);
+          cuerpo.appendChild(tr);
+        });
+        botonMas.style.display = lista.length > estado.mostrados ? "inline-block" : "none";
+        encabezados.forEach(function (th) {
+          var flecha = th.querySelector(".flecha");
+          flecha.textContent = th.dataset.clave === estado.orden ? (estado.desc ? " ▼" : " ▲") : "";
+        });
+      }
+
+      buscador.addEventListener("input", function () { estado.mostrados = TANDA; render(); });
+      botonMas.addEventListener("click", function () { estado.mostrados += TANDA; render(); });
+      encabezados.forEach(function (th) {
+        th.addEventListener("click", function () {
+          if (estado.orden === th.dataset.clave) { estado.desc = !estado.desc; }
+          else { estado.orden = th.dataset.clave; estado.desc = false; }
+          render();
+        });
+      });
+      render();
+    })();
+    </script>
+    """ % filas_json
+    return pagina("Gestionar artículos", cuerpo)
 
 
 def pagina_confirmar_eliminar(articulo):
@@ -1175,61 +1540,46 @@ def pagina_error(titulo, mensaje, volver):
     return pagina(titulo, cuerpo)
 
 
-def pagina_lista_editar(articulos):
-    if not articulos:
-        filas = "<p>No hay artículos publicados en <code>_posts/</code>.</p>"
-    else:
-        items = []
-        for a in articulos:
-            items.append(
-                '<li><div><strong>%s</strong><br>'
-                '<span class="meta">%s -- %s -- %s</span></div>'
-                '<form method="post" action="/editar/elegir">'
-                '<input type="hidden" name="archivo" value="%s">'
-                '<button type="submit">Editar</button>'
-                '</form></li>'
-                % (
-                    html.escape(a["titulo"]),
-                    html.escape(a["fecha"]),
-                    html.escape(a["categoria"]),
-                    html.escape(a["archivo"]),
-                    html.escape(a["archivo"]),
-                )
-            )
-        filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
-    cuerpo = """
-    <h1>Editar artículo publicado</h1>
-    <p class="subtitulo">Reabre un artículo ya publicado en una carpeta de
-       trabajo para seguir agregándole contenido (imágenes, ecuaciones,
-       texto, tablas).</p>
-    <div class="tarjeta">%s</div>
-    <a class="volver" href="/">&larr; Volver</a>
-    """ % filas
-    return pagina("Editar artículo publicado", cuerpo)
-
-
-def pagina_editar_conflicto(archivo, slug, titulo):
+def pagina_editar_conflicto(archivo, slug, titulo, destino="editar"):
+    """destino == "editar": viene del botón Editar de Gestionar artículos,
+    termina en pagina_editar_listo (como siempre). destino == "vivo": viene
+    del botón Vista previa de esa misma tabla, y en vez de mostrar la
+    carpeta termina arrancando la vista previa en vivo directamente -- las
+    dos rutas (/editar/seguir, /editar/reiniciar) leen este mismo campo
+    oculto para saber a cuál de los dos destinos ir."""
+    explicacion = (
+        "¿Querés seguir en esa (se abre tal cual está) o reiniciarla desde "
+        "lo que ya está publicado (se pierde lo que tenías sin publicar ahí)?"
+        if destino == "editar" else
+        "¿Querés ver en vivo esa carpeta tal cual está, o reiniciarla desde "
+        "lo que ya está publicado antes de mostrarla (se pierde lo que "
+        "tenías sin publicar ahí)?"
+    )
+    etiqueta_seguir = "Seguir con la carpeta existente" if destino == "editar" else "Ver en vivo lo que ya tenía"
+    volver = "/editar" if destino == "editar" else "/gestionar"
     cuerpo = """
     <h1>Ya tenés una carpeta de trabajo para este artículo</h1>
     <div class="aviso">
       <p>«<strong>%s</strong>» ya tiene una carpeta de trabajo en
          <code>_posts/articulos/%s/</code>, con cambios sin publicar.</p>
-      <p>¿Querés seguir en esa (se abre tal cual está) o reiniciarla desde
-         lo que ya está publicado (se pierde lo que tenías sin publicar
-         ahí)?</p>
+      <p>%s</p>
     </div>
     <form class="form-en-linea" method="post" action="/editar/seguir">
       <input type="hidden" name="archivo" value="%s">
-      <button type="submit">Seguir con la carpeta existente</button>
+      <input type="hidden" name="destino" value="%s">
+      <button type="submit">%s</button>
     </form>
     <form class="form-en-linea" method="post" action="/editar/reiniciar">
       <input type="hidden" name="archivo" value="%s">
+      <input type="hidden" name="destino" value="%s">
       <button type="submit" class="boton-peligro">Reiniciar desde lo publicado</button>
     </form>
     <br>
-    <a class="volver" href="/editar">&larr; Elegir otro artículo</a>
+    <a class="volver" href="%s">&larr; Elegir otro artículo</a>
     """ % (
-        html.escape(titulo), html.escape(slug), html.escape(archivo), html.escape(archivo),
+        html.escape(titulo), html.escape(slug), html.escape(explicacion),
+        html.escape(archivo), html.escape(destino), html.escape(etiqueta_seguir),
+        html.escape(archivo), html.escape(destino), html.escape(volver),
     )
     return pagina("Ya tenés una carpeta de trabajo para este artículo", cuerpo)
 
@@ -1274,15 +1624,27 @@ def pagina_lista_publicar(borradores):
                 items.append(
                     '<li><div><strong>%s</strong><br>'
                     '<span class="meta">Modificado: %s</span></div>'
-                    '<form method="post" action="/publicar/revisar">'
+                    '<div>'
+                    '<form class="form-en-linea" method="post" action="/vivo/iniciar">'
+                    '<input type="hidden" name="carpeta" value="%s">'
+                    '<button type="submit" class="boton-secundario">Vista previa</button>'
+                    '</form>'
+                    '<form class="form-en-linea" method="post" action="/publicar/revisar">'
                     '<input type="hidden" name="carpeta" value="%s">'
                     '<button type="submit">Revisar y publicar</button>'
-                    '</form></li>'
-                    % (html.escape(b["titulo"]), html.escape(b["modificado"]), html.escape(b["carpeta"]))
+                    '</form>'
+                    '</div></li>'
+                    % (
+                        html.escape(b["titulo"]), html.escape(b["modificado"]),
+                        html.escape(b["carpeta"]), html.escape(b["carpeta"]),
+                    )
                 )
         filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
     cuerpo = """
     <h1>Publicar borrador</h1>
+    <p class="subtitulo">"Vista previa" es solo para mirar mientras escribís
+       (no chequea <code>PENDIENTE</code> ni corre el validador); "Revisar y
+       publicar" es el paso real, con el build completo antes de comitear.</p>
     <div class="tarjeta">%s</div>
     <a class="volver" href="/">&larr; Volver</a>
     """ % filas
@@ -1416,37 +1778,24 @@ def pagina_descartado(nombre_carpeta, respaldos=None):
     return pagina("Vista previa descartada", cuerpo)
 
 
-def pagina_lista_vivo(borradores):
-    if not borradores:
-        filas = "<p>No hay borradores en <code>_posts/articulos/</code>.</p>"
-    else:
-        items = []
-        for b in borradores:
-            if b["problema"]:
-                items.append(
-                    '<li><div><strong>%s</strong><br>'
-                    '<span class="meta">%s -- modificado: %s</span></div></li>'
-                    % (html.escape(b["titulo"]), html.escape(b["problema"]), html.escape(b["modificado"]))
-                )
-            else:
-                items.append(
-                    '<li><div><strong>%s</strong><br>'
-                    '<span class="meta">Modificado: %s</span></div>'
-                    '<form method="post" action="/vivo/iniciar">'
-                    '<input type="hidden" name="carpeta" value="%s">'
-                    '<button type="submit">Vista previa en vivo</button>'
-                    '</form></li>'
-                    % (html.escape(b["titulo"]), html.escape(b["modificado"]), html.escape(b["carpeta"]))
-                )
-        filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
+def pagina_vivo_sin_actividad():
+    """GET /vivo cuando no hay ninguna vista previa corriendo. El punto de
+    entrada para arrancar una ya no es esta pantalla (antes listaba las
+    carpetas de _posts/articulos/, duplicando la lista de "Publicar
+    borrador") -- es el botón "Vista previa" de Gestionar artículos (para lo
+    ya publicado) o de Publicar borrador (para un borrador que todavía no
+    se publicó nunca)."""
     cuerpo = """
     <h1>Vista previa en vivo</h1>
-    <p class="subtitulo">Mirá el artículo actualizarse solo mientras lo escribís --
-       no chequea <code>PENDIENTE</code>, no corre el validador, no comitea nada.
-       Reemplaza a Ctrl+Shift+V de VS Code.</p>
-    <div class="tarjeta">%s</div>
+    <p class="subtitulo">No hay ninguna vista previa activa ahora mismo.</p>
+    <div class="tarjeta">
+      <p>Para arrancar una, elegí un artículo desde
+         <a href="/gestionar">Gestionar artículos</a> (si ya está publicado)
+         o desde <a href="/publicar">Publicar borrador</a> (si todavía no lo
+         publicaste nunca) y tocá su botón «Vista previa».</p>
+    </div>
     <a class="volver" href="/">&larr; Volver</a>
-    """ % filas
+    """
     return pagina("Vista previa en vivo", cuerpo)
 
 
@@ -1523,6 +1872,12 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(datos)
 
+    def _redirigir(self, destino):
+        self.send_response(302)
+        self.send_header("Location", destino)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def leer_formulario(self):
         largo = int(self.headers.get("Content-Length", 0) or 0)
         cuerpo = self.rfile.read(largo).decode("utf-8") if largo else ""
@@ -1530,15 +1885,30 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         return {k: v[0] for k, v in datos.items()}
 
     def do_GET(self):
+        # Mismo criterio que do_POST: ninguna excepcion puede terminar en una
+        # respuesta vacia (las listas leen todos los .md, uno roto las tiraba).
+        try:
+            self._do_GET()
+        except Exception as e:
+            traceback.print_exc()
+            self.responder(pagina_error(
+                "Error inesperado",
+                "%s: %s -- el detalle completo quedó en la consola del panel."
+                % (type(e).__name__, e),
+                "/",
+            ), status=500)
+
+    def _do_GET(self):
         ruta = urllib.parse.urlsplit(self.path).path
         if ruta == "/":
             self.responder(pagina_principal())
         elif ruta == "/crear":
             self.responder(formulario_crear(leer_categorias()))
-        elif ruta == "/eliminar":
-            self.responder(pagina_lista_eliminar(listar_articulos()))
-        elif ruta == "/editar":
-            self.responder(pagina_lista_editar(listar_articulos()))
+        elif ruta == "/gestionar":
+            self.responder(pagina_gestionar(listar_articulos()))
+        elif ruta in ("/editar", "/eliminar"):
+            # Las 2 pantallas viejas se fusionaron en "Gestionar articulos".
+            self._redirigir("/gestionar")
         elif ruta == "/publicar":
             self.responder(pagina_lista_publicar(listar_borradores()))
         elif ruta == "/vivo":
@@ -1548,7 +1918,7 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                     _vista_previa_activa.ultimo_error,
                 ))
             else:
-                self.responder(pagina_lista_vivo(listar_borradores()))
+                self.responder(pagina_vivo_sin_actividad())
         else:
             self.responder(pagina_error("Página no encontrada", ruta, "/"), status=404)
 
@@ -1563,6 +1933,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 self.manejar_ejecutar_eliminar()
             elif ruta == "/editar/elegir":
                 self.manejar_editar_elegir()
+            elif ruta == "/gestionar/vivo":
+                self.manejar_gestionar_vivo()
             elif ruta == "/editar/seguir":
                 self.manejar_editar_seguir()
             elif ruta == "/editar/reiniciar":
@@ -1581,6 +1953,16 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 self.responder(pagina_error("Página no encontrada", ruta, "/"), status=404)
         except (ErrorPanel, pa.ErrorPublicacion) as e:
             self.responder(pagina_error("No se pudo completar la acción", str(e), "/"))
+        except Exception as e:
+            # Cualquier otro fallo (disco, permisos, bug) antes solo quedaba en
+            # la consola y el navegador mostraba ERR_EMPTY_RESPONSE.
+            traceback.print_exc()
+            self.responder(pagina_error(
+                "Error inesperado",
+                "%s: %s -- el detalle completo quedó en la consola del panel."
+                % (type(e).__name__, e),
+                "/",
+            ), status=500)
 
     def manejar_crear(self):
         datos = self.leer_formulario()
@@ -1600,17 +1982,19 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
             self.responder(formulario_crear(categorias, datos, "Elegí una categoría de la lista."))
             return
 
-        slug = slugify(titulo)
-        if not confirmar:
-            duplicado = buscar_duplicado(slug)
-            if duplicado:
+        slug = slug_de_titulo(titulo)
+        duplicado = buscar_duplicado(slug) if slug else None
+        if duplicado:
+            if not confirmar:
                 self.responder(pagina_duplicado(
-                    {"titulo": titulo, "categoria": categoria, "fecha": fecha}, duplicado
+                    {"titulo": titulo, "categoria": categoria, "fecha": fecha},
+                    duplicado, slug_libre(slug),
                 ))
                 return
+            slug = slug_libre(slug)
 
         _, carpeta, ruta_md, nombre_md, url_final = crear_carpeta_articulo(
-            titulo, categoria, fecha, categorias
+            titulo, categoria, fecha, categorias, slug=slug
         )
         self.responder(pagina_creado(carpeta, ruta_md, nombre_md, url_final))
 
@@ -1645,28 +2029,56 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         articulos = {a["archivo"]: a for a in listar_articulos()}
         if archivo not in articulos:
             self.responder(pagina_error(
-                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/editar"
+                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/gestionar"
             ))
             return
 
         slug = _slug_de_archivo_post(archivo)
         if slug and carpeta_trabajo_existe(slug):
-            self.responder(pagina_editar_conflicto(archivo, slug, articulos[archivo]["titulo"]))
+            self.responder(pagina_editar_conflicto(archivo, slug, articulos[archivo]["titulo"], "editar"))
             return
 
         _, carpeta, _, imagenes = crear_carpeta_edicion(archivo)
         self.responder(pagina_editar_listo(carpeta, imagenes))
 
+    def manejar_gestionar_vivo(self):
+        """Boton "Vista previa" de la fila de un articulo YA PUBLICADO, en
+        Gestionar articulos. Mismo chequeo de conflicto que Editar (si ya
+        habia una carpeta de trabajo con cambios sin publicar); a diferencia
+        de Editar, el destino final no es la pantalla "carpeta lista" sino
+        la vista previa en vivo arrancada directamente, sin pantallas de
+        mas -- ver pagina_editar_conflicto(destino="vivo")."""
+        datos = self.leer_formulario()
+        archivo = datos.get("archivo") or ""
+        articulos = {a["archivo"]: a for a in listar_articulos()}
+        if archivo not in articulos:
+            self.responder(pagina_error(
+                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/gestionar"
+            ))
+            return
+
+        slug = _slug_de_archivo_post(archivo)
+        if slug and carpeta_trabajo_existe(slug):
+            self.responder(pagina_editar_conflicto(archivo, slug, articulos[archivo]["titulo"], "vivo"))
+            return
+
+        slug, _carpeta, _ruta_md, _imagenes = crear_carpeta_edicion(archivo)
+        self._iniciar_vivo(slug)
+
     def manejar_editar_seguir(self):
         datos = self.leer_formulario()
         archivo = datos.get("archivo") or ""
+        destino = datos.get("destino") or "editar"
         slug = _slug_de_archivo_post(archivo)
         if not slug or not carpeta_trabajo_existe(slug):
             self.responder(pagina_error(
                 "No encuentro esa carpeta de trabajo",
                 "«%s» no tiene una carpeta de trabajo en _posts/articulos/ -- puede que ya se haya movido o borrado." % archivo,
-                "/editar",
+                "/gestionar",
             ))
+            return
+        if destino == "vivo":
+            self._iniciar_vivo(slug)
             return
         carpeta = os.path.join(RAIZ, "_posts", "articulos", slug)
         self.responder(pagina_editar_listo(carpeta, None))
@@ -1674,13 +2086,17 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
     def manejar_editar_reiniciar(self):
         datos = self.leer_formulario()
         archivo = datos.get("archivo") or ""
+        destino = datos.get("destino") or "editar"
         articulos = {a["archivo"] for a in listar_articulos()}
         if archivo not in articulos:
             self.responder(pagina_error(
-                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/editar"
+                "Artículo no encontrado", "«%s» no está en la lista de artículos." % archivo, "/gestionar"
             ))
             return
-        _, carpeta, _, imagenes = reiniciar_carpeta_edicion(archivo)
+        slug, carpeta, _ruta_md, imagenes = reiniciar_carpeta_edicion(archivo)
+        if destino == "vivo":
+            self._iniciar_vivo(slug)
+            return
         self.responder(pagina_editar_listo(carpeta, imagenes))
 
     def manejar_publicar_revisar(self):
@@ -1690,20 +2106,32 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         (nombre_carpeta, nombre_md, destino_md, destino_imagenes, copiadas,
          respaldo) = revisar_y_copiar_borrador(nombre_carpeta_pedido)
 
-        resultado_build, error_bundle = construir_sitio()
-        if error_bundle:
-            self.responder(pagina_error_build(nombre_carpeta, nombre_md, copiadas, error_bundle))
+        # Con la copia ya hecha, un fallo inesperado (build, validador) no
+        # puede dejarla huerfana: la pagina de error generica no tiene boton
+        # de "Volver a editar".
+        try:
+            resultado_build, error_bundle = construir_sitio()
+            if error_bundle:
+                cuerpo = pagina_error_build(nombre_carpeta, nombre_md, copiadas, error_bundle)
+            elif resultado_build.returncode != 0:
+                salida = (resultado_build.stderr or "") + "\n" + (resultado_build.stdout or "")
+                cuerpo = pagina_error_build(nombre_carpeta, nombre_md, copiadas, salida)
+            else:
+                errores, avisos = validar_borrador(destino_md, nombre_carpeta, copiadas)
+                fm = leer_front_matter(destino_md)
+                ruta_site = ruta_generada_en_site(fm, nombre_carpeta)
+                cuerpo = pagina_vista_previa(
+                    nombre_carpeta, nombre_md, copiadas, ruta_site, errores, avisos, respaldo)
+        except Exception as e:
+            traceback.print_exc()
+            self.responder(pagina_error(
+                "No se pudo armar la vista previa",
+                _mensaje_fallo_tras_copia(
+                    e, lambda: descartar_vista_previa(nombre_carpeta, nombre_md, copiadas)),
+                "/publicar",
+            ), status=500)
             return
-        if resultado_build.returncode != 0:
-            salida = (resultado_build.stderr or "") + "\n" + (resultado_build.stdout or "")
-            self.responder(pagina_error_build(nombre_carpeta, nombre_md, copiadas, salida))
-            return
-
-        errores, avisos = validar_borrador(destino_md, nombre_carpeta, copiadas)
-        fm = leer_front_matter(destino_md)
-        ruta_site = ruta_generada_en_site(fm, nombre_carpeta)
-        self.responder(pagina_vista_previa(
-            nombre_carpeta, nombre_md, copiadas, ruta_site, errores, avisos, respaldo))
+        self.responder(cuerpo)
 
     def manejar_publicar_confirmar(self):
         datos = self.leer_formulario()
@@ -1739,8 +2167,16 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
 
     def manejar_vivo_iniciar(self):
         datos = self.leer_formulario()
-        nombre_carpeta = (datos.get("carpeta") or "").strip()
+        self._iniciar_vivo((datos.get("carpeta") or "").strip())
 
+    def _iniciar_vivo(self, nombre_carpeta):
+        """Arranca (o reusa) la vista previa en vivo para una carpeta de
+        trabajo que YA existe en _posts/articulos/<nombre_carpeta>/. La usan
+        tres caminos: el boton "Vista previa" de Publicar borrador (via
+        manejar_vivo_iniciar, con la carpeta tal cual estaba), y el boton
+        "Vista previa" de Gestionar articulos para un articulo YA publicado
+        -- directo si no habia conflicto, o luego de que Elvis elige
+        "seguir"/"reiniciar" en la pantalla de conflicto."""
         if _vista_previa_activa.carpeta and _vista_previa_activa.carpeta != nombre_carpeta:
             _detener_vista_previa_activa()
 
@@ -1754,6 +2190,24 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         (nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas,
          respaldo) = copiar_para_vista_previa(nombre_carpeta)
 
+        try:
+            self._arrancar_vivo(nombre_validado, nombre_md, destino_md, copiadas, respaldo)
+        except Exception as e:
+            # Con la copia ya hecha, un fallo inesperado la dejaba huerfana:
+            # sin registrar como vista previa activa, "Detener vista previa"
+            # no la encontraba. Si alcanzo a registrarse, se detiene entera.
+            traceback.print_exc()
+            if _vista_previa_activa.carpeta == nombre_validado:
+                descartar = lambda: _detener_vista_previa_activa()[1]
+            else:
+                descartar = lambda: descartar_vista_previa(nombre_validado, nombre_md, copiadas)
+            self.responder(pagina_error(
+                "No se pudo iniciar la vista previa en vivo",
+                _mensaje_fallo_tras_copia(e, descartar),
+                "/vivo",
+            ), status=500)
+
+    def _arrancar_vivo(self, nombre_validado, nombre_md, destino_md, copiadas, respaldo):
         error_bundle = iniciar_jekyll_serve()
         if error_bundle:
             descartar_vista_previa(nombre_validado, nombre_md, copiadas)

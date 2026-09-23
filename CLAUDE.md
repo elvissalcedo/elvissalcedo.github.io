@@ -33,9 +33,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   padre: ..."), reglas de citas APA 7 completas, el método Feynman para
   explicar cada término técnico nuevo, la estructura narrativa elegida
   caso por caso entre 7 bloques posibles (solo Desarrollo técnico y
-  Referencias son obligatorios; NotebookLM propone la estructura en un
+  Referencias son obligatorios, más dos funciones fijas de forma libre:
+  un antecedente que va de lo global a lo puntual y la idea central
+  explicada primero en simple; NotebookLM propone la estructura en un
   mensaje corto y espera el "ok" de Elvis) con títulos de sección
-  creativos, el bloque de front matter listo para pegar, el formato de
+  creativos, preguntas finales orientadas a analizar/evaluar/crear
+  (Bloom, sin nombrarlo) y vacíos planteados como oportunidad solo
+  cuando el vacío lo sugiere, el bloque de front matter listo para pegar, el formato de
   salida Markdown exacto (fórmulas en LaTeX real con el backslash
   **duplicado** en los 4 delimitadores -- `\\[...\\]`/`\\(...\\)`, ver la
   nota de kramdown más abajo), la Guía de imágenes y la sección de Vacíos
@@ -129,12 +133,19 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   `.github/scripts/panel_control.py` -- un servidor HTTP en
   `127.0.0.1:8420`, solo con librería estándar de Python (nada que
   instalar) -- y abre el navegador solo en la pantalla principal, con
-  cinco botones.
+  tres botones: Crear artículo nuevo, Publicar borrador y Gestionar
+  artículos (esta última fusiona lo que antes eran tres pantallas
+  separadas -- Editar, Eliminar y la lista de Vista previa en vivo -- ver
+  más abajo).
 - **Crear artículo nuevo:** formulario con título, categoría (las 8 de
   `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
   tildes, espacios a guiones), avisa con una pantalla de confirmación
   explícita si ya existe una carpeta o archivo con ese slug (nunca crea
-  el duplicado solo), y crea `_posts/articulos/<slug>/<fecha>-<slug>.md`
+  el duplicado solo; si se confirma igual, lo crea como `<slug>-2`, nunca
+  en la misma carpeta), y crea `_posts/articulos/<slug>/<fecha>-<slug>.md`
+  -- con el slug recortado a 60 caracteres en un guion (`slug_de_titulo`),
+  porque la ruta repite el slug dos veces y Windows sin rutas largas corta
+  en 260 (el `title:` conserva el título completo)
   con el front matter listo salvo `excerpt:`/`image:` en `PENDIENTE` --
   para que Elvis pegue ahí el contenido de NotebookLM. Igual que
   `publicar_articulo.py`, esta carpeta de trabajo sigue sin publicarse
@@ -152,7 +163,11 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 - **Publicar borrador:** reemplaza el paso manual de correr
   `publicar_articulo.py` en la terminal, con vista previa real antes de
   comitear. Lista las carpetas de `_posts/articulos/` (título del front
-  matter, fecha de última modificación del `.md`); al elegir una, reusa
+  matter, fecha de última modificación del `.md`), con un botón "Vista
+  previa" junto al de "Revisar y publicar" en cada fila (arranca
+  `_iniciar_vivo` directo, sin chequear `PENDIENTE` ni comitear nada -- ver
+  el mecanismo compartido en "Vista previa" más abajo); al elegir "Revisar
+  y publicar", reusa
   las mismas funciones de `publicar_articulo.py` (todo-o-nada, chequeo de
   `PENDIENTE`) pero se queda ahí -- copia el `.md` a `_posts/` y las
   imágenes a `assets/imagenes/<slug>/` **sin `git add` ni commit**, corre
@@ -187,105 +202,122 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   shell. `construir_sitio()` resuelve la ruta real con `shutil.which()`
   antes de llamar a `subprocess.run` -- encontrado en una prueba real en
   un clon aislado, no una suposición.
-- **Vista previa en vivo:** reemplaza a Ctrl+Shift+V de VS Code para mirar
-  un borrador mientras se edita -- a diferencia de "Publicar borrador", NO
-  chequea `PENDIENTE`, NO corre `validar_articulos.py` y NO comitea nada;
-  es solo para ver cómo va quedando el artículo. Lista las mismas carpetas
-  de `_posts/articulos/`; al elegir una, copia el `.md` y las imágenes a
-  `_posts/`/`assets/imagenes/<slug>/` (misma función de copiado que
-  "Publicar borrador", `pa.copiar_articulo`, pero sin el chequeo de
-  `PENDIENTE`), arranca -- o reusa, si ya está corriendo -- `bundle exec
-  jekyll serve --livereload` en segundo plano en `127.0.0.1:4000`, y abre
-  la URL directa del artículo (calculada con la misma `ruta_generada_en_site`
-  que ya usa "Publicar borrador", nunca la portada) en un iframe. Un hilo
-  en segundo plano vigila la carpeta de trabajo cada 1.5 segundos (mtime de
-  cada archivo, sin dependencias nuevas) y, ante cualquier cambio, vuelve a
-  copiar -- eso dispara la reconstrucción automática de `jekyll serve
-  --livereload`, que ya refresca el navegador solo. El campo `image:
-  PENDIENTE.jpg` que deja el scaffold de "Crear artículo nuevo" se
-  neutraliza SOLO en la copia en memoria usada para renderizar (nunca en el
-  `.md` real de la carpeta de trabajo): ese campo es metadato puro
-  (`og:image`), no se ve en el cuerpo. Tampoco bloquea que la carpeta de
-  trabajo todavía no tenga ninguna imagen, ni que el `.md` tenga
-  marcadores `[IMAGEN N -- título]` sin reemplazar por su `<figure>`: el
-  propósito de este flujo es ir viendo el progreso (texto, fórmulas,
-  estructura) mientras se escribe, no exigir que el artículo esté
-  terminado. `_encontrar_imagenes_vivo()` (tolerante -- lista vacía en vez
-  de fallar, a diferencia de `pa.encontrar_imagenes`) y
-  `_reemplazar_imagenes_faltantes()` sustituyen, también SOLO en la copia
-  en memoria, cada marcador `[IMAGEN N]` sin resolver y cada `<img>`/imagen
-  Markdown que apunte a un archivo que todavía no está en la carpeta, por
-  un recuadro "Imagen pendiente" -- en vez de que `pa.procesar_referencias`
-  corte la vista previa entera con un error. Ese chequeo estricto sigue
-  intacto, sin tocar, para "Publicar borrador" (confirmado con el mismo
-  borrador sin imágenes: sigue bloqueando con el mismo mensaje de
-  siempre), que ahí sí debe exigir que no falte nada antes de publicar.
-  **"Detener vista previa"** corta la vigilancia y descarta la copia (misma
-  lógica de "Volver a editar" de "Publicar borrador", vía
-  `descartar_vista_previa`) -- pero deja corriendo `jekyll serve` para
-  reusarlo en la próxima vista previa. Solo una vista previa activa a la
-  vez: arrancar una segunda detiene y descarta la anterior sola. Probado de
-  punta a punta en un clon aislado: URL directa confirmada (no portada),
-  edición del `.md` reflejada en el HTML servido en unos segundos sin
-  tocar nada más, imagen nueva agregada a mitad de sesión servida con 200,
-  "Detener vista previa" con `git status` limpio y carpeta de trabajo
-  intacta, y el borrador con `PENDIENTE` sin completar renderizando bien.
-  Encontrados y corregidos dos bugs reales en esa prueba (no hipotéticos):
-  una imagen agregada a mitad de sesión quedaba huérfana en
-  `assets/imagenes/` al detener (el hilo de vigilancia no acumulaba la
-  lista de copiadas -- corregido a unión, no reemplazo) y `image:
-  PENDIENTE.jpg` sin completar rompía la copia entera porque
-  `pa.procesar_referencias` exige que ese nombre de archivo exista de
-  verdad (corregido con la neutralización en memoria de arriba).
-- **Editar artículo publicado:** hasta ahora no había forma de volver a
-  abrir un artículo ya publicado para seguirle agregando contenido
-  (imágenes, ecuaciones, texto, tablas). Reusa la misma lista de
-  `listar_articulos()` que "Eliminar" (título, fecha, archivo). Al elegir
-  uno: si ya existe una carpeta de trabajo con ese slug en
-  `_posts/articulos/` (por ejemplo, porque Elvis ya la había empezado
-  antes), avisa explícitamente -- "Ya tenés una carpeta de trabajo para
-  este artículo, con cambios sin publicar" -- y deja elegir entre
-  **"Seguir con la carpeta existente"** (la abre tal cual está, no la
-  toca) o **"Reiniciar desde lo publicado"** (la borra y la recrea de
-  cero); nunca sobreescribe en silencio. Si no existe carpeta, crea
+- **Gestionar artículos** (`/gestionar`): pantalla única que fusiona lo que
+  hasta el 2026-09-23 eran tres pantallas separadas -- Editar, Eliminar y la
+  lista de "Vista previa en vivo" -- porque las tres listaban básicamente lo
+  mismo (`listar_articulos()`, los artículos reales de `_posts/`) con un
+  solo botón cada una; no escalaba a cientos de artículos. Un buscador
+  arriba filtra la tabla en vivo (título, categoría o nombre de archivo) sin
+  recargar la página, las 3 columnas (Fecha, Categoría, Título) se ordenan
+  con un clic (segundo clic invierte, con una flechita que muestra el
+  estado), y solo se renderizan 25 filas a la vez con un botón "Mostrar 25
+  más" al pie -- el buscador y el orden actúan sobre la lista completa, no
+  solo sobre lo ya mostrado. Todo esto es JS vanilla sin librerías (mismo
+  criterio que el resto del proyecto): los datos van embebidos como JSON en
+  la página (`json.dumps(...).replace("</", "<\\/")`, para que un título con
+  `</script>` adentro no corte el bloque) y el DOM se arma con
+  `document.createElement`/`textContent` fila por fila, nunca con
+  `innerHTML` de texto libre. Cada fila termina en 3 botones: **Editar**,
+  **Vista previa** y **Eliminar** (`boton-peligro`), cada uno un
+  mini-`<form>` que apunta a la misma ruta que usaba su pantalla vieja.
+  `/editar` y `/eliminar` (GET) ahora redirigen (302) a `/gestionar` --
+  nadie que tuviera esas URLs guardadas se queda con un enlace roto.
+- **Editar** (botón de una fila): sin cambios de fondo respecto a como
+  funcionaba en su pantalla propia. Si ya existe una carpeta de trabajo con
+  ese slug en `_posts/articulos/` (por ejemplo, porque Elvis ya la había
+  empezado antes), avisa explícitamente -- "Ya tenés una carpeta de trabajo
+  para este artículo, con cambios sin publicar" -- y deja elegir entre
+  **"Seguir con la carpeta existente"** (la abre tal cual está, no la toca)
+  o **"Reiniciar desde lo publicado"** (la borra y la recrea de cero); nunca
+  sobreescribe en silencio. Si no existe carpeta, crea
   `_posts/articulos/<slug>/` y copia ahí el `.md` publicado real (con su
   `title`/`date`/`category`/`excerpt`/`image`/`permalink` reales, nada de
   `PENDIENTE`) más las imágenes de `assets/imagenes/<slug>/` que existan.
-  `_convertir_a_rutas_simples()` deshace, con un reemplazo de texto
-  literal (no regex), lo que `pa.procesar_referencias` hizo al publicar:
-  el `.md` real tiene las rutas completas
-  (`/assets/imagenes/<slug>/archivo.ext`, en `<img>`, en imagen Markdown y
-  en el `image:` del front matter) y la carpeta de trabajo espera nombres
-  simples, para que "Publicar borrador"/"Vista previa en vivo" puedan
-  reescribirlas de nuevo al republicar. El artículo publicado nunca se
-  toca hasta que Elvis confirme la republicación desde "Publicar
-  borrador" -- como el nombre del archivo coincide con el original, lo
-  reemplaza en vez de crear uno duplicado. Probado de punta a punta en un
-  clon aislado con un artículo real (3 imágenes): carpeta de trabajo
-  creada con el contenido real y las 3 imágenes; una oración y una imagen
-  nuevas agregadas a mano; "Vista previa en vivo" mostrando el contenido
-  viejo y el nuevo a la vez; "Publicar borrador" → "Confirmar y publicar"
-  modificando el mismo archivo en `_posts/` (356 líneas de diff sobre el
-  existente, no uno nuevo) con `validar_articulos.py` en 0 errores; y,
-  eligiendo el mismo artículo de nuevo con la carpeta de trabajo ya
-  existiendo (un cambio sin publicar simulado con un marcador de texto),
-  el aviso de conflicto apareció, "Seguir" dejó el archivo con el mismo
-  MD5 antes y después, y "Reiniciar" borró el marcador simulado y
-  reconstruyó limpio desde lo publicado.
-- **Eliminar artículo publicado:** lista los artículos reales de
-  `_posts/` (título, fecha, archivo -- el post oculto de pruebas de
-  kramdown/MathJax no aparece, no es un artículo real gestionable). Pide
-  escribir `ELIMINAR` en un campo de texto para confirmar -- cualquier
-  otro texto no borra nada. Al confirmar: `git rm` del `.md` y de la
-  carpeta `assets/imagenes/<slug>/` si existe, commit LOCAL únicamente
-  (`Elimina artículo: <título>`) -- nunca push, igual que
-  `publicar_articulo.py`. **La carpeta de imágenes NO se borra si algún
-  otro post de `_posts/` todavía referencia algo de ahí adentro**
+  `_convertir_a_rutas_simples()` deshace, con un reemplazo de texto literal
+  (no regex), lo que `pa.procesar_referencias` hizo al publicar: el `.md`
+  real tiene las rutas completas (`/assets/imagenes/<slug>/archivo.ext`, en
+  `<img>`, en imagen Markdown y en el `image:` del front matter) y la
+  carpeta de trabajo espera nombres simples, para que "Publicar
+  borrador"/"Vista previa" puedan reescribirlas de nuevo al republicar. El
+  artículo publicado nunca se toca hasta que Elvis confirme la
+  republicación desde "Publicar borrador". Probado de punta a punta en un
+  clon aislado con un artículo real (3 imágenes): carpeta de trabajo creada
+  con el contenido real y las 3 imágenes; una oración y una imagen nuevas
+  agregadas a mano; "Vista previa" mostrando el contenido viejo y el nuevo a
+  la vez; "Publicar borrador" → "Confirmar y publicar" modificando el mismo
+  archivo en `_posts/` (no uno nuevo) con `validar_articulos.py` en 0
+  errores; y, eligiendo el mismo artículo de nuevo con la carpeta de
+  trabajo ya existiendo, el aviso de conflicto apareció, "Seguir" dejó el
+  archivo con el mismo MD5 antes y después, y "Reiniciar" reconstruyó
+  limpio desde lo publicado.
+- **Vista previa** (botón de una fila, para un artículo YA publicado):
+  arranca la vista previa en vivo directamente para ese artículo, sin pasar
+  por la pantalla intermedia "carpeta lista" de Editar. Internamente arma
+  (o reusa) la misma carpeta de trabajo que usaría Editar -- mismo chequeo
+  de conflicto, mismo aviso "Ya tenés una carpeta de trabajo..." si
+  corresponde -- pero en vez de terminar en `pagina_editar_listo`, termina
+  arrancando la vista previa: `pagina_editar_conflicto()` ahora recibe un
+  parámetro `destino` ("editar" o "vivo") que viaja como campo oculto por
+  `/editar/seguir` y `/editar/reiniciar`, y esas dos rutas miran ese campo
+  para decidir si muestran la carpeta o arrancan la vista previa
+  directamente. El mecanismo real de arranque (`_iniciar_vivo`, antes el
+  cuerpo entero de `manejar_vivo_iniciar`) es una sola función compartida
+  por 3 caminos: este botón de Gestionar articulos, el botón "Vista previa"
+  que "Publicar borrador" agrega junto a cada borrador (para un artículo
+  que **todavía no se publicó ni una vez** -- ver nota más abajo), y la
+  ruta `/vivo/iniciar` en sí. Copia el `.md` y las imágenes a
+  `_posts/`/`assets/imagenes/<slug>/` (`pa.copiar_articulo`, sin el chequeo
+  de `PENDIENTE` que sí exige "Publicar borrador"), arranca -- o reusa, si
+  ya está corriendo -- `bundle exec jekyll serve --livereload` en segundo
+  plano en `127.0.0.1:4000`, y abre la URL directa del artículo (calculada
+  con `ruta_generada_en_site`, nunca la portada) en un iframe. Un hilo en
+  segundo plano vigila la carpeta de trabajo cada 1.5 segundos (mtime de
+  cada archivo) y, ante cualquier cambio, vuelve a copiar -- eso dispara la
+  reconstrucción automática de `jekyll serve --livereload`, que ya
+  refresca el navegador solo. El campo `image: PENDIENTE.jpg` que deja el
+  scaffold de "Crear artículo nuevo" se neutraliza SOLO en la copia en
+  memoria usada para renderizar (nunca en el `.md` real de la carpeta de
+  trabajo). Tampoco bloquea que la carpeta de trabajo todavía no tenga
+  ninguna imagen, ni que el `.md` tenga marcadores `[IMAGEN N -- título]`
+  sin reemplazar: el propósito de este flujo es ir viendo el progreso
+  mientras se escribe, no exigir que el artículo esté terminado.
+  `_encontrar_imagenes_vivo()` (tolerante) y
+  `_reemplazar_imagenes_faltantes()` sustituyen, también SOLO en la copia
+  en memoria, cada marcador sin resolver por un recuadro "Imagen
+  pendiente" -- en vez de que `pa.procesar_referencias` corte la vista
+  previa entera con un error. Ese chequeo estricto sigue intacto para
+  "Publicar borrador". **"Detener vista previa"** corta la vigilancia y
+  descarta la copia -- pero deja corriendo `jekyll serve` para reusarlo en
+  la próxima. Solo una vista previa activa a la vez: arrancar una segunda
+  detiene y descarta la anterior sola. GET `/vivo` sin ninguna vista previa
+  corriendo ya no lista carpetas (duplicaba "Publicar borrador"): muestra
+  un aviso simple con enlaces a "Gestionar artículos" y "Publicar
+  borrador". Probado de punta a punta en un clon aislado, incluida una
+  corrida real de `bundle exec jekyll serve` (no simulada) disparada desde
+  el botón de una fila de Gestionar artículos: URL directa confirmada (no
+  portada), HTML servido con el contenido real del artículo, y "Detener
+  vista previa" con `git status` limpio.
+- Un artículo creado con "Crear artículo nuevo" que **todavía no se publicó
+  ni una vez** no aparece en Gestionar artículos (no existe en `_posts/`,
+  de ahí sale esa lista) -- para esos, el botón "Vista previa" quedó en
+  "Publicar borrador", que ya lista esas carpetas de trabajo y no cambió su
+  chequeo de `PENDIENTE` ni de `validar_articulos.py` para el botón
+  "Revisar y publicar" que sigue ahí al lado.
+- **Eliminar** (botón de una fila): sin cambios de fondo. Pide escribir
+  `ELIMINAR` en un campo de texto para confirmar -- cualquier otro texto no
+  borra nada. Al confirmar: `git rm` del `.md` y de la carpeta
+  `assets/imagenes/<slug>/` si existe, commit LOCAL únicamente (`Elimina
+  artículo: <título>`) -- nunca push. **La carpeta de imágenes NO se borra
+  si algún otro post de `_posts/` todavía referencia algo de ahí adentro**
   (`posts_que_usan_carpeta_imagenes`): dos artículos con distinta fecha
   pero el mismo slug comparten esa carpeta, y borrarla con uno se lleva
   puestas las imágenes del otro. Pasó de verdad el 2026-09-22 y costó tres
   imágenes del artículo de fitorremediación. En ese caso el `.md` se borra
-  igual y la pantalla dice con qué artículos estaba compartida.
+  igual y la pantalla dice con qué artículos estaba compartida. **Si
+  `git commit` falla** (un hook, la identidad de git sin configurar), se
+  deshace el `git rm` (`git reset` + `git checkout` de lo borrado) y la
+  pantalla lo explica -- antes quedaba borrado en el índice sin commit, sin
+  forma clara de saber qué había pasado.
 
 ## El sitio (Jekyll)
 
@@ -443,6 +475,36 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## Historial de cambios recientes
 
+- 2026-09-23: el panel fusiona "Editar artículo publicado", "Eliminar
+  artículo publicado" y la lista de "Vista previa en vivo" en una sola
+  pantalla, "Gestionar artículos" (`/gestionar`) -- las tres listaban lo
+  mismo con un solo botón cada una, y no escalaba a cientos de artículos.
+  Buscador en vivo (título/categoría/archivo, sin recargar), columnas
+  Fecha/Categoría/Título ordenables con un clic, "Mostrar 25 más" en vez de
+  renderizar todo de una, y 3 botones por fila (Editar, Vista previa,
+  Eliminar) -- todo con JS vanilla sin librerías, datos embebidos como
+  JSON. El botón "Vista previa" de una fila arranca la vista previa en
+  vivo directo para ese artículo publicado (mismo chequeo de conflicto que
+  Editar, vía el nuevo parámetro `destino` de `pagina_editar_conflicto`);
+  "Publicar borrador" suma su propio botón "Vista previa" por fila, para
+  un artículo que todavía no se publicó nunca. `/editar` y `/eliminar`
+  redirigen (302) a `/gestionar`. 94 pruebas sobre un clon aislado
+  (incluidas 2 corridas de Node.js ejecutando el JS real que sirve el
+  panel, no una reimplementación, y una corrida real de
+  `bundle exec jekyll serve` disparada desde el botón de una fila).
+- 2026-09-23: el panel deja de fallar en silencio. "Crear" daba
+  `FileNotFoundError` con un título largo (ruta de 286 caracteres, límite
+  260, `LongPathsEnabled` en 0) y el navegador quedaba en
+  `ERR_EMPTY_RESPONSE`: slug recortado a 60, control de largo y error en
+  pantalla. Revisados los otros 4 flujos: copia parcial deshecha si falla a
+  mitad (`pa.copiar_articulo` avisa archivo por archivo), el hilo de "Vista
+  previa en vivo" sobrevive a cualquier excepción, slug duplicado ->
+  `<slug>-2`, "Editar" con control de largo en 259 (el del mercado de
+  carbono mide 252) y "Reiniciar" que renombra antes de borrar, copia
+  descartada ante fallos posteriores (build, jekyll serve), páginas GET
+  que no se caen por un `.md` fuera de UTF-8, y "Eliminar" que deshace el
+  `git rm` si el commit falla. 61 pruebas sobre un clon aislado, incluido
+  un build real de Jekyll.
 - 2026-09-23: tres arreglos de seguridad del panel y siete cambios de
   diseño del sitio, todos verificados con evidencia real (24 pruebas de
   Python sobre clones de git aislados y mediciones en un Edge de verdad --

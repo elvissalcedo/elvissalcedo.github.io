@@ -321,11 +321,23 @@ def verificar_sin_pendientes(texto, nombre_carpeta):
     )
 
 
-def copiar_articulo(carpeta_trabajo, nombre_carpeta, nombre_md, imagenes, texto_final):
+def copiar_articulo(carpeta_trabajo, nombre_carpeta, nombre_md, imagenes, texto_final,
+                    al_escribir=None):
+    """al_escribir(ruta), si se pasa, se llama con cada archivo destino que
+    quedo tocado en disco -- tambien el que fallo a mitad de escribirse --
+    para que quien llama (el panel) pueda deshacer una copia parcial. Si una
+    imagen falla, el .md ya esta en _posts/ y las anteriores ya se copiaron."""
+    def _tocado(ruta):
+        if al_escribir and os.path.exists(ruta):
+            al_escribir(ruta)
+
     destino_md = os.path.join(RAIZ, "_posts", nombre_md)
     ya_existia_md = os.path.exists(destino_md)
-    with open(destino_md, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(texto_final)
+    try:
+        with open(destino_md, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(texto_final)
+    finally:
+        _tocado(destino_md)
 
     destino_imagenes = os.path.join(RAIZ, "assets", "imagenes", nombre_carpeta)
     os.makedirs(destino_imagenes, exist_ok=True)
@@ -333,7 +345,10 @@ def copiar_articulo(carpeta_trabajo, nombre_carpeta, nombre_md, imagenes, texto_
     for imagen in imagenes:
         origen = os.path.join(carpeta_trabajo, imagen)
         destino = os.path.join(destino_imagenes, imagen)
-        shutil.copyfile(origen, destino)
+        try:
+            shutil.copyfile(origen, destino)
+        finally:
+            _tocado(destino)
         copiadas.append(imagen)
 
     return destino_md, ya_existia_md, destino_imagenes, copiadas
