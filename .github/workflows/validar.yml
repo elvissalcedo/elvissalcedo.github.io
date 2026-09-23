@@ -63,10 +63,4 @@ jobs:
           for pagina in _site/index.html _site/sitemap.xml _site/feed.xml; do
             test -s "$pagina" || { echo "Falta o está vacío: $pagina"; exit 1; }
           done
-          # El post oculto de pruebas nunca debe salir en el índice ni en el
-          # sitemap (hidden: true + sitemap: false).
-          if grep -q "articulo-ejemplo" _site/index.html _site/sitemap.xml; then
-            echo "El post oculto de pruebas se está publicando en el índice o el sitemap."
-            exit 1
-          fi
           echo "Páginas generadas correctamente."

@@ -20,7 +20,7 @@ El alcance de esta biotecnología abarca un abanico complejo de sustancias nociv
 La depuración por fitorremediación no responde a un único evento estático, sino a una secuencia integrada de procesos biológicos, físicos y químicos en la interfaz planta-sustrato-microbiota (Facultad de Ciencias Biológicas, 2020; Herrera Velásquez y Rey Calderón, 2018). Se clasifican seis estrategias biotecnológicas principales:
 
 <figure class="post-figure">
-<img src="/assets/imagenes/fitorremediacion-biofiltros-agua/esquema-biofiltro-subsuperficial.png" alt="Esquema en corte transversal de un biofiltro subsuperficial mostrando las capas de sustrato y tuberías de drenaje">
+<img src="/assets/imagenes/fitorremediacion-biofiltros-agua/esquema-biofiltro-subsuperficial.png" alt="Esquema en corte transversal de un biofiltro subsuperficial mostrando las capas de sustrato y tuberías de drenaje" loading="lazy" decoding="async" width="523" height="320">
 <figcaption>Figura 1. Esquema en corte transversal de un biofiltro de flujo subsuperficial vertical con vegetación macrófita y capas de soporte. Fuente: Herrera Velásquez y Rey Calderón (2018).</figcaption>
 </figure>
 
@@ -32,7 +32,7 @@ La depuración por fitorremediación no responde a un único evento estático, s
 6. **Fitodegradación:** Enzimas sintetizadas por la propia planta (dehalogenasas, oxigenasas) descomponen las moléculas orgánicas absorbidas dentro de sus tejidos (Facultad de Ciencias Biológicas, 2020).
 
 <figure class="post-figure">
-<img src="/assets/imagenes/fitorremediacion-biofiltros-agua/diagrama-fitotecnologias.png" alt="Diagrama de bloques que clasifica las distintas disciplinas de las fitotecnologías ambientales">
+<img src="/assets/imagenes/fitorremediacion-biofiltros-agua/diagrama-fitotecnologias.png" alt="Diagrama de bloques que clasifica las distintas disciplinas de las fitotecnologías ambientales" loading="lazy" decoding="async" width="439" height="251">
 <figcaption>Figura 3. Diagrama esquemático de interrelación entre fitotecnologías, hiperacumulación y fitominería. Fuente: Fränzle et al. (2012).</figcaption>
 </figure>
 
@@ -147,7 +147,7 @@ Cuando la carga contaminante o la naturaleza química del efluente supera la cap
 4. **Biosorción Fúngica y Bacteriana:** Uso de biomasa inerte o viva de hongos y bacterias (*Pseudomonas aeruginosa*, *Bacillus spp.*) en biorreactores cerrados para capturar de forma pasiva metales pesados (Cd, Pb, Hg, Cr, Zn) mediante interacciones de superficie celulares y secreción de enzimas extracelulares (Beltrán-Pineda y Gómez-Rodríguez, 2011; Ortiz Bernad et al., 2007; Shah y Das, 2025).
 
 <figure class="post-figure">
-<img src="/assets/imagenes/fitorremediacion-biofiltros-agua/reactor-poae-electroquimica.png" alt="Fotografía de laboratorio de un reactor electroquímico de oxidación avanzada para tratamiento de agua">
+<img src="/assets/imagenes/fitorremediacion-biofiltros-agua/reactor-poae-electroquimica.png" alt="Fotografía de laboratorio de un reactor electroquímico de oxidación avanzada para tratamiento de agua" loading="lazy" decoding="async" width="1720" height="1290">
 <figcaption>Figura 4. Celda experimental de oxidación avanzada electroquímica (POAE) para la degradación de contaminantes refractarios. Fuente: Elaboración propia.</figcaption>
 </figure>
 

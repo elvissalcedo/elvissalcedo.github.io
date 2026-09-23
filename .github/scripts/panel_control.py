@@ -141,6 +141,73 @@ def ruta_git(ruta_absoluta):
 
 
 # --------------------------------------------------------------------------
+# Proteccion de cambios sin comitear
+#
+# Las vistas previas escriben copias reales en _posts/ y assets/imagenes/, y
+# despues las deshacen. Deshacerlas con `git checkout --` a ciegas puede
+# destruir trabajo de Elvis: si el .md publicado tenia una correccion hecha a
+# mano todavia sin comitear, la copia la pisaba en disco y el checkout
+# posterior la borraba para siempre, sin aviso.
+#
+# Regla: solo se descarta un archivo que ESTE proceso escribio. Cualquier otra
+# cosa se guarda en un stash (recuperable con `git stash list` / `git stash
+# pop`) en vez de perderse.
+# --------------------------------------------------------------------------
+_copias_del_panel = set()
+
+
+def _clave_ruta(ruta_absoluta):
+    return os.path.normcase(os.path.abspath(ruta_absoluta))
+
+
+def registrar_copia(*rutas_absolutas):
+    for ruta in rutas_absolutas:
+        _copias_del_panel.add(_clave_ruta(ruta))
+
+
+def es_copia_del_panel(ruta_absoluta):
+    return _clave_ruta(ruta_absoluta) in _copias_del_panel
+
+
+def hay_cambios_sin_comitear(ruta_absoluta):
+    """True si el archivo esta trackeado en git y lo que hay en disco difiere
+    de lo ultimo comiteado."""
+    rel = ruta_git(ruta_absoluta)
+    if git("ls-files", "--error-unmatch", "--", rel).returncode != 0:
+        return False
+    return bool(git("status", "--porcelain", "--", rel).stdout.strip())
+
+
+def respaldar_en_stash(ruta_absoluta, motivo):
+    """Guarda en un stash los cambios sin comitear de UN archivo en vez de
+    destruirlos, y deja el archivo como estaba en el ultimo commit. Devuelve
+    la etiqueta del stash, o None si no habia nada que guardar."""
+    if not hay_cambios_sin_comitear(ruta_absoluta):
+        return None
+    rel = ruta_git(ruta_absoluta)
+    etiqueta = "panel-control: %s -- %s" % (motivo, rel)
+    resultado = git("stash", "push", "-m", etiqueta, "--", rel)
+    if resultado.returncode != 0:
+        raise ErrorPanel(
+            "«%s» tiene cambios sin comitear y no los pude guardar en un "
+            "stash, asi que prefiero no pisarlos. Revisalos con `git status` "
+            "y comitealos (o guardalos a mano) antes de seguir.\n\n%s"
+            % (rel, resultado.stderr or resultado.stdout)
+        )
+    return etiqueta
+
+
+def proteger_articulo_publicado(nombre_md):
+    """Se llama ANTES de pisar _posts/<nombre_md> con la copia del borrador.
+    Si ese archivo publicado tiene cambios sin comitear que no escribimos
+    nosotros, los guarda en un stash. Devuelve la etiqueta del stash o None."""
+    ruta = os.path.join(RAIZ, "_posts", nombre_md)
+    if es_copia_del_panel(ruta):
+        return None
+    return respaldar_en_stash(ruta, "cambios sin comitear guardados antes de la vista previa")
+
+
+# --------------------------------------------------------------------------
 # Flujo "Crear articulo nuevo"
 # --------------------------------------------------------------------------
 def buscar_duplicado(slug):
@@ -239,6 +306,27 @@ def listar_articulos():
 PATRON_ARCHIVO_POST = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$")
 
 
+def posts_que_usan_carpeta_imagenes(slug, excepto):
+    """Otros articulos de _posts/ que todavia referencian
+    /assets/imagenes/<slug>/. Dos posts con distinta fecha pero el mismo slug
+    comparten esa carpeta, asi que borrarla junto con uno de ellos deja al
+    otro publicado con las imagenes rotas -- paso de verdad el 2026-09-22 y
+    costo tres imagenes del articulo de fitorremediacion."""
+    prefijo = "/assets/imagenes/%s/" % slug
+    carpeta_posts = os.path.join(RAIZ, "_posts")
+    en_uso = []
+    for nombre in sorted(os.listdir(carpeta_posts)):
+        if nombre == excepto or not nombre.endswith(".md"):
+            continue
+        ruta = os.path.join(carpeta_posts, nombre)
+        if not os.path.isfile(ruta):
+            continue
+        with open(ruta, encoding="utf-8") as fh:
+            if prefijo in fh.read():
+                en_uso.append(nombre)
+    return en_uso
+
+
 def eliminar_articulo(nombre_archivo):
     if not PATRON_ARCHIVO_POST.match(nombre_archivo):
         raise ErrorPanel("Nombre de archivo invalido: %s" % nombre_archivo)
@@ -254,6 +342,12 @@ def eliminar_articulo(nombre_archivo):
     slug = m.group(1) if m else None
     carpeta_imagenes = os.path.join(RAIZ, "assets", "imagenes", slug) if slug else None
     borra_imagenes = bool(carpeta_imagenes and os.path.isdir(carpeta_imagenes))
+
+    # Guard: la carpeta de imagenes solo se borra si NINGUN otro articulo
+    # publicado la sigue usando. El .md de este articulo si se borra igual.
+    compartida_con = posts_que_usan_carpeta_imagenes(slug, nombre_archivo) if borra_imagenes else []
+    if compartida_con:
+        borra_imagenes = False
 
     rutas_rm = [ruta_git(ruta_md)]
     if borra_imagenes:
@@ -272,7 +366,7 @@ def eliminar_articulo(nombre_archivo):
             "`git commit` fallo:\n%s" % (resultado_commit.stderr or resultado_commit.stdout)
         )
 
-    return titulo, mensaje, borra_imagenes
+    return titulo, mensaje, borra_imagenes, compartida_con
 
 
 # --------------------------------------------------------------------------
@@ -405,11 +499,23 @@ def revisar_y_copiar_borrador(nombre_carpeta):
     texto_final, _cambios, _referenciadas = pa.procesar_referencias(
         texto, nombre_validado, set(imagenes)
     )
+    texto_final = pa.enriquecer_imagenes(texto_final, carpeta)
+
+    # Sincronizar con origin ANTES de escribir nada: aca el arbol de trabajo
+    # todavia esta limpio, que es lo que `git rebase` necesita para arrancar.
+    error_sync = pa.sincronizar_con_remoto()
+    if error_sync:
+        raise ErrorPanel(error_sync)
+
+    # Y recien despues pisar el .md publicado, poniendo a salvo cualquier
+    # cambio sin comitear que tuviera.
+    respaldo = proteger_articulo_publicado(nombre_md)
 
     destino_md, _ya_existia, destino_imagenes, copiadas = pa.copiar_articulo(
         carpeta, nombre_validado, nombre_md, imagenes, texto_final
     )
-    return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas
+    registrar_copia(destino_md, *[os.path.join(destino_imagenes, i) for i in copiadas])
+    return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas, respaldo
 
 
 def validar_borrador(ruta_md_copiada, nombre_carpeta, copiadas):
@@ -483,28 +589,49 @@ def ruta_generada_en_site(fm, nombre_carpeta):
 
 
 def _revertir_o_borrar(ruta_absoluta):
-    """Si el archivo ya estaba trackeado en git (una republicacion sobre un
-    articulo existente), restaura su version comiteada. Si es nuevo (nunca
-    se hizo git add), lo borra -- asi "Volver a editar" nunca pisa contenido
-    real ya publicado."""
+    """Deshace UNA copia de vista previa. Si el archivo ya estaba trackeado en
+    git (una republicacion sobre un articulo existente), restaura su version
+    comiteada; si es nuevo (nunca se hizo git add), lo borra.
+
+    Solo hace eso con archivos que este proceso escribio (registrar_copia).
+    Con cualquier otro no arriesga: si tiene cambios sin comitear los guarda
+    en un stash, y si no los tiene lo deja como esta. Antes hacia
+    `git checkout --` a ciegas, que destruia en silencio cualquier edicion sin
+    comitear que hubiera en ese .md publicado.
+
+    Devuelve la etiqueta del stash si tuvo que respaldar algo, o None."""
     if not os.path.isfile(ruta_absoluta):
-        return
+        return None
+    if not es_copia_del_panel(ruta_absoluta):
+        return respaldar_en_stash(
+            ruta_absoluta, "cambios sin comitear guardados en vez de descartados"
+        )
     rel = ruta_git(ruta_absoluta)
     resultado = git("ls-files", "--error-unmatch", "--", rel)
     if resultado.returncode == 0:
         git("checkout", "--", rel)
     else:
         os.remove(ruta_absoluta)
+    _copias_del_panel.discard(_clave_ruta(ruta_absoluta))
+    return None
 
 
 def descartar_vista_previa(nombre_carpeta, nombre_md, copiadas):
+    """Devuelve la lista de stashes que hubo que crear para no perder nada
+    (normalmente vacia)."""
+    respaldos = []
     if nombre_md:
-        _revertir_o_borrar(os.path.join(RAIZ, "_posts", nombre_md))
+        etiqueta = _revertir_o_borrar(os.path.join(RAIZ, "_posts", nombre_md))
+        if etiqueta:
+            respaldos.append(etiqueta)
     carpeta_imagenes = os.path.join(RAIZ, "assets", "imagenes", nombre_carpeta)
     for imagen in copiadas:
-        _revertir_o_borrar(os.path.join(carpeta_imagenes, imagen))
+        etiqueta = _revertir_o_borrar(os.path.join(carpeta_imagenes, imagen))
+        if etiqueta:
+            respaldos.append(etiqueta)
     if os.path.isdir(carpeta_imagenes) and not os.listdir(carpeta_imagenes):
         os.rmdir(carpeta_imagenes)
+    return respaldos
 
 
 def url_actions():
@@ -632,11 +759,18 @@ def copiar_para_vista_previa(nombre_carpeta):
     texto_final, _cambios, _referenciadas = pa.procesar_referencias(
         texto, nombre_validado, set(imagenes)
     )
+    texto_final = pa.enriquecer_imagenes(texto_final, carpeta)
+
+    # Mismo cuidado que en Publicar borrador: no pisar cambios sin comitear
+    # del articulo publicado. En los ciclos siguientes del hilo de vigilancia
+    # el archivo ya es una copia nuestra, asi que esto no vuelve a hacer nada.
+    respaldo = proteger_articulo_publicado(nombre_md)
 
     destino_md, _ya_existia, destino_imagenes, copiadas = pa.copiar_articulo(
         carpeta, nombre_validado, nombre_md, imagenes, texto_final
     )
-    return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas
+    registrar_copia(destino_md, *[os.path.join(destino_imagenes, i) for i in copiadas])
+    return nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas, respaldo
 
 
 class _EstadoVistaPrevia:
@@ -726,7 +860,7 @@ def _bucle_vigilancia(nombre_carpeta, evento_detener):
         if huella_actual == huella_anterior:
             continue
         try:
-            _, _, _, _, copiadas = copiar_para_vista_previa(nombre_carpeta)
+            _, _, _, _, copiadas, _respaldo = copiar_para_vista_previa(nombre_carpeta)
         except (ErrorPanel, pa.ErrorPublicacion) as e:
             # No actualiza huella_anterior: reintenta en el proximo tick
             # aunque el archivo no vuelva a cambiar (ej. quedo a medio
@@ -748,13 +882,13 @@ def _detener_vista_previa_activa():
     `bundle exec jekyll serve`: se deja corriendo para reusar en la proxima
     vista previa. Devuelve el nombre de la carpeta que estaba activa."""
     if not _vista_previa_activa.carpeta:
-        return None
+        return None, []
     if _vista_previa_activa.evento_detener:
         _vista_previa_activa.evento_detener.set()
     if _vista_previa_activa.hilo:
         _vista_previa_activa.hilo.join(timeout=3)
     carpeta = _vista_previa_activa.carpeta
-    descartar_vista_previa(
+    respaldos = descartar_vista_previa(
         _vista_previa_activa.carpeta, _vista_previa_activa.nombre_md, _vista_previa_activa.copiadas
     )
     _vista_previa_activa.carpeta = None
@@ -764,7 +898,7 @@ def _detener_vista_previa_activa():
     _vista_previa_activa.evento_detener = None
     _vista_previa_activa.hilo = None
     _vista_previa_activa.ultimo_error = None
-    return carpeta
+    return carpeta, respaldos
 
 
 # --------------------------------------------------------------------------
@@ -1002,9 +1136,19 @@ def pagina_confirmar_eliminar(articulo):
     return pagina("Confirmar eliminación", cuerpo)
 
 
-def pagina_eliminado(titulo, mensaje_commit, borro_imagenes):
+def pagina_eliminado(titulo, mensaje_commit, borro_imagenes, compartida_con=None):
+    if compartida_con:
+        bloque_compartida = (
+            '<div class="aviso"><strong>La carpeta de imágenes NO se borró.</strong>\n'
+            'Estos artículos que siguen publicados usan imágenes de esa misma carpeta, '
+            'así que borrarla los habría dejado con las imágenes rotas:\n\n%s</div>'
+            % html.escape("\n".join("_posts/%s" % n for n in compartida_con))
+        )
+    else:
+        bloque_compartida = ""
     cuerpo = """
     <h1>Artículo eliminado</h1>
+    %s
     <div class="exito">
       <p>Eliminado localmente: <strong>%s</strong></p>
       <p>Commit local: <code>%s</code>%s</p>
@@ -1014,6 +1158,7 @@ def pagina_eliminado(titulo, mensaje_commit, borro_imagenes):
        confirmar la eliminación en GitHub.</p>
     <a class="volver" href="/">&larr; Volver al panel</a>
     """ % (
+        bloque_compartida,
         html.escape(titulo),
         html.escape(mensaje_commit),
         " (incluye la carpeta de imágenes)" if borro_imagenes else "",
@@ -1159,6 +1304,23 @@ def bloque_validacion_html(errores, avisos):
     return "".join(partes)
 
 
+def bloque_respaldo_html(respaldos):
+    """Aviso de que hubo cambios sin comitear y se guardaron en un stash en
+    vez de perderse. Acepta una etiqueta suelta, una lista, o None."""
+    if not respaldos:
+        return ""
+    if isinstance(respaldos, str):
+        respaldos = [respaldos]
+    lineas = "\n".join(respaldos)
+    return (
+        '<div class="aviso"><strong>Se guardaron cambios sin comitear (%d):</strong>\n'
+        'Ese archivo tenía ediciones tuyas todavía sin comitear, así que en vez de '
+        'pisarlas las guardé en un stash de git. Para recuperarlas: mirá la lista con '
+        '<code>git stash list</code> y traelas de vuelta con <code>git stash pop</code>.\n\n%s</div>'
+        % (len(respaldos), html.escape(lineas))
+    )
+
+
 def _campos_ocultos(nombre_carpeta, nombre_md, copiadas):
     return (
         '<input type="hidden" name="carpeta" value="%s">'
@@ -1167,8 +1329,9 @@ def _campos_ocultos(nombre_carpeta, nombre_md, copiadas):
     ) % (html.escape(nombre_carpeta), html.escape(nombre_md), html.escape(",".join(copiadas)))
 
 
-def pagina_vista_previa(nombre_carpeta, nombre_md, copiadas, ruta_site, errores, avisos):
-    bloque_validacion = bloque_validacion_html(errores, avisos)
+def pagina_vista_previa(nombre_carpeta, nombre_md, copiadas, ruta_site, errores, avisos,
+                        respaldo=None):
+    bloque_validacion = bloque_respaldo_html(respaldo) + bloque_validacion_html(errores, avisos)
     campos = _campos_ocultos(nombre_carpeta, nombre_md, copiadas)
     if ruta_site:
         src = "http://127.0.0.1:%d/%s" % (PUERTO_VISTA_PREVIA, ruta_site)
@@ -1239,9 +1402,10 @@ def pagina_publicado(mensaje_commit, resultado_push, url_acciones):
     return pagina("Artículo publicado", cuerpo)
 
 
-def pagina_descartado(nombre_carpeta):
+def pagina_descartado(nombre_carpeta, respaldos=None):
     cuerpo = """
     <h1>Vista previa descartada</h1>
+    """ + bloque_respaldo_html(respaldos) + """
     <div class="exito">
       <p>Se deshizo la copia de vista previa. La carpeta de trabajo
          <code>_posts/articulos/%s/</code> sigue intacta, lista para seguir
@@ -1286,7 +1450,7 @@ def pagina_lista_vivo(borradores):
     return pagina("Vista previa en vivo", cuerpo)
 
 
-def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error):
+def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
     if ruta_site:
         src = "http://127.0.0.1:%d/%s" % (PUERTO_SERVE_VIVO, ruta_site)
         bloque_iframe = '<iframe class="vista-previa-frame" src="%s"></iframe>' % html.escape(src)
@@ -1301,10 +1465,10 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error):
             % (PUERTO_SERVE_VIVO, PUERTO_SERVE_VIVO)
         )
         link_directo = ""
-    bloque_error = (
+    bloque_error = bloque_respaldo_html(respaldo) + ((
         '<div class="aviso">La última actualización automática falló (va a reintentar sola): %s</div>'
         % html.escape(ultimo_error)
-    ) if ultimo_error else ""
+    ) if ultimo_error else "")
     cuerpo = """
     <h1>Vista previa en vivo: %s</h1>
     <p class="subtitulo">Se actualiza sola cada vez que guardás un cambio en
@@ -1324,16 +1488,17 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error):
     return pagina("Vista previa en vivo", cuerpo)
 
 
-def pagina_vivo_detenida(nombre_carpeta):
+def pagina_vivo_detenida(nombre_carpeta, respaldos=None):
     cuerpo = """
     <h1>Vista previa en vivo detenida</h1>
+    %s
     <div class="exito">
       <p>Se dejó de vigilar la carpeta y se descartó la copia temporal --
          nada quedó comiteado. <code>_posts/articulos/%s/</code> sigue
          intacta, lista para seguir editando.</p>
     </div>
     <a class="volver" href="/vivo">&larr; Volver a Vista previa en vivo</a>
-    """ % html.escape(nombre_carpeta or "")
+    """ % (bloque_respaldo_html(respaldos), html.escape(nombre_carpeta or ""))
     return pagina("Vista previa en vivo detenida", cuerpo)
 
 
@@ -1471,8 +1636,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 "/eliminar",
             ))
             return
-        titulo, mensaje_commit, borro_imagenes = eliminar_articulo(archivo)
-        self.responder(pagina_eliminado(titulo, mensaje_commit, borro_imagenes))
+        titulo, mensaje_commit, borro_imagenes, compartida_con = eliminar_articulo(archivo)
+        self.responder(pagina_eliminado(titulo, mensaje_commit, borro_imagenes, compartida_con))
 
     def manejar_editar_elegir(self):
         datos = self.leer_formulario()
@@ -1522,9 +1687,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         datos = self.leer_formulario()
         nombre_carpeta_pedido = (datos.get("carpeta") or "").strip()
 
-        nombre_carpeta, nombre_md, destino_md, destino_imagenes, copiadas = revisar_y_copiar_borrador(
-            nombre_carpeta_pedido
-        )
+        (nombre_carpeta, nombre_md, destino_md, destino_imagenes, copiadas,
+         respaldo) = revisar_y_copiar_borrador(nombre_carpeta_pedido)
 
         resultado_build, error_bundle = construir_sitio()
         if error_bundle:
@@ -1538,7 +1702,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         errores, avisos = validar_borrador(destino_md, nombre_carpeta, copiadas)
         fm = leer_front_matter(destino_md)
         ruta_site = ruta_generada_en_site(fm, nombre_carpeta)
-        self.responder(pagina_vista_previa(nombre_carpeta, nombre_md, copiadas, ruta_site, errores, avisos))
+        self.responder(pagina_vista_previa(
+            nombre_carpeta, nombre_md, copiadas, ruta_site, errores, avisos, respaldo))
 
     def manejar_publicar_confirmar(self):
         datos = self.leer_formulario()
@@ -1569,8 +1734,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         nombre_carpeta = datos.get("carpeta") or ""
         nombre_md = datos.get("nombre_md") or ""
         copiadas = [i for i in (datos.get("imagenes") or "").split(",") if i]
-        descartar_vista_previa(nombre_carpeta, nombre_md, copiadas)
-        self.responder(pagina_descartado(nombre_carpeta))
+        respaldos = descartar_vista_previa(nombre_carpeta, nombre_md, copiadas)
+        self.responder(pagina_descartado(nombre_carpeta, respaldos))
 
     def manejar_vivo_iniciar(self):
         datos = self.leer_formulario()
@@ -1586,9 +1751,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
             ))
             return
 
-        nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas = copiar_para_vista_previa(
-            nombre_carpeta
-        )
+        (nombre_validado, nombre_md, destino_md, destino_imagenes, copiadas,
+         respaldo) = copiar_para_vista_previa(nombre_carpeta)
 
         error_bundle = iniciar_jekyll_serve()
         if error_bundle:
@@ -1624,11 +1788,11 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
 
         hilo.start()
 
-        self.responder(pagina_vivo_activa(nombre_validado, ruta_site, None))
+        self.responder(pagina_vivo_activa(nombre_validado, ruta_site, None, respaldo))
 
     def manejar_vivo_detener(self):
-        carpeta = _detener_vista_previa_activa()
-        self.responder(pagina_vivo_detenida(carpeta))
+        carpeta, respaldos = _detener_vista_previa_activa()
+        self.responder(pagina_vivo_detenida(carpeta, respaldos))
 
 
 def main():

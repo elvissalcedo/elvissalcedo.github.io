@@ -14,7 +14,7 @@ La actividad extractiva minera en cuencas hidrográficas andinas ha legado un va
 Desde una perspectiva biogeoquímica, los relaves confieren al perfil edáfico condiciones extremas: acidez severa, ausencia casi total de materia orgánica, alteración de la estructura física hacia fracciones franco-arenosas o franco-arcillosas altamente erosionables y un desbalance salino crítico (Bashir et al., 2026; Tarrillo Diaz y Nuñez Bustamante, 2022). A esta degradación física se suma la acumulación masiva de **Elementos Potencialmente Tóxicos (EPTs)**, entre los que destacan metales pesados y metaloides como el plomo (\\(\text{Pb}\\)), cadmio (\\(\text{Cd}\\)), arsénico (\\(\text{As}\\)), cobre (\\(\text{Cu}\\)), zinc (\\(\text{Zn}\\)) y cromo (\\(\text{Cr}\\)) (Bashir et al., 2026; Virú-Vasquez et al., 2025). Cuando los sulfuros presentes en los relaves —particularmente la pirita (\\(\text{FeS}_2\\))— entran en contacto con el agua y el oxígeno atmosférico, se desencadena la oxidación biogeoquímica que genera drenaje ácido de mina (AMD), reduciendo drásticamente el \\(\text{pH}\\) del suelo y acelerando la disolución de metales tóxicos hacia las aguas subterráneas y superficiales (Bashir et al., 2026; Virú-Vasquez et al., 2025).
 
 <figure class="post-figure">
-<img src="/assets/imagenes/fitorremediacion-maiz-relaves/rutas-intercambio-ionico-suelo.jpg" alt="Diagrama conceptual de rutas de disolución e intercambio iónico en la solución del suelo">
+<img src="/assets/imagenes/fitorremediacion-maiz-relaves/rutas-intercambio-ionico-suelo.jpg" alt="Diagrama conceptual de rutas de disolución e intercambio iónico en la solución del suelo" loading="lazy" decoding="async" width="789" height="540">
 <figcaption>Figura 1. Rutas biogeoquímicas de disolución, intercambio catiónico y absorción de iones en la solución del suelo. Fuente: Pepper y Gentry (2015).</figcaption>
 </figure>
 
@@ -30,7 +30,7 @@ La implementación exitosa de la fitorremediación en sustratos de alta toxicida
 Para reducir esta toxicidad directa, la adición de enmiendas como el vermicompost o el compost combinado con biochar modifica estructuralmente el suelo (Munir et al., 2020; Virú-Vasquez et al., 2025). El vermicompost aporta un \\(\text{pH}\\) neutro de 6.82, un elevado contenido de materia orgánica (29.55% M.O.) y concentraciones esenciales de calcio (2.30% \\(\text{CaO}\\)) y magnesio (0.49% \\(\text{MgO}\\)), los cuales neutralizan la acidez extrema y elevan la **Capacidad de Intercambio Catiónico (CIC)** (Tarrillo Diaz y Nuñez Bustamante, 2022). La CIC se puede imaginar como la "esponja magnética" del suelo: las arcillas y la materia orgánica poseen cargas negativas que atraen y retienen cationes con carga positiva (nutrientes como \\(\text{Ca}^{2+}\\) y \\(\text{Mg}^{2+}\\), o metales como \\(\text{Pb}^{2+}\\) y \\(\text{Cd}^{2+}\\)), evitando que el agua de lluvia los arrastre hacia el fondo mediante **lixiviación** (desplazamiento de contaminantes solubles por filtración de agua) (Alloway, 2013; Tarrillo Diaz y Nuñez Bustamante, 2022).
 
 <figure class="post-figure">
-<img src="/assets/imagenes/fitorremediacion-maiz-relaves/esquema-fitorremediacion-maiz.jpg" alt="Mecanismos celulares de retención radicular y transporte selectivo de metales pesados">
+<img src="/assets/imagenes/fitorremediacion-maiz-relaves/esquema-fitorremediacion-maiz.jpg" alt="Mecanismos celulares de retención radicular y transporte selectivo de metales pesados" loading="lazy" decoding="async" width="860" height="1541">
 <figcaption>Figura 2. Mecanismos celulares de inmovilización radicular, fitoextracción de cadmio y retención de plomo en la endodermis vegetal. Fuente: Elaboración propia basada en Cozma et al. (2025) y Elik y Gül (2025).</figcaption>
 </figure>
 
@@ -146,7 +146,7 @@ Al comparar la fitorremediación asistida mediante *Zea mays L.* con otras biote
 Un aspecto crítico y frecuentemente omitido en los proyectos de remediación es el destino final de la biomasa vegetativa cosechada (Cozma et al., 2025; Tarrillo Diaz y Nuñez Bustamante, 2022). Debido a que las raíces y tallos de *Zea mays L.* acumulan concentraciones significativas de cadmio (hasta \\(0.39 \text{ mg/kg}\\) en tejido) y plomo, el material cosechado se clasifica técnicamente como un residuo peligroso (Cozma et al., 2025; Virú-Vasquez et al., 2025). Bajo ninguna circunstancia esta biomasa debe reingresar a la cadena trófica mediante alimentación ganadera o quema abierta sin control (Alloway, 2013; Cozma et al., 2025).
 
 <figure class="post-figure">
-<img src="/assets/imagenes/fitorremediacion-maiz-relaves/valorizacion-biomasa-fitorremediacion.jpg" alt="Esquema de conversión termoquímica de biomasa metalífera post-fitorremediación">
+<img class="infografia" src="/assets/imagenes/fitorremediacion-maiz-relaves/valorizacion-biomasa-fitorremediacion.jpg" alt="Esquema de conversión termoquímica de biomasa metalífera post-fitorremediación" loading="lazy" decoding="async" width="1536" height="1024">
 <figcaption>Figura 3. Rutas de conversión termoquímica y confinamiento inerte de biomasa cosechada en sistemas de economía circular. Fuente: Adaptado de Bashir et al. (2026) y Cozma et al. (2025).</figcaption>
 </figure>
 

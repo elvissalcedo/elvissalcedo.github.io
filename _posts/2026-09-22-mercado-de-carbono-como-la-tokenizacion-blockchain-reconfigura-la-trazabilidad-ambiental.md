@@ -17,7 +17,7 @@ Frente a estas fallas estructurales, la tecnología de contabilidad distribuida 
 Sin embargo, el despliegue empírico de esta infraestructura digital ha destilado severas paradojas financieras y ambientales. Evaluaciones econométricas recientes mediante modelos de Diferencia en Diferencias (DiD) revelan que la transición hacia la tokenización genera caídas estadísticamente significativas en los precios de los activos ambientales en el corto plazo (con reducciones estimadas de entre \\(-191.54\\) y \\(-195.02\\) en los valores base de los tokens), impulsadas por la incertidumbre del inversor y deficiencias de liquidez en la arquitectura digital, a pesar de mantener los volúmenes transaccionados (Tlili, 2025). Más grave aún es el diagnóstico sobre la calidad subyacente del activo: análisis cuantitativos del mercado de *cryptocarbon* indican que hasta un 84.8% de los créditos tokenizados proceden de proyectos voluntarios cuyas líneas de base de deforestación fueron sustancialmente infladas o que carecen de adicionalidad real conforme a los estándares internacionales del Acuerdo de París (Shokri et al., 2022; West et al., 2020).
 
 <figure class="post-figure">
-  <img src="/assets/imagenes/mercado-de-carbono-como-la-tokenizacion-blockchain-reconfigura-la-trazabilidad-ambiental/ets-convencional-vs-blockchain.jpg" alt="Comparativa entre el sistema ETS convencional y el marco habilitado por blockchain y teoría de juegos">
+  <img src="/assets/imagenes/mercado-de-carbono-como-la-tokenizacion-blockchain-reconfigura-la-trazabilidad-ambiental/ets-convencional-vs-blockchain.jpg" alt="Comparativa entre el sistema ETS convencional y el marco habilitado por blockchain y teoría de juegos" loading="lazy" decoding="async" width="2100" height="1088">
   <figcaption>Figura 1. Esquema comparativo entre (a) el marco convencional de un Sistema de Comercio de Emisiones (ETS) y (b) la arquitectura descentralizada informada por teoría de juegos y habilitada por blockchain. Fuente: Tomado de Kazi y Hasan (2024, Fig. 1).</figcaption>
 </figure>
 
@@ -98,7 +98,7 @@ Empleando el factor de conversión operacional simplificado (\\(0.27\\)) adoptad
 Una vez cuantificado el impacto físico en campo, la infraestructura digital toma el relevo. Para reemplazar la intermediación opaca de los mercados tradicionales por un sistema auditable, la literatura técnica reciente en ingeniería de procesos propone una arquitectura multicapa desplegada sobre la Máquina Virtual de Ethereum (EVM) u redes autorizadas como Hyperledger Fabric, articulada mediante tres contratos inteligentes interconectados (Kazi y Hasan, 2024; Liu et al., 2026; Merlo et al., 2025):
 
 <figure class="post-figure">
-  <img src="/assets/imagenes/mercado-de-carbono-como-la-tokenizacion-blockchain-reconfigura-la-trazabilidad-ambiental/interaccion-smart-contracts-dapp.jpg" alt="Interacción de contratos inteligentes en el backend de la DApp de gestión de carbono">
+  <img src="/assets/imagenes/mercado-de-carbono-como-la-tokenizacion-blockchain-reconfigura-la-trazabilidad-ambiental/interaccion-smart-contracts-dapp.jpg" alt="Interacción de contratos inteligentes en el backend de la DApp de gestión de carbono" loading="lazy" decoding="async" width="2100" height="1193">
   <figcaption>Figura 2. Diagrama de flujo e interacción backend entre los contratos inteligentes programados y la aplicación descentralizada (DApp) de gestión de carbono. Fuente: Tomado de Kazi y Hasan (2024, Fig. 8).</figcaption>
 </figure>
 
@@ -135,7 +135,7 @@ Un activador del contrato inteligente (*trigger*) —definido por un intervalo d
 Frecuentemente, la adopción de *blockchain* se presenta en el discurso corporativo como un panacea tecnológica capaz de erradicar la opacidad por el mero hecho de descentralizar el registro (Calvão y Archer, 2021; Howson et al., 2019). Sin embargo, el análisis microeconómico formal mediante teoría de juegos revela dilemas estructurales no intencionados. En un modelo duopólico de Stackelberg desarrollado por Lv y Bi (2025) para analizar la competencia entre fabricantes de productos de bajo y alto carbono, se demuestra matemáticamente que la implementación de la cadena de bloques elimina efectivamente el espacio de manipulación (*greenwashing*) del competidor contaminante al proveer una señal inalterable a los consumidores no especializados.
 
 <figure class="post-figure">
-  <img src="/assets/imagenes/mercado-de-carbono-como-la-tokenizacion-blockchain-reconfigura-la-trazabilidad-ambiental/deforestacion-base-vs-control-sintetico.jpg" alt="Deforestación acumulada de líneas de base adoptadas frente al control sintético observado en proyectos REDD+">
+  <img src="/assets/imagenes/mercado-de-carbono-como-la-tokenizacion-blockchain-reconfigura-la-trazabilidad-ambiental/deforestacion-base-vs-control-sintetico.jpg" alt="Deforestación acumulada de líneas de base adoptadas frente al control sintético observado en proyectos REDD+" loading="lazy" decoding="async" width="1020" height="617">
   <figcaption>Figura 3. Comparación entre la deforestación acumulada proyectada por los escenarios de línea de base ex-ante en proyectos REDD+ y la deforestación real observada mediante controles sintéticos ex-post en la Amazonía brasilera. Fuente: Tomado de West et al. (2020, Fig. 5).</figcaption>
 </figure>
 

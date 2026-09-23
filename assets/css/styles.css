@@ -6,7 +6,10 @@
    regla deja de usarse, se borra, no se comenta.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@400;500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap');
+/* Las fuentes ya NO se piden acá con @import: las carga _layouts/default.html
+   desde el <head>, en paralelo con esta hoja en vez de una después de la
+   otra (un @import obliga al navegador a bajar primero este archivo para
+   recién entonces enterarse de que faltan las fuentes). */
 
 :root {
   --bg: #f4f6f3;
@@ -222,12 +225,24 @@ blockquote {
 }
 
 /* ---- Cuerpo de artículo (post-body, cuando exista contenido real) ---- */
+/* El texto va alineado a la izquierda por defecto y solo se justifica en
+   pantallas anchas (ver el @media del final). En una columna angosta de
+   celular, justificar obliga al navegador a estirar los espacios entre
+   palabras y aparecen "ríos" blancos irregulares que cuestan de leer; con
+   la columna de ~580px del escritorio eso no pasa. */
 .post-body {
   color: var(--text);
   font-family: 'Lora', Georgia, serif;
   font-size: 17px;
   line-height: 1.6;
-  text-align: justify;
+  text-align: left;
+  /* Un DOI o una URL de la bibliografía es una sola "palabra" larguísima que
+     el navegador no sabe cortar: se salía de la pantalla y arrastraba toda
+     la página de costado (medido: 96px de desborde en una entrada de las
+     Referencias, en un celular de 383px). Con esto, una palabra que no entra
+     se parte al final de la línea. El texto normal no se ve afectado: solo
+     actúa cuando algo de verdad no entra. */
+  overflow-wrap: break-word;
 }
 .post-body h2 {
   color: var(--heading);
@@ -239,7 +254,58 @@ blockquote {
   color: var(--heading-alt);
   font: 600 18px 'Spectral', serif;
 }
-.post-body img { max-width: 100%; border-radius: 4px; }
+/* height: auto es obligatorio ahora que cada <img> declara width/height
+   reales: sin esto el navegador respeta el alto del atributo mientras achica
+   el ancho al de la columna, y la imagen sale aplastada. Con height: auto
+   usa esos dos números solo para calcular la proporción y reservar el lugar
+   antes de que la imagen cargue. */
+.post-body img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* ==========================================================================
+   INFOGRAFÍA DENSA -- una imagen con mucho texto adentro (un esquema con
+   etiquetas, un diagrama de flujo con leyendas) se vuelve ilegible si se la
+   achica a los ~343px de ancho que tiene la columna en un celular.
+   Estas NO se achican: se muestran a un tamaño donde el texto interno se
+   siga leyendo y se recorren de costado, igual que las tablas anchas y las
+   fórmulas largas. Además, tocarlas abre el archivo original, donde el
+   pellizco para hacer zoom del teléfono funciona sin nada de por medio.
+
+   No se detectan solas: no hay forma de distinguir por peso o por medidas
+   una infografía cargada de texto de una foto (se midieron las 13 imágenes
+   del sitio y los valores se pisan entre sí). Se marcan de dos maneras, la
+   que resulte más cómoda:
+     1. Nombrando el archivo `infografia-loquesea.jpg` -- publicar_articulo.py
+        le pone la clase solo, sin tocar nada del .md.
+     2. Escribiendo class="infografia" en el <img> del artículo.
+   ========================================================================== */
+.post-body .infografia-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.post-body .infografia-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.post-body .infografia-enlace {
+  display: block;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+@media (max-width: 959px) {
+  /* Techo de 720px: si la imagen es más chica, se ve a su tamaño real; si es
+     más grande, se recorta a 720 y se recorre de costado (recorrer 1536px en
+     una pantalla de 383 sería eterno).
+     Acá NO se toca `width`: el atributo width="1536" del <img> ya le da al
+     navegador un ancho concreto desde el HTML, y con eso reserva el lugar
+     exacto antes de que la imagen cargue. Poniendo `width: auto` la imagen
+     quedaba en 0x0 hasta terminar de bajar (es `loading="lazy"`) y el texto
+     pegaba el salto que justamente estamos evitando. */
+  .post-body img.infografia {
+    max-width: 720px;
+  }
+}
 
 /* ==========================================================================
    TABLAS DE ARTÍCULO
@@ -322,6 +388,25 @@ blockquote {
 .post-body p.formula-latex {
   text-align: center;
   margin: 1.6em 0;
+}
+
+/* Una fórmula en bloque se dibuja con su ancho natural, y MathJax no la
+   achica: en celular, una ecuación larga se salía de la pantalla y arrastraba
+   toda la página de costado (medido: 467px de contenido en una pantalla de
+   383px). Cada bloque se desliza ahora dentro de su propia caja, igual que
+   las tablas anchas -- la página deja de moverse y la fórmula se lee entera
+   corriéndola con el dedo. El tabindex se lo pone articulo.js solo a las que
+   de verdad se desbordan, para que también se pueda recorrer con el teclado. */
+.post-body mjx-container[display="true"] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 6px;
+  -webkit-overflow-scrolling: touch;
+}
+.post-body mjx-container[display="true"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ==========================================================================
@@ -459,7 +544,165 @@ blockquote {
   font-weight: 600;
 }
 
+/* ==========================================================================
+   ÍNDICE PLEGABLE (solo celular)
+   El índice flotante de escritorio, en pantallas angostas, quedaba DESPUÉS
+   del artículo -- al final de 20.000px de scroll, donde ya no sirve para
+   navegar. Este bloque lo reemplaza en celular: va arriba de todo, justo
+   debajo del título, cerrado por defecto para no empujar el comienzo de la
+   lectura. Lo arma assets/js/articulo.js con los mismos <h2> y la misma
+   tipografía y colores del índice de escritorio -- no es un componente
+   nuevo, es el mismo índice en otra forma.
+   ========================================================================== */
+.toc-movil {
+  margin: 0 0 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.toc-movil summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--muted);
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  list-style: none;
+}
+/* El triangulito propio del navegador se saca en los dos dialectos: acá se
+   usa una flecha propia, que gira al abrir. */
+.toc-movil summary::-webkit-details-marker { display: none; }
+.toc-movil summary::marker { content: ''; }
+.toc-movil summary:hover { color: var(--heading); }
+.toc-movil summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.toc-movil summary svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  transition: transform 0.18s ease;
+}
+.toc-movil[open] summary svg { transform: rotate(90deg); }
+.toc-movil nav {
+  padding: 0 16px 14px;
+  font: 500 13px 'Sora', sans-serif;
+}
+.toc-movil ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border);
+}
+.toc-movil li a {
+  display: block;
+  padding: 7px 0 7px 12px;
+  color: var(--muted);
+}
+.toc-movil li a:hover {
+  color: var(--heading-alt);
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toc-movil summary svg { transition: none; }
+}
+
+/* ---- Botón "Volver arriba" ----
+   Lo crea assets/js/articulo.js y sólo se ve con la clase .visible, que el
+   script agrega después de bajar una pantalla. Fijo abajo a la derecha, con
+   env(safe-area-inset-*) para que en un iPhone no quede debajo de la barra
+   de gestos. 48px de lado: el mínimo cómodo para tocar con el pulgar. */
+
+/* El centinela que decide cuándo mostrarlo: alto real (lo fija el script)
+   pero sin ocupar lugar ni verse, porque está fuera del flujo. */
+.ir-arriba-centinela {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.ir-arriba {
+  position: fixed;
+  right: 16px;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 20;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--heading);
+  box-shadow: 0 2px 10px rgba(26, 60, 52, 0.18);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+.ir-arriba.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.ir-arriba:hover {
+  background: var(--heading);
+  border-color: var(--heading);
+  color: #fff;
+}
+.ir-arriba:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.ir-arriba svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ir-arriba { transition: none; }
+}
+
+/* ==========================================================================
+   CELULAR -- el encabezado ocupaba cerca del 40% de la primera pantalla
+   (título a 42px + bajada + menú de 8 categorías) antes de que empezara el
+   artículo. Acá se compacta todo eso para que el título del artículo se vea
+   apenas abre la página, sin deslizar.
+   ========================================================================== */
+@media (max-width: 639px) {
+  .site-header { padding: 28px 16px 16px; }
+  .site-header h1 { font-size: 28px; line-height: 1.15; }
+  .site-header p.tagline { font-size: 14px; margin-bottom: 16px; }
+  .site-nav ul { gap: 2px 0; }
+  .site-nav li a { font-size: 12px; padding: 6px 8px; }
+  .page-body { padding: 24px 16px 64px; }
+  .page-title { font-size: 24px; }
+}
+
+/* El índice plegable y el flotante son el mismo índice: nunca se ven los
+   dos a la vez. */
+@media (max-width: 959px) {
+  .toc { display: none; }
+}
+
 @media (min-width: 960px) {
+  .toc-movil { display: none; }
+  .post-body { text-align: justify; }
   .article-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 200px;

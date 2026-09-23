@@ -87,14 +87,20 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 - Se corre desde la raíz del repo: `python .github/scripts/publicar_articulo.py
   _posts/articulos/<carpeta>`. Copia el .md a `_posts/`, copia las
   imágenes a `assets/imagenes/<carpeta>/`, reescribe cada referencia de
-  imagen a su ruta real, imprime un resumen de qué copió y qué reescribió,
-  hace `git fetch origin` + `git rebase origin/main` para traer cualquier
-  cambio que haya en el remoto antes de comitear (evita el rechazo
-  "rejected... fetch first" si origin avanzó mientras tanto -- otra
-  publicación, una edición en github.com; si el rebase no aplica solo,
-  para sin comitear nada y nunca fuerza nada), y recién ahí hace `git add`
-  + un commit local (`Publica artículo: <carpeta>`) -- nunca push, eso lo
-  confirma Elvis siempre a mano.
+  imagen a su ruta real, le agrega a cada `<img>` lo que el navegador
+  necesita para no trabajar de más (`loading="lazy"`, `decoding="async"` y
+  las medidas reales leídas de la cabecera del archivo, sin Pillow ni
+  ninguna dependencia -- ver la nota sobre `height: auto` en Decisiones de
+  diseño), marca como infografía las imágenes cuyo nombre empieza con
+  `infografia-`, imprime un resumen de qué copió y qué reescribió,
+  sincroniza con origin y recién ahí hace `git add` + un commit local
+  (`Publica artículo: <carpeta>`) -- nunca push, eso lo confirma Elvis
+  siempre a mano. La sincronización (`git fetch origin` + `git rebase
+  origin/main`) **solo rebasea si origin/main trae commits nuevos de
+  verdad**: antes corría siempre y eso rompía toda republicación de un
+  artículo ya publicado, porque `git rebase` se niega a arrancar con el
+  árbol sucio aunque no haya nada que traer -- y el `.md` recién copiado
+  siempre lo ensucia. El error culpaba a "cambios ajenos a este artículo".
 - Es todo o nada: para antes de copiar o reescribir nada si el nombre del
   .md no empieza con `AAAA-MM-DD-`, si hay cero o más de un .md en la
   carpeta, si la carpeta no tiene ninguna imagen, si un `<img src>` o una
@@ -157,18 +163,23 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   incluidas. El iframe apunta a un segundo servidor HTTP en
   `127.0.0.1:8421` que sirve `_site/` tal cual (necesario para sortear las
   restricciones de `file://` con el `<script type="module">` de Mermaid).
-  Debajo, dos botones: **"Confirmar y publicar"** hace `git fetch origin` +
-  `git rebase origin/main` (vía `pa.confirmar_commit`, para evitar el
-  rechazo "rejected... fetch first" si origin avanzó mientras tanto -- si
-  el rebase no aplica solo, para sin comitear nada y nunca fuerza nada) +
-  `git add` + commit (`Publica artículo: <slug>`) + `git push` en un solo
-  paso -- el clic de Elvis en la vista previa real ya es la confirmación
-  explícita, no hace falta preguntar de nuevo. **"Volver a editar"** deshace
-  la copia: si el
-  archivo ya estaba trackeado en git (una republicación sobre un artículo
-  existente), lo restaura con `git checkout` -- nunca lo borra --; si es
-  nuevo, lo borra. La carpeta de trabajo en `_posts/articulos/` nunca se
-  toca en ninguno de los dos casos.
+  Debajo, dos botones: **"Confirmar y publicar"** hace `git add` + commit
+  (`Publica artículo: <slug>`) + `git fetch origin` + `git rebase
+  origin/main` + `git push` en un solo paso (vía `pa.confirmar_commit`) --
+  el clic de Elvis en la vista previa real ya es la confirmación explícita,
+  no hace falta preguntar de nuevo. **El commit va PRIMERO y la
+  sincronización después**, nunca al revés: `git rebase` exige el árbol de
+  trabajo limpio, y en una republicación el `.md` ya trackeado está
+  modificado justo por la copia que acaba de hacer el panel. Con el commit
+  hecho, el árbol queda limpio y el rebase hace lo que tiene que hacer;
+  si falla, el commit local ya existe y no se pierde nada (queda sin
+  pushear hasta que Elvis resuelva el conflicto a mano). **"Volver a
+  editar"** deshace la copia, pero solo de archivos que el panel escribió
+  en esa misma sesión (`registrar_copia`): si el `.md` estaba trackeado lo
+  restaura con `git checkout`, si es nuevo lo borra, y si encuentra
+  cualquier otra cosa con cambios sin comitear la guarda con `git stash`
+  en vez de descartarla, avisando en pantalla cómo recuperarla. La carpeta
+  de trabajo en `_posts/articulos/` nunca se toca en ninguno de los casos.
 - En Windows, `bundle` es un shim `bundle.BAT` de RubyInstaller --
   `subprocess.run(["bundle", ...])` sin más tira `FileNotFoundError`
   aunque `bundle` funcione perfecto a mano en la terminal, porque
@@ -268,7 +279,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   otro texto no borra nada. Al confirmar: `git rm` del `.md` y de la
   carpeta `assets/imagenes/<slug>/` si existe, commit LOCAL únicamente
   (`Elimina artículo: <título>`) -- nunca push, igual que
-  `publicar_articulo.py`.
+  `publicar_articulo.py`. **La carpeta de imágenes NO se borra si algún
+  otro post de `_posts/` todavía referencia algo de ahí adentro**
+  (`posts_que_usan_carpeta_imagenes`): dos artículos con distinta fecha
+  pero el mismo slug comparten esa carpeta, y borrarla con uno se lleva
+  puestas las imágenes del otro. Pasó de verdad el 2026-09-22 y costó tres
+  imágenes del artículo de fitorremediación. En ese caso el `.md` se borra
+  igual y la pantalla dice con qué artículos estaba compartida.
 
 ## El sitio (Jekyll)
 
@@ -278,8 +295,16 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   `jekyll-seo-tag`) y la lista única `categorias` (nombre + slug) que
   alimenta el menú y las páginas de categoría -- se edita en un solo
   lugar, nunca a mano en cada archivo.
-- `_layouts/default.html` — `<head>` (incluye `{% seo %}` y MathJax),
-  header/footer (`_includes/`), `{{ content }}`.
+- `_layouts/default.html` — `<head>` (incluye `{% seo %}`, las fuentes de
+  Google y MathJax/Mermaid), header/footer (`_includes/`), `{{ content }}`.
+  Las fuentes se piden acá con `preconnect` + `<link>`, NO con un `@import`
+  dentro de `styles.css`: con el `@import` el navegador tenía que bajar
+  primero la hoja de estilos para recién entonces descubrir que faltaban las
+  fuentes, una detrás de la otra. MathJax y Mermaid se cargan solo si la
+  página los necesita de verdad -- el layout mira el HTML ya generado
+  (`content contains '\('`, `'\['`, `'formula-latex'`, `'language-mermaid'`)
+  y se los saltea en la portada y en las páginas de categoría, que no tienen
+  ni una fórmula ni un diagrama.
 - `_layouts/post.html` — plantilla de artículo: título, fecha (formateada
   en español vía `_includes/fecha-es.html`, GitHub Pages no permite
   plugins de localización), categoría, `.article-layout` (post-body + TOC
@@ -295,7 +320,11 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 - `index.html` — portada; `layout: default` + loop de Liquid sobre
   `site.posts`, ya no se edita a mano.
 - `assets/css/styles.css`, `assets/js/articulo.js`, `assets/imagenes/<slug>/` —
-  estilos, scripts e imágenes por artículo. `assets/hero-banner.jpg`
+  estilos, scripts e imágenes por artículo. `articulo.js` hace cinco cosas,
+  todas sin librerías: el botón "Volver arriba" (en todas las páginas), el
+  índice flotante de escritorio, el índice plegable de celular, el
+  envoltorio deslizable de las tablas anchas y el de las infografías
+  densas, y el marcado accesible de las fórmulas que no entran a lo ancho. `assets/hero-banner.jpg`
   (2400x745, fondo del header), `og-cover.jpg` (1200x630, la tarjeta de Open
   Graph que sale al compartir) y `foto-perfil.png` son assets de marca, van
   sueltos en `assets/` (no por artículo). Antes de subir una imagen conviene
@@ -304,10 +333,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 - `02-instrucciones-notebooklm.md`, `03-prompt-notebooklm.txt` — desde el
   2026-09-22 ya NO viven en este repo (ver nota al principio del archivo):
   son archivos locales sueltos en el disco de Elvis, ignorados por git vía
-  `.gitignore`. `_config.yml` todavía los lista en `exclude:` de una época
-  en que sí estaban versionados -- esa entrada quedó inofensiva (Jekyll no
-  falla por excluir una ruta que no existe) pero ya no cumple ninguna
-  función real.
+  `.gitignore`. **`_config.yml` los sigue listando en `exclude:` y esa
+  entrada NO se puede sacar**, al revés de lo que decía antes esta misma
+  línea: los dos archivos siguen existiendo en el disco de Elvis y Jekyll
+  construye desde la carpeta de trabajo, no desde git, así que sin el
+  exclude un build local (la vista previa del panel) se llevaría puesto el
+  documento interno de 54 KB adentro de `_site/`. Comprobado el 2026-09-23
+  con un build real: con el exclude, `_site/` no los contiene.
 - `robots.txt` — sin cambios. `sitemap.xml`/`feed.xml` ya no se escriben a
   mano -- los generan `jekyll-sitemap`/`jekyll-feed` en cada build.
 
@@ -338,6 +370,32 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## Decisiones de diseño importantes
 
+- **Una infografía densa se marca a mano: no hay forma de detectarla
+  sola.** Una imagen con mucho texto adentro (un esquema con etiquetas, un
+  diagrama con leyendas) se vuelve ilegible si se la achica a los ~343px de
+  ancho que tiene la columna en un celular. Esas imágenes no se achican: se
+  muestran hasta 720px de ancho, se recorren de costado dentro de su caja
+  (mismo patrón que las tablas anchas y las fórmulas largas) y tocándolas se
+  abre el archivo original, donde el pellizco del teléfono hace zoom sin
+  nada de por medio. En escritorio no cambia nada. Se marcan de dos
+  maneras: **nombrando el archivo `infografia-loquesea.jpg`** (la vía
+  recomendada -- `publicar_articulo.py` le pone la clase solo, sin tocar el
+  `.md`) o escribiendo `class="infografia"` en el `<img>`. **Detectarlas
+  automáticamente no es posible** y se midió antes de descartarlo: sobre las
+  13 imágenes del sitio, la infografía densa del artículo de
+  fitorremediación da 0,227 bytes/píxel y un diagrama simple
+  (`rutas-intercambio-ionico`) da 0,245 -- más alto; las dos imágenes de
+  2100px son las más livianas por píxel. Ninguna medida disponible (peso,
+  dimensiones, proporción) separa una cosa de la otra sin leer el texto de
+  adentro.
+- **`width`/`height` en cada `<img>` van SIEMPRE junto a `height: auto` en
+  el CSS.** `publicar_articulo.py` escribe las medidas reales de cada imagen
+  en la etiqueta para que el navegador le reserve el lugar antes de que
+  cargue (y el texto no pegue saltos). Pero esas medidas son también un
+  tamaño *especificado*: sin `height: auto` en `.post-body img`, el
+  navegador achica el ancho a la columna y deja el alto del atributo, y la
+  imagen sale aplastada. Los dos cambios son uno solo, nunca se toca uno sin
+  el otro.
 - **Fórmulas siempre en LaTeX real, renderizadas por MathJax.** El sitio
   carga MathJax (CDN, versión fijada 3.2.2) configurado para los
   delimitadores `\(...\)` (inline) / `\[...\]` (bloque) -- sin `$...$`,
@@ -385,6 +443,31 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## Historial de cambios recientes
 
+- 2026-09-23: tres arreglos de seguridad del panel y siete cambios de
+  diseño del sitio, todos verificados con evidencia real (24 pruebas de
+  Python sobre clones de git aislados y mediciones en un Edge de verdad --
+  el headless no ejecuta scroll, `requestAnimationFrame` ni
+  `IntersectionObserver`, así que no sirve para validar interfaz de
+  scroll). **Panel:** (1) la republicación de un artículo ya publicado
+  estaba rota desde `afb8ecd` -- el rebase corría siempre y `git rebase`
+  se niega a arrancar con el árbol sucio; ahora solo rebasea si origin
+  trae algo y `confirmar_commit` comitea antes de sincronizar; (2)
+  `_revertir_o_borrar` ya no hace `git checkout` a ciegas: solo descarta
+  archivos que el panel escribió en esa sesión y guarda cualquier otro
+  cambio sin comitear en un `git stash`; (3) `eliminar_articulo` no borra
+  una carpeta de imágenes que otro post siga usando. **Sitio:** fórmulas
+  largas y infografías densas deslizables en celular en vez de ilegibles
+  o desbordadas; `overflow-wrap` en el cuerpo (un DOI de la bibliografía
+  arrastraba la página 80px de costado -- ese era el desborde real, no
+  MathJax); `loading="lazy"` + medidas reales en las 13 imágenes de los 4
+  artículos, con `height: auto` como complemento obligatorio; MathJax y
+  Mermaid solo en las páginas que los usan (la portada ya no los baja);
+  texto justificado solo en escritorio; encabezado compacto en celular
+  (292px contra ~360); fuentes desde el `<head>` en vez de `@import`;
+  índice plegable "En este artículo" en celular (el flotante quedaba al
+  final de 20.000px de scroll) y botón "Volver arriba" en todo el sitio.
+  Además: `__pycache__/` al `.gitignore` y fuera el `grep` del workflow
+  que vigilaba el post de pruebas borrado el 2026-09-22.
 - 2026-09-22: agrega `sincronizar_con_remoto()` a `publicar_articulo.py`
   (usada por `confirmar_commit`, y por lo tanto también por "Confirmar y
   publicar" del panel de control) -- hace `git fetch origin` + `git rebase

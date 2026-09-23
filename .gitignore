@@ -9,6 +9,12 @@ _site/
 .bundle/
 vendor/
 
+# Bytecode que deja Python al importar los scripts del panel de control
+# (panel_control.py importa publicar_articulo.py y validar_articulos.py).
+# Se regenera solo; no tiene nada que hacer en el repo.
+__pycache__/
+*.pyc
+
 # Documentos de trabajo con NotebookLM -- retirados del repo el 2026-09-22
 # (decisión de Elvis), pero siguen existiendo en el disco como referencia
 # personal fuera de control de versiones. Nunca se comitean ni se suben.

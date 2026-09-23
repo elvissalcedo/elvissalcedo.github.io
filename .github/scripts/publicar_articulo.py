@@ -35,6 +35,7 @@ publica tal cual.
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 
@@ -169,6 +170,140 @@ def procesar_referencias(texto, nombre_carpeta, imagenes_disponibles):
     return texto, cambios, referenciadas
 
 
+PATRON_IMG_COMPLETO = re.compile(r'<img\b[^>]*>')
+
+
+def _dimensiones_jpeg(fh):
+    fh.seek(2)
+    while True:
+        byte = fh.read(1)
+        while byte and byte != b"\xff":
+            byte = fh.read(1)
+        marcador = fh.read(1)
+        while marcador == b"\xff":
+            marcador = fh.read(1)
+        if not marcador:
+            return None
+        codigo = marcador[0]
+        # SOF0-SOF15 son los que traen las medidas; 0xC4/0xC8/0xCC en ese
+        # rango son tablas Huffman y extensiones, no cabeceras de imagen.
+        if 0xC0 <= codigo <= 0xCF and codigo not in (0xC4, 0xC8, 0xCC):
+            datos = fh.read(7)
+            if len(datos) < 7:
+                return None
+            alto, ancho = struct.unpack(">HH", datos[3:7])
+            return ancho, alto
+        largo_bytes = fh.read(2)
+        if len(largo_bytes) < 2:
+            return None
+        largo = struct.unpack(">H", largo_bytes)[0]
+        if largo < 2:
+            return None
+        fh.seek(largo - 2, 1)
+
+
+def dimensiones_imagen(ruta):
+    """(ancho, alto) de una imagen, leyendo solo su cabecera -- sin Pillow ni
+    ninguna otra dependencia, porque ni el runner de GitHub Actions ni la
+    maquina de Elvis tienen nada instalado mas alla de la libreria estandar.
+
+    Cubre PNG, JPEG y GIF, que es lo que usan todos los articulos. Un .webp o
+    un .svg devuelven None: esos siguen recibiendo loading="lazy" igual, solo
+    se quedan sin las medidas."""
+    try:
+        with open(ruta, "rb") as fh:
+            cabecera = fh.read(32)
+            if cabecera[:8] == b"\x89PNG\r\n\x1a\n" and len(cabecera) >= 24:
+                return struct.unpack(">II", cabecera[16:24])
+            if cabecera[:6] in (b"GIF87a", b"GIF89a") and len(cabecera) >= 10:
+                return struct.unpack("<HH", cabecera[6:10])
+            if cabecera[:2] == b"\xff\xd8":
+                return _dimensiones_jpeg(fh)
+    except (OSError, struct.error):
+        return None
+    return None
+
+
+def _ruta_local_de_imagen(src, carpeta_origen):
+    """La imagen puede estar en la carpeta de trabajo (al publicar, cuando
+    todavia no se copio a assets/) o ya publicada bajo la raiz del repo (al
+    reprocesar un articulo existente). Se prueban las dos."""
+    limpio = src.split("?")[0].split("#")[0]
+    candidatas = []
+    if carpeta_origen:
+        candidatas.append(os.path.join(carpeta_origen, os.path.basename(limpio)))
+    if limpio.startswith("/"):
+        candidatas.append(os.path.join(RAIZ, limpio.lstrip("/").replace("/", os.sep)))
+    for candidata in candidatas:
+        if os.path.isfile(candidata):
+            return candidata
+    return None
+
+
+def enriquecer_imagenes(texto, carpeta_origen=None):
+    """Agrega a cada <img> del cuerpo lo que el navegador necesita para no
+    trabajar de mas:
+
+      - loading="lazy": la imagen se baja recien cuando esta por entrar en
+        pantalla. Antes se bajaban todas al abrir el articulo, aunque el
+        lector no llegara nunca al final.
+      - decoding="async": decodificarla no frena el dibujado del texto.
+      - width/height reales: el navegador le reserva el lugar exacto desde el
+        principio y el texto deja de pegar saltos mientras carga. El CSS
+        (.post-body img { max-width: 100% }) sigue mandando sobre el tamano
+        que se ve; estos dos atributos solo declaran la proporcion.
+
+    Nunca pisa un atributo que ya este escrito en la etiqueta, y no toca las
+    imagenes externas (http, https, data:)."""
+    def _sub(m):
+        tag = m.group(0)
+        m_src = re.search(r'src="([^"]+)"', tag)
+        if not m_src:
+            return tag
+        src = m_src.group(1)
+        if src.startswith(("http://", "https://", "//", "data:")):
+            return tag
+
+        atributos = ""
+        if "loading=" not in tag:
+            atributos += ' loading="lazy"'
+        if "decoding=" not in tag:
+            atributos += ' decoding="async"'
+        if "width=" not in tag and "height=" not in tag:
+            ruta = _ruta_local_de_imagen(src, carpeta_origen)
+            medidas = dimensiones_imagen(ruta) if ruta else None
+            if medidas:
+                atributos += ' width="%d" height="%d"' % medidas
+        # Convencion de nombre: una imagen llamada `infografia-*.jpg` es un
+        # esquema con texto adentro, que en celular no hay que achicar al
+        # ancho de la columna (ver la nota de .infografia en styles.css).
+        # Asi se marca sin tocar el HTML del articulo; la otra via es
+        # escribir class="infografia" a mano en el <img>.
+        tag_final = tag
+        if os.path.basename(src).lower().startswith("infografia-"):
+            m_clase = re.search(r'class="([^"]*)"', tag_final)
+            if m_clase is None:
+                atributos += ' class="infografia"'
+            elif "infografia" not in m_clase.group(1).split():
+                # Ya tiene clases: se suma a las que estan, nunca se agrega un
+                # segundo atributo class (el navegador ignoraria el segundo).
+                tag_final = (tag_final[:m_clase.start(1)]
+                             + (m_clase.group(1) + " infografia").strip()
+                             + tag_final[m_clase.end(1):])
+
+        if not atributos:
+            return tag_final
+
+        cuerpo = tag_final[:-1].rstrip()
+        cierre = ">"
+        if cuerpo.endswith("/"):          # <img ... /> autocerrada
+            cuerpo = cuerpo[:-1].rstrip()
+            cierre = " />"
+        return cuerpo + atributos + cierre
+
+    return PATRON_IMG_COMPLETO.sub(_sub, texto)
+
+
 def verificar_sin_pendientes(texto, nombre_carpeta):
     """El panel de control crea la carpeta de trabajo con campos PENDIENTE
     en el front matter (excerpt, image) para que Elvis los complete con lo
@@ -216,13 +351,20 @@ def ruta_git(ruta_absoluta):
 
 
 def sincronizar_con_remoto():
-    """Trae los commits nuevos de origin/main y los combina con la rama local
-    ANTES de comitear. Sin esto, un `git push` automatico (el del panel de
-    control) puede chocar con "rejected... fetch first" si origin avanzo
-    mientras tanto -- otra publicacion, un borrado, una edicion desde el
-    editor web de github.com. Devuelve None si quedo al dia (o si no hizo
-    falta ningun cambio), o un mensaje de error listo para mostrar si el
-    rebase no se pudo aplicar solo.
+    """Trae los commits nuevos de origin/main y los combina con la rama local.
+    Sin esto, un `git push` automatico (el del panel de control) puede chocar
+    con "rejected... fetch first" si origin avanzo mientras tanto -- otra
+    publicacion, un borrado, una edicion desde el editor web de github.com.
+    Devuelve None si quedo al dia, o un mensaje de error listo para mostrar si
+    el rebase no se pudo aplicar solo.
+
+    El rebase solo se ejecuta si origin/main de verdad trae commits nuevos.
+    Antes se corria siempre, y eso rompia toda republicacion de un articulo ya
+    publicado: `git rebase` exige el arbol de trabajo limpio y se niega a
+    arrancar (`cannot rebase: You have unstaged changes`) aunque no haya nada
+    que traer -- y en una republicacion el .md ya trackeado esta modificado
+    justo por la copia que acaba de hacer el panel. Resultado: el flujo fallaba
+    siempre, con un mensaje que culpaba a "cambios ajenos a este articulo".
 
     Nunca fuerza nada: si hay un conflicto real de contenido, aborta el
     rebase y para antes de tocar el commit -- jamas `--force`/`--force-with-lease`,
@@ -232,20 +374,25 @@ def sincronizar_con_remoto():
     if resultado_fetch.returncode != 0:
         return "`git fetch origin` fallo:\n%s" % (resultado_fetch.stderr or resultado_fetch.stdout)
 
+    resultado_cuenta = git("rev-list", "--count", "HEAD..origin/main")
+    if resultado_cuenta.returncode == 0 and resultado_cuenta.stdout.strip() == "0":
+        # Nada que traer: no se toca el arbol de trabajo ni se corre rebase.
+        return None
+
     resultado_rebase = git("rebase", "origin/main")
     if resultado_rebase.returncode != 0:
         salida = resultado_rebase.stderr or resultado_rebase.stdout
         if "cannot rebase" in salida and (
             "unstaged changes" in salida or "uncommitted changes" in salida
         ):
-            # No llego a arrancar el rebase -- la copia de trabajo tiene
-            # cambios sueltos (ajenos a este articulo) que chocarian al
-            # traer origin/main. No es un conflicto de contenido real.
+            # El rebase ni siquiera arranco: hay cambios sin comitear en la
+            # copia local y origin/main SI trae commits nuevos que hay que
+            # combinar. No es un conflicto de contenido real.
             return (
-                "No se pudo sincronizar con origin/main porque hay cambios "
-                "sin comitear en la copia local que no tienen que ver con "
-                "este articulo (revisa `git status` en la terminal). "
-                "Comitealos o descartalos y volve a intentar publicar.\n\n%s"
+                "origin/main trae commits nuevos, pero no se pueden combinar "
+                "porque hay cambios sin comitear en la copia local (revisa "
+                "`git status` en la terminal). Comitealos, guardalos con "
+                "`git stash` o descartalos, y volve a intentar publicar.\n\n%s"
                 % salida
             )
         git("rebase", "--abort")
@@ -262,11 +409,16 @@ def sincronizar_con_remoto():
 
 
 def confirmar_commit(nombre_carpeta, destino_md, destino_imagenes, copiadas):
-    """Devuelve (mensaje_commit, error). Si no hay nada nuevo, (None, None)."""
-    error_sync = sincronizar_con_remoto()
-    if error_sync:
-        return None, error_sync
+    """Devuelve (mensaje_commit, error). Si no hay nada nuevo, (None, None).
 
+    Orden: primero el commit, despues la sincronizacion con origin. Al reves
+    -- como estaba antes -- el rebase se topaba con el .md recien copiado
+    todavia sin comitear y se negaba a arrancar. Con el commit hecho primero
+    el arbol queda limpio y el rebase hace justo lo que tiene que hacer:
+    apoyar ese commit arriba de lo que haya en origin/main. Si el rebase
+    falla, el commit local ya existe y no se pierde nada -- queda sin pushear
+    hasta que Elvis resuelva el conflicto a mano.
+    """
     rutas_rel = [ruta_git(destino_md)] + [
         ruta_git(os.path.join(destino_imagenes, i)) for i in copiadas
     ]
@@ -283,6 +435,14 @@ def confirmar_commit(nombre_carpeta, destino_md, destino_imagenes, copiadas):
     resultado_commit = git("commit", "-m", mensaje)
     if resultado_commit.returncode != 0:
         return None, "`git commit` fallo:\n%s" % (resultado_commit.stderr or resultado_commit.stdout)
+
+    error_sync = sincronizar_con_remoto()
+    if error_sync:
+        return None, (
+            "El commit local ya se creo (\"%s\"), pero no se pudo sincronizar "
+            "con origin/main, asi que NO se hizo push. Tu trabajo esta a "
+            "salvo en ese commit.\n\n%s" % (mensaje, error_sync)
+        )
     return mensaje, None
 
 
@@ -348,7 +508,16 @@ def main():
         texto_final, cambios, referenciadas = procesar_referencias(
             texto, nombre_carpeta, set(imagenes)
         )
+        texto_final = enriquecer_imagenes(texto_final, carpeta)
         sin_referencia = set(imagenes) - referenciadas
+
+        # Sincronizar ANTES de escribir nada: aca el arbol de trabajo todavia
+        # esta limpio, que es lo que `git rebase` necesita. Si origin/main
+        # avanzo, se combina ahora; si algo falla, no se copio ningun archivo
+        # todavia y no hay nada que deshacer.
+        error_sync = sincronizar_con_remoto()
+        if error_sync:
+            fallar(error_sync)
 
         destino_md, ya_existia_md, destino_imagenes, copiadas = copiar_articulo(
             carpeta, nombre_carpeta, nombre_md, imagenes, texto_final

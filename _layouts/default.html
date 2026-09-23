@@ -11,7 +11,34 @@
   {%- endcomment -%}
   {% if page.hidden %}<meta name="robots" content="noindex, nofollow">
   {% endif %}
+  {%- comment -%}
+    Las fuentes se piden acá y no con un @import dentro de styles.css: con el
+    @import el navegador tenía que bajar PRIMERO la hoja de estilos y recién
+    ahí descubría que necesitaba las fuentes, una detrás de la otra. Desde el
+    <head> las dos descargas arrancan en paralelo. El preconnect abre la
+    conexión con Google Fonts antes de que haga falta.
+  {%- endcomment -%}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@400;500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
   <link rel="stylesheet" href="/assets/css/styles.css">
+
+  {%- comment -%}
+    MathJax y Mermaid son las dos descargas más pesadas del sitio y hasta
+    ahora se bajaban en TODAS las páginas -- también en la portada y en las
+    páginas de categoría, que no tienen ni una fórmula ni un diagrama. Acá se
+    mira el HTML ya generado de la página y se cargan solo si de verdad hay
+    algo que renderizar. Los delimitadores se buscan tal como quedan en el
+    HTML final (\( \[ de un solo backslash: kramdown ya se comió el otro).
+  {%- endcomment -%}
+  {%- assign necesita_formulas = false -%}
+  {%- if content contains '\(' or content contains '\[' or content contains 'formula-latex' -%}
+    {%- assign necesita_formulas = true -%}
+  {%- endif -%}
+  {%- assign necesita_mermaid = false -%}
+  {%- if content contains 'language-mermaid' -%}
+    {%- assign necesita_mermaid = true -%}
+  {%- endif -%}
 
   <!-- MathJax: renderiza LaTeX real (\(...\) inline, \[...\] en bloque) en el
        navegador. Versión fijada (no "latest"). Se carga acá en el layout base
@@ -21,16 +48,30 @@
        para no chocar con montos en soles/dólares en el texto. El paquete
        "ams" habilita entornos como \begin{align}...\end{align} -- sin él,
        MathJax no reconoce \begin{align} y lo deja como texto crudo. -->
+  {%- if necesita_formulas %}
   <script>
     window.MathJax = {
       tex: {
         inlineMath: [['\\(', '\\)']],
         displayMath: [['\\[', '\\]']],
         packages: {'[+]': ['ams']}
+      },
+      // Avisa cuando las fórmulas ya están dibujadas. articulo.js lo espera
+      // para marcar como "desplazable" solo las que no entran a lo ancho.
+      // Hace falta este aviso explícito porque articulo.js corre al final
+      // del <body>, cuando MathJax (que se carga async) todavía no publicó
+      // su objeto startup: preguntarle en ese momento no sirve de nada.
+      startup: {
+        pageReady: function () {
+          return window.MathJax.startup.defaultPageReady().then(function () {
+            document.dispatchEvent(new CustomEvent('formulas-listas'));
+          });
+        }
       }
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+  {%- endif %}
 
   <!-- Mermaid: renderiza los bloques ```mermaid como diagramas SVG en el
        navegador. Versión fijada (no "latest"), igual que MathJax. Kramdown
@@ -55,6 +96,7 @@
        diagrama. Costo real: las etiquetas de nodo ya NO aceptan <br>/<small>
        -- un salto de línea dentro de una etiqueta se escribe con \n literal
        (sintaxis propia de Mermaid), nunca con HTML. -->
+  {%- if necesita_mermaid %}
   <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
 
@@ -69,6 +111,7 @@
       bloque.closest("pre").replaceWith(contenedor);
     });
   </script>
+  {%- endif %}
 </head>
 <body>
 

@@ -1,7 +1,14 @@
       <div class="post-card">
         {% if include.post.image %}
         <a class="post-card-thumb" href="{{ include.post.url }}" tabindex="-1" aria-hidden="true">
-          <img src="{{ include.post.image }}" alt="">
+          {%- comment -%}
+            loading="lazy": la miniatura se baja recién cuando está por
+            entrar en pantalla, no las cuatro de golpe al abrir la portada.
+            No hace falta declarar width/height acá porque .post-card-thumb
+            ya reserva el lugar con aspect-ratio 16/9 (ver styles.css), así
+            que la tarjeta no salta cuando la imagen termina de cargar.
+          {%- endcomment -%}
+          <img src="{{ include.post.image }}" alt="" loading="lazy" decoding="async">
         </a>
         {% endif %}
         <div class="post-card-body">

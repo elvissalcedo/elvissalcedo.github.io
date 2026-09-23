@@ -23,7 +23,7 @@ Para atrapar polvo tan pequeño en unidades convencionales a contraflujo —dond
 Desde una perspectiva de la filosofía de la tecnología y la psicología de las decisiones de diseño, el lavador Venturi encarna la paradoja de la fuerza bruta. En lugar de lidiar con la fragilidad de un medio filtrante de tela, los diseñadores prefieren invertir enormes cantidades de energía eléctrica para acelerar el gas a velocidades de huracán. Es la preferencia conductual por la potencia tolerable sobre la sutileza vulnerable: se acepta un gasto continuo de electricidad a cambio de un equipo mecánicamente simple que jamás se obstruirá en la zona de contacto.
 
 <figure class="post-figure">
-<img src="/assets/imagenes/lavador-venturi/diagrama.jpg" alt="Partes componentes de la instalación de un lavador Venturi">
+<img src="/assets/imagenes/lavador-venturi/diagrama.jpg" alt="Partes componentes de la instalación de un lavador Venturi" loading="lazy" decoding="async" width="572" height="341">
 <figcaption>Figura 1. Partes componentes de la instalación de un lavador de gases Venturi. Fuente: Nevers (1998).</figcaption>
 </figure>
 
@@ -66,7 +66,7 @@ El parámetro central para predecir si una partícula será capturada es su **di
 5. **Separación de fases gas-líquido:** El gas limpio pero cargado de humedad y gotas gruesas descarga hacia un separador inercial secundario, generalmente un ciclón de gran dimensión (Nevers, 1998; Metcalf y Eddy et al., 2003). Por fuerza centrífuga, las gotas densas son proyectadas contra las paredes del ciclón y caen hacia el fondo como un efluente líquido con lodos, mientras el gas depurado asciende limpio por el vórtice central hacia la chimenea (Nevers, 1998; Metcalf y Eddy et al., 2003).
 
 <figure class="post-figure">
-<img src="/assets/imagenes/lavador-venturi/esquema.jpg" alt="Partes componentes de la instalación de un lavador Venturi">
+<img src="/assets/imagenes/lavador-venturi/esquema.jpg" alt="Partes componentes de la instalación de un lavador Venturi" loading="lazy" decoding="async" width="614" height="730">
 <figcaption>Figura 1. Partes componentes de la instalación de un lavador de gases Venturi. Fuente: Nevers (1998).</figcaption>
 </figure>
 
@@ -177,7 +177,7 @@ Esta configuración sumergida crea una segunda etapa consecutiva de transferenci
 
 
 <figure class="post-figure">
-<img src="/assets/imagenes/lavador-venturi/venturi-autoaspirante-sumergido.jpg" alt="Esquema de lavador Venturi autoaspirante sumergido frente a no sumergido">
+<img src="/assets/imagenes/lavador-venturi/venturi-autoaspirante-sumergido.jpg" alt="Esquema de lavador Venturi autoaspirante sumergido frente a no sumergido" loading="lazy" decoding="async" width="1314" height="746">
 <figcaption>Figura 3. Configuración hidrodinámica de un lavador Venturi autoaspirante en régimen sumergido vs. no sumergido. Fuente: Bal et al. (2020).</figcaption>
 </figure>
 
@@ -228,7 +228,7 @@ Esta sinergia interfacial incrementa el coeficiente global de transferencia de m
 
 
 <figure class="post-figure">
-<img src="/assets/imagenes/lavador-venturi/mecanismo-adsorcion-interfacial.jpg" alt="Perfil de concentración e interfaz gas-líquido para la absorción con reacción química de HCl">
+<img src="/assets/imagenes/lavador-venturi/mecanismo-adsorcion-interfacial.jpg" alt="Perfil de concentración e interfaz gas-líquido para la absorción con reacción química de HCl" loading="lazy" decoding="async" width="1751" height="841">
 <figcaption>Figura 4. Mecanismo de transferencia de masa de doble película para la absorción de HCl en solución de NaOH. Fuente: Bal et al. (2019).</figcaption>
 </figure>
 
