@@ -54,6 +54,9 @@ exclude:
   - 02-instrucciones-notebooklm.md
   - 03-prompt-notebooklm.txt
   - CLAUDE.md
+  # Lanzador local del panel de control: sin esto Jekyll lo copiaba a _site/
+  # y quedaba publicado (descargable) en el sitio real.
+  - panel-control-gitpage.bat
   - Gemfile
   - Gemfile.lock
   - vendor

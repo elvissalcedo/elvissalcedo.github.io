@@ -2,13 +2,40 @@
     <div class="inner">
       <h1>Elvis Salcedo | Ingeniería Ambiental</h1>
       <p class="tagline">Agua, aire, suelo y residuos, explicados con rigor técnico.</p>
-      <nav class="site-nav">
+      {%- comment -%}
+        Escritorio: el menú completo, como siempre. En celular (<= 768px) se
+        oculta y lo reemplaza el botón "Secciones" de abajo: las 9 entradas
+        impresas sobre la foto ocupaban 3-4 renglones del encabezado y se
+        leían mal sobre la parte clara de la imagen.
+      {%- endcomment %}
+      <nav class="site-nav" aria-label="Categorías">
         <ul>
-          <li><a href="/"{% if page.url == "/" %} class="selected"{% endif %}>Inicio</a></li>
-          {% for cat in site.categorias %}
-          <li><a href="/categorias/{{ cat.slug }}.html"{% if page.category == cat.name or page.categoria_slug == cat.slug %} class="selected"{% endif %}>{{ cat.name }}</a></li>
-          {% endfor %}
+{% include nav-enlaces.html %}
         </ul>
       </nav>
+      <div class="header-acciones">
+        {%- comment -%}
+          <details> y no un botón con JavaScript: abre y cierra con el dedo y
+          con el teclado aunque el script no cargue, y un lector de pantalla
+          ya anuncia solo si está abierto o cerrado.
+        {%- endcomment %}
+        <details class="nav-movil">
+          <summary>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
+            <span>Secciones</span>
+          </summary>
+          <nav class="nav-movil-panel" aria-label="Categorías">
+            <ul>
+{% include nav-enlaces.html %}
+            </ul>
+          </nav>
+        </details>
+        {%- comment -%}
+          Lugar del buscador: lo completa assets/js/buscador.js. Sin
+          JavaScript un buscador no puede funcionar, así que directamente no
+          se dibuja (mismo criterio que el botón "Volver arriba").
+        {%- endcomment %}
+        <div class="buscador" data-buscador></div>
+      </div>
     </div>
   </header>

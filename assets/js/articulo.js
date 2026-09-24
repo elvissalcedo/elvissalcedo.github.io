@@ -1,7 +1,8 @@
 /*
   Mejoras de lectura de un artículo, sin librerías externas. Tres cosas:
 
-  0. Botón "Volver arriba" -- en todas las páginas del sitio.
+  0. Botón "Volver arriba" y cierre del panel "Secciones" del celular (Escape
+     o toque afuera) -- en todas las páginas del sitio.
   1. Índice flotante -- construye la lista de <h2> dentro de <nav class="toc">
      y resalta el que está en pantalla (scroll-spy) con IntersectionObserver.
   2. Tablas con scroll -- envuelve cada <table> en un contenedor desplazable
@@ -70,11 +71,35 @@
     }
     // Sin esto el foco del teclado se queda abajo, donde estaba el botón,
     // y el siguiente Tab sigue navegando desde el pie de la página.
-    var destino = document.querySelector('.site-header a, .back-link, h1');
+    // Va al nombre del sitio: está arriba de todo y se ve en cualquier ancho.
+    // Antes apuntaba al primer enlace del encabezado ("Inicio" del menú),
+    // pero en celular ese menú ahora está oculto detrás de "Secciones" y el
+    // foco caía en un elemento invisible. Desde el nombre del sitio, el
+    // siguiente Tab llega al menú (o a "Secciones") y al buscador.
+    var destino = document.querySelector('.site-header h1') || document.querySelector('h1');
     if (destino) {
       if (!destino.hasAttribute('tabindex')) destino.setAttribute('tabindex', '-1');
       destino.focus({ preventScroll: true });
     }
+  });
+})();
+
+/* ---- Panel "Secciones" (menú del celular) ----
+   Es un <details>: abre y cierra solo, sin este script. Esto nada más le
+   suma lo que se espera de un panel desplegable -- que se cierre con Escape
+   (devolviendo el foco al botón) y al tocar fuera de él. */
+(function () {
+  var panel = document.querySelector('.nav-movil');
+  if (!panel) return;
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && panel.open) {
+      panel.open = false;
+      panel.querySelector('summary').focus();
+    }
+  });
+  document.addEventListener('click', function (e) {
+    if (panel.open && !panel.contains(e.target)) panel.open = false;
   });
 })();
 

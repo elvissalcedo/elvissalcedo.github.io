@@ -1,4 +1,10 @@
-      <div class="post-card">
+{%- comment -%}
+  Parámetros opcionales (los usa la sección "Sugeridos" de _layouts/post.html):
+    include.compacta -- true: sin extracto, y en celular miniatura al costado.
+    include.nivel    -- nivel del título (2 por defecto; 3 debajo de un h2).
+{%- endcomment -%}
+{%- assign nivel_titulo = include.nivel | default: 2 %}
+      <div class="post-card{% if include.compacta %} compacta{% endif %}">
         {% if include.post.image %}
         <a class="post-card-thumb" href="{{ include.post.url }}" tabindex="-1" aria-hidden="true">
           {%- comment -%}
@@ -16,7 +22,9 @@
             <span class="post-card-category">{{ include.post.category }}</span>
             <span class="post-card-date">{% include fecha-es.html date=include.post.date %}</span>
           </div>
-          <h2 class="post-title"><a href="{{ include.post.url }}">{{ include.post.title }}</a></h2>
+          <h{{ nivel_titulo }} class="post-title"><a href="{{ include.post.url }}">{{ include.post.title }}</a></h{{ nivel_titulo }}>
+          {%- unless include.compacta %}
           <p class="post-excerpt">{{ include.post.excerpt }}</p>
+          {%- endunless %}
         </div>
       </div>

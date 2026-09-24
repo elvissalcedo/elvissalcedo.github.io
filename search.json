@@ -1,0 +1,19 @@
+---
+layout: null
+sitemap: false
+permalink: /search.json
+---
+{%- comment -%}
+  Índice del buscador del encabezado (assets/js/buscador.js). Lo arma Jekyll
+  en cada build con los mismos artículos que muestra la portada: nada que
+  mantener a mano. Solo lleva lo que se muestra o se busca (título, URL,
+  fecha, categoría y extracto), no el cuerpo entero, para que pese poco.
+  `sitemap: false`: es un archivo de datos, no una página para buscadores.
+{%- endcomment -%}
+{%- assign visibles = site.posts | where_exp: "post", "post.hidden != true" -%}
+[
+{%- for post in visibles -%}
+  {%- capture fecha -%}{% include fecha-es.html date=post.date %}{%- endcapture %}
+  {"title":{{ post.title | jsonify }},"url":{{ post.url | jsonify }},"date":{{ fecha | strip | jsonify }},"category":{{ post.category | jsonify }},"excerpt":{{ post.excerpt | strip_html | strip_newlines | strip | jsonify }}}{% unless forloop.last %},{% endunless %}
+{%- endfor %}
+]

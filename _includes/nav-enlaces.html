@@ -1,0 +1,11 @@
+{%- comment -%}
+  Los enlaces del menú (Inicio + las 8 categorías de _config.yml). Los usa
+  header.html dos veces: en el menú de escritorio y dentro del panel
+  "Secciones" del celular. Nunca se ven los dos a la vez (uno está en
+  display: none según el ancho), así que un lector de pantalla tampoco los
+  encuentra repetidos.
+{%- endcomment -%}
+          <li><a href="/"{% if page.url == "/" %} class="selected" aria-current="page"{% endif %}>Inicio</a></li>
+          {%- for cat in site.categorias %}
+          <li><a href="/categorias/{{ cat.slug }}.html"{% if page.category == cat.name or page.categoria_slug == cat.slug %} class="selected"{% if page.layout == "category" %} aria-current="page"{% endif %}{% endif %}>{{ cat.name }}</a></li>
+          {%- endfor %}

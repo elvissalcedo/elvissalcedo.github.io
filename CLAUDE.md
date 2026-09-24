@@ -337,12 +337,33 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   (`content contains '\('`, `'\['`, `'formula-latex'`, `'language-mermaid'`)
   y se los saltea en la portada y en las páginas de categoría, que no tienen
   ni una fórmula ni un diagrama.
-- `_layouts/post.html` — plantilla de artículo: título, fecha (formateada
-  en español vía `_includes/fecha-es.html`, GitHub Pages no permite
-  plugins de localización), categoría, `.article-layout` (post-body + TOC
-  flotante armado por `assets/js/articulo.js`).
+- `_layouts/post.html` — plantilla de artículo: "← Volver al inicio", migas
+  de pan (Inicio › Categoría › Título, con el slug de la categoría sacado de
+  `site.categorias`, más su JSON-LD `BreadcrumbList`), título, fecha
+  (formateada en español vía `_includes/fecha-es.html`, GitHub Pages no
+  permite plugins de localización), categoría, `.article-layout` (post-body +
+  TOC flotante armado por `assets/js/articulo.js`) y al final **Sugeridos**:
+  hasta 3 tarjetas compactas, primero de la misma categoría y, si no
+  alcanzan, completadas con las más recientes (nunca el artículo actual ni
+  uno oculto). Sin `tags:` ni analítica: el sitio no tiene ninguna de las dos.
 - `_layouts/category.html` — loop de `site.posts` filtrado por
   `page.category`, con aviso "próximamente" si la categoría está vacía.
+- `_includes/header.html` + `_includes/nav-enlaces.html` — el menú se
+  escribe una sola vez (`nav-enlaces.html`) y se muestra de dos formas:
+  completo en escritorio y, en pantallas <= 768px, dentro del panel
+  "Secciones" (un `<details>`: funciona sin JavaScript). La fila de
+  "Secciones" comparte lugar con el buscador.
+- **Buscador:** `search.json` (Liquid, `sitemap: false`: título, URL, fecha,
+  categoría y extracto de cada post visible) + `assets/js/buscador.js`, que
+  dibuja el campo, carga Fuse.js 7.5.0 desde jsdelivr con `import()` (desde
+  la 7.x solo se publica como módulo ES) y filtra mientras se escribe. Ni
+  Fuse ni el índice se bajan hasta que alguien toca el campo. Iguala tildes
+  por su cuenta ("maiz" encuentra "maíz"): Fuse no lo hace. Sin JavaScript
+  el buscador no se dibuja.
+- Ancho: los artículos siguen en `.page-body` (860px, columna de lectura de
+  580px con el índice). La portada y las categorías piden por front matter
+  `clase_main: page-body-listado` (1120px, 3 columnas de tarjetas) -- con
+  860px entraban 2 columnas por 8px de diferencia, no por decisión.
 - `_posts/` — un artículo por archivo, `AAAA-MM-DD-slug.md`. El primer
   artículo real (`lavador-venturi.html` original) vive acá como
   `2026-09-17-lavador-venturi.md`, con `permalink: /lavador-venturi.html`
@@ -352,8 +373,12 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 - `index.html` — portada; `layout: default` + loop de Liquid sobre
   `site.posts`, ya no se edita a mano.
 - `assets/css/styles.css`, `assets/js/articulo.js`, `assets/imagenes/<slug>/` —
-  estilos, scripts e imágenes por artículo. `articulo.js` hace cinco cosas,
-  todas sin librerías: el botón "Volver arriba" (en todas las páginas), el
+  estilos, scripts e imágenes por artículo. `articulo.js` hace seis cosas,
+  todas sin librerías: el botón "Volver arriba" (en todas las páginas; al
+  usarlo, el foco del teclado va al nombre del sitio, `.site-header h1`,
+  visible en cualquier ancho -- antes iba al primer enlace del menú, que en
+  celular ahora queda oculto), el cierre del panel "Secciones" con Escape o
+  tocando afuera, el
   índice flotante de escritorio, el índice plegable de celular, el
   envoltorio deslizable de las tablas anchas y el de las infografías
   densas, y el marcado accesible de las fórmulas que no entran a lo ancho. `assets/hero-banner.jpg`
@@ -401,6 +426,20 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   desde HTML plano, pasa la validación con `\[...\]` de un solo backslash.
 
 ## Decisiones de diseño importantes
+
+- **El cuerpo del artículo NO se justifica en celular, ni siquiera con
+  guiones automáticos.** Medido el 2026-09-23 en Edge real a 390px, sobre
+  los 5 artículos (2.526 renglones), con el diccionario de guionado español
+  cargado de verdad: justificado solo deja el 77 % de los renglones con
+  espacios de 1,5x o más; justificado + `hyphens: auto` baja a 55 % (26 %
+  con espacios del doble o más) y además parte una palabra en 4 de cada 10
+  renglones -- justo los términos técnicos ("fitorreme-diación",
+  "biodisponibi-lidad") y hasta los títulos h2. Alineado a la izquierda: 0 %.
+  En escritorio (columna de 580px) sigue justificado.
+- **Una miniatura de tarjeta necesita `overflow: hidden` para respetar el
+  16:9.** Con `overflow` visible, `aspect-ratio` deja que la altura natural
+  de la imagen le gane a la proporción: una infografía vertical (la del
+  maíz) estiraba su tarjeta y la fila entera de la grilla.
 
 - **Una infografía densa se marca a mano: no hay forma de detectarla
   sola.** Una imagen con mucho texto adentro (un esquema con etiquetas, un
@@ -474,6 +513,21 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-23: navegación y portada -- en celular (<= 768px) el menú de 9
+  entradas sobre la foto pasa a un panel "Secciones" (`<details>`, sin JS)
+  junto a un buscador predictivo nuevo (`search.json` + `buscador.js`,
+  Fuse.js 7.5.0 cargado solo al usarlo); migas de pan con JSON-LD y
+  "Sugeridos" (misma categoría, respaldo por fecha) en cada artículo; portada
+  y categorías a 1120px (3 columnas) sin tocar el ancho de lectura, con el
+  encabezado alineado a la grilla en esas páginas (`body.con-page-body-listado`,
+  la regla base de `.inner` no cambia); tarjetas
+  con borde y sombra más marcada en celular; miniaturas que respetan el 16:9
+  (`overflow: hidden`); foco de "Volver arriba" al nombre del sitio;
+  `panel-control-gitpage.bat` al `exclude:` (se publicaba). Justificado en
+  celular probado con guiones y descartado con números (ver Decisiones de
+  diseño). 130 pruebas en Edge real vía CDP a 390/768/769/1280px, incluido
+  sin JavaScript y con "oscurecer páginas".
 
 - 2026-09-23: el panel alinea solo el `permalink:` con el `category:` del
   front matter (`alinear_permalink`, solo el primer segmento; fecha, slug,

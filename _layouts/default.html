@@ -113,16 +113,27 @@
   </script>
   {%- endif %}
 </head>
-<body>
+{%- comment -%}
+  clase_main: la portada (index.html) y las páginas de categoría (layout
+  category) piden `page-body-listado`, un contenedor más ancho para la
+  grilla de tarjetas. Los artículos no la piden: su ancho de lectura queda
+  exactamente igual. `layout.clase_main` funciona porque Jekyll suma el
+  front matter del layout hijo (category.html) al de este. La misma clase
+  va también en <body>, para que el encabezado se alinee con esa grilla
+  (ver .page-body-listado en styles.css).
+{%- endcomment %}
+{%- assign clase_main = page.clase_main | default: layout.clase_main %}
+<body{% if clase_main %} class="con-{{ clase_main }}"{% endif %}>
 
 {% include header.html %}
 
-  <main class="page-body">
+  <main class="page-body{% if clase_main %} {{ clase_main }}{% endif %}">
 {{ content }}
   </main>
 
 {% include footer.html %}
 
   <script src="/assets/js/articulo.js"></script>
+  <script src="/assets/js/buscador.js"></script>
 </body>
 </html>
