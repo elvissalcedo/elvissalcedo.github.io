@@ -588,6 +588,8 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## Historial de cambios recientes
 
+- 2026-09-24: renombra la imagen del artículo de cosecha de lluvia de "Presentación creativa minimalista de collage de fotos.jpg" a `mapas-idoneidad-adopcion.jpg` (nombre con espacios y tilde -> simple), en `assets/imagenes/`, en el `.md` publicado y en la carpeta de trabajo. Verificado con build real y Edge (1914x670, decodifica bien).
+
 - 2026-09-24: las instrucciones de NotebookLM suman tres reglas en la
   sección 4, junto al efecto fábrica: muletillas de texto generado (patrón
   a vigilar, no lista vetada; los términos técnicos centrales quedan

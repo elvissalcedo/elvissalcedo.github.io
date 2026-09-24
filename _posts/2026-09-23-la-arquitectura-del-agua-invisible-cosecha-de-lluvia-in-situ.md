@@ -107,7 +107,7 @@ Por el contrario, la micro-arquitectura del agua verde —millones de pequeños 
 
 
 <figure class="article-image">
-  <img src="/assets/imagenes/la-arquitectura-del-agua-invisible-cosecha-de-lluvia-in-situ/Presentación creativa minimalista de collage de fotos.jpg" alt="Mapas de idoneidad biofísica y adopción económica de cosecha de agua in situ en África subsahariana" loading="lazy" decoding="async" width="1914" height="670">
+  <img src="/assets/imagenes/la-arquitectura-del-agua-invisible-cosecha-de-lluvia-in-situ/mapas-idoneidad-adopcion.jpg" alt="Mapas de idoneidad biofísica y adopción económica de cosecha de agua in situ en África subsahariana" loading="lazy" decoding="async" width="1914" height="670">
   <figcaption>Figura 5. Distribución geográfica del potencial de cosecha de agua in situ en África subsahariana: idoneidad física ex-ante (Fig. 1) vs. potencial económicamente viable según el modelo SWAT-DREAM (Fig. 2). Fuente: (Diop et al.,2022).</figcaption>
 </figure>
 
