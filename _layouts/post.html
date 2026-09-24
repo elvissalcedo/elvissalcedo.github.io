@@ -56,6 +56,10 @@ layout: default
            ningún artículo tiene `tags:`, así que por ahora cuenta solo la
            categoría; el día que se agreguen, funcionan sin tocar nada acá.
            Se comparan en minúsculas ("Fitorremediación" = "fitorremediación").
+           "PENDIENTE" (lo que deja el panel en un `tags:` sin completar) no
+           cuenta como tema: si contara, todos los artículos sin tema real
+           quedarían "relacionados" entre sí. Normalmente ni llega acá (el
+           panel lo saca al publicar); esto es solo la red de seguridad.
 
       Nunca el artículo actual, nunca uno oculto, nunca uno repetido. No usa
       visitas ni analítica: el sitio no las registra.
@@ -78,7 +82,7 @@ layout: default
         {%- endfor %}
       {%- endif %}
       {%- if page.tags.size > 0 %}
-        {%- assign temas_pagina = page.tags | join: "|" | downcase | prepend: "|" | append: "|" %}
+        {%- assign temas_pagina = page.tags | join: "|" | downcase | prepend: "|" | append: "|" | replace: "|pendiente|", "|" %}
         {%- for p in visibles_sug %}
           {%- assign clave_sug = "|" | append: p.url | append: "|" %}
           {%- if cantidad_sug < maximo_sug and p.url != page.url and p.tags.size > 0 %}
@@ -86,7 +90,7 @@ layout: default
               {%- assign comparte_tema = false %}
               {%- for tema in p.tags %}
                 {%- assign clave_tema = tema | downcase | prepend: "|" | append: "|" %}
-                {%- if temas_pagina contains clave_tema %}{% assign comparte_tema = true %}{% endif %}
+                {%- if clave_tema != "|pendiente|" and temas_pagina contains clave_tema %}{% assign comparte_tema = true %}{% endif %}
               {%- endfor %}
               {%- if comparte_tema %}
 {% include post-card.html post=p compacta=true nivel=3 %}

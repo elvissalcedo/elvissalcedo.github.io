@@ -304,11 +304,54 @@ def enriquecer_imagenes(texto, carpeta_origen=None):
     return PATRON_IMG_COMPLETO.sub(_sub, texto)
 
 
+def quitar_tags_pendientes(texto):
+    """`tags:` es OPCIONAL, a diferencia de excerpt/image: el panel lo crea
+    como `tags: [PENDIENTE]` y puede quedar asi si el articulo no comparte
+    tema con ningun otro. Esta funcion saca ese PENDIENTE de la copia que se
+    publica -- nunca del .md de la carpeta de trabajo -- antes de
+    verificar_sin_pendientes, asi que no bloquea la publicacion y nunca
+    llega al sitio (ni a "Sugeridos" ni al feed, que publica los tags).
+
+    Solo toca una linea `tags:` del front matter que contenga PENDIENTE:
+    `tags: [PENDIENTE]` (o `tags: PENDIENTE`) se borra entera; si ademas trae
+    temas reales (`tags: [Agua potable, PENDIENTE]`) quedan solo esos. Una
+    linea `tags:` sin PENDIENTE queda exactamente igual. Respeta CRLF."""
+    if not texto.startswith("---"):
+        return texto
+    fin = texto.find("\n---", 3)
+    if fin == -1:
+        return texto
+    lineas = texto[:fin].splitlines(keepends=True)
+    salida = []
+    for linea in lineas:
+        cuerpo = linea.rstrip("\r\n")
+        fin_linea = linea[len(cuerpo):]
+        m = re.match(r"^tags:[ \t]*(.*?)[ \t]*$", cuerpo)
+        if not m:
+            salida.append(linea)
+            continue
+        valor = m.group(1)
+        if valor.startswith("[") and valor.endswith("]"):
+            valor = valor[1:-1]
+        temas = [t.strip().strip("\"'").strip() for t in valor.split(",")]
+        # Solo el marcador exacto: un tema real como "Pendientes andinas"
+        # no es un PENDIENTE, y en ese caso la linea queda intacta.
+        if not any(t.upper() == "PENDIENTE" for t in temas):
+            salida.append(linea)
+            continue
+        temas = [t for t in temas if t and t.upper() != "PENDIENTE"]
+        if temas:
+            salida.append("tags: [%s]%s" % (", ".join(temas), fin_linea))
+        # sin temas reales: la linea se borra entera
+    return "".join(salida) + texto[fin:]
+
+
 def verificar_sin_pendientes(texto, nombre_carpeta):
     """El panel de control crea la carpeta de trabajo con campos PENDIENTE
     en el front matter (excerpt, image) para que Elvis los complete con lo
     que entregue NotebookLM. Publicar con alguno sin completar dejaria un
-    articulo a medias en el sitio real."""
+    articulo a medias en el sitio real. El `tags: [PENDIENTE]` opcional no
+    llega aca: quitar_tags_pendientes() lo saca antes."""
     if "PENDIENTE" not in texto:
         return
     lineas = [
@@ -518,6 +561,7 @@ def main():
         with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
             texto = fh.read()
 
+        texto = quitar_tags_pendientes(texto)
         verificar_sin_pendientes(texto, nombre_carpeta)
 
         texto_final, cambios, referenciadas = procesar_referencias(

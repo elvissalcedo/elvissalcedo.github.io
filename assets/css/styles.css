@@ -615,11 +615,12 @@ blockquote {
   .lateral-bloque + .lateral-bloque { margin-top: 0; }
 }
 /* Escritorio: el lateral al costado de la grilla. Además la acompaña al
-   bajar (sticky), pero solo en pantallas de 1040px de alto o más: con los
-   títulos topeados en 3 renglones, el peor caso del lateral mide 985px
-   (medido con 100 artículos de prueba), y en una pantalla más baja el
-   sticky dejaba los últimos "recientes" tapados hasta llegar al final de
-   la grilla. */
+   bajar (sticky), pero solo en pantallas de 1080px de alto o más: con los
+   títulos topeados en 3 renglones y 9 categorías, el peor caso del lateral
+   mide 1024px (medido con 103 artículos de prueba; con 8 categorías eran
+   985), y en una pantalla más baja el sticky dejaba los últimos
+   "recientes" tapados hasta llegar al final de la grilla. OJO: cada
+   categoría nueva suma ~39px -- volver a medir y subir este número. */
 @media (min-width: 1100px) {
   .portada-cuerpo {
     display: grid;
@@ -629,7 +630,7 @@ blockquote {
   }
   .portada-lateral { margin-top: 0; }
 }
-@media (min-width: 1100px) and (min-height: 1040px) {
+@media (min-width: 1100px) and (min-height: 1080px) {
   .portada-lateral {
     position: sticky;
     top: 24px;

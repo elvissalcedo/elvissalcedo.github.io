@@ -124,6 +124,14 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   parte del `.md` (front matter o cuerpo) -- son los campos que deja el
   panel de control de la sección siguiente para completar con lo que
   entregue NotebookLM. El mensaje de error señala las líneas exactas.
+  Excepción: `tags:` es opcional. Antes de ese chequeo,
+  `quitar_tags_pendientes()` saca el `PENDIENTE` de la línea `tags:` de la
+  COPIA que se publica (nunca del `.md` de la carpeta de trabajo): borra la
+  línea si no queda ningún tema real, o deja solo los reales. Solo cuenta el
+  marcador exacto -- un tema como "Pendientes andinas" no se toca. La usan
+  los tres caminos que copian a `_posts/`: este script, "Revisar y publicar"
+  y la vista previa en vivo. Así `PENDIENTE` nunca llega al sitio, a
+  Sugeridos ni al feed RSS (que publica los tags como categorías).
 
 ## Panel de control local (panel-control-gitpage.bat)
 
@@ -137,7 +145,7 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   artículos (esta última fusiona lo que antes eran tres pantallas
   separadas -- Editar, Eliminar y la lista de Vista previa en vivo -- ver
   más abajo).
-- **Crear artículo nuevo:** formulario con título, categoría (las 8 de
+- **Crear artículo nuevo:** formulario con título, categoría (todas las de
   `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
   tildes, espacios a guiones), avisa con una pantalla de confirmación
   explícita si ya existe una carpeta o archivo con ese slug (nunca crea
@@ -147,7 +155,9 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   porque la ruta repite el slug dos veces y Windows sin rutas largas corta
   en 260 (el `title:` conserva el título completo)
   con el front matter listo salvo `excerpt:`/`image:` en `PENDIENTE` --
-  para que Elvis pegue ahí el contenido de NotebookLM. Igual que
+  para que Elvis pegue ahí el contenido de NotebookLM -- y
+  `tags: [PENDIENTE]`, que es OPCIONAL: si queda así, se publica igual sin
+  tags (ver `quitar_tags_pendientes` más abajo). Igual que
   `publicar_articulo.py`, esta carpeta de trabajo sigue sin publicarse
   hasta que se corra ese script.
 - El `permalink:` del front matter se escribe siempre explícito
@@ -326,7 +336,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   build), lista de plugins (`jekyll-feed`, `jekyll-sitemap`,
   `jekyll-seo-tag`) y la lista única `categorias` (nombre + slug) que
   alimenta el menú y las páginas de categoría -- se edita en un solo
-  lugar, nunca a mano en cada archivo.
+  lugar, nunca a mano en cada archivo. Son 9: las 8 ambientales y "Otros"
+  (última, para temas que no encajan en ellas). Agregar una categoría es
+  sumar su línea acá + su `categorias/<slug>.html`; el menú, el panel,
+  el validador, las migas y el lateral la toman solos. El panel y el
+  validador leen esta lista con una expresión regular que tolera
+  comentarios `#` entre las líneas (antes, un comentario en medio cortaba
+  la lectura y escondía las categorías de abajo).
 - **Analítica: GoatCounter** (`elvissalcedo.goatcounter.com`), sin cookies ni
   datos personales. Un solo `<script async>` al final del `<body>` de
   `_layouts/default.html`, así que cuenta todas las páginas y nunca frena el
@@ -352,7 +368,9 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   TOC flotante armado por `assets/js/articulo.js`) y al final **Sugeridos**:
   de 0 a 5 tarjetas compactas, SOLO de artículos relacionados de verdad --
   primero la misma categoría y después los que compartan al menos un tema
-  en `tags:` (comparados en minúsculas). Nunca se rellena con artículos sin
+  en `tags:` (comparados en minúsculas; "pendiente" nunca cuenta como tema,
+  o todos los artículos sin tema real quedarían relacionados entre sí --
+  comprobado con una contraprueba). Nunca se rellena con artículos sin
   relación: si no hay ninguno, la sección no aparece (hoy, con una sola
   entrada por categoría y sin `tags:`, no aparece en ninguno). Para unir dos
   artículos de categorías distintas sobre el mismo tema basta con darles un
@@ -382,7 +400,7 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   izquierda desde 1100px y apilada debajo de eso, sin `loading="lazy"`
   porque es lo primero que se ve. Debajo, separada por una línea fina
   (`.portada-cuerpo`), la grilla con el resto y al costado el lateral
-  (`_includes/portada-lateral.html`): las 8 categorías con su conteo (las
+  (`_includes/portada-lateral.html`): todas las categorías con su conteo (las
   vacías atenuadas, no ocultas) y los 5 artículos más recientes: miniatura
   de 76x57 a la izquierda (la misma `image:` de su tarjeta; un hueco pintado
   si el artículo no tiene) y título y fecha a la derecha. La miniatura no
@@ -390,16 +408,17 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   alto que ella (57px). Se llama "recientes" a propósito: el sitio no mide visitas, así
   que no hay "lo más leído". Desde 1100px va al costado (300px); debajo, a
   lo ancho después de la grilla (sus dos bloques lado a lado en tablet). Es
-  sticky solo en pantallas de 1040px de alto o más: el peor caso del lateral
-  mide 985px (títulos topeados en 3 renglones, medido con 100 artículos de
-  prueba), y en una pantalla más baja el sticky tapaba los últimos
+  sticky solo en pantallas de 1080px de alto o más: el peor caso del lateral
+  mide 1024px con 9 categorías (títulos topeados en 3 renglones, medido con
+  103 artículos de prueba; cada categoría nueva suma ~39px y obliga a volver
+  a medir y subir el umbral), y en una pantalla más baja el sticky tapaba los últimos
   recientes. Una segunda línea separa el contenido del pie de página, solo
   en la portada (`body.es-portada`).
 - `_posts/` — un artículo por archivo, `AAAA-MM-DD-slug.md`. El primer
   artículo real (`lavador-venturi.html` original) vive acá como
   `2026-09-17-lavador-venturi.md`, con `permalink: /lavador-venturi.html`
   para no romper la URL ya publicada.
-- `categorias/*.html` — 8 archivos, solo front matter (`layout: category`
+- `categorias/*.html` — 9 archivos (uno por categoría, "Otros" incluida), solo front matter (`layout: category`
   + `category: <Nombre>`), uno por categoría del menú.
 - `index.html` — portada; `layout: default` + loop de Liquid sobre
   `site.posts`, ya no se edita a mano.
@@ -440,12 +459,17 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   y comprueba que se generen `index.html`, `sitemap.xml` y `feed.xml` y que
   el post oculto siga fuera del índice y del sitemap.
 - El validador revisa lo que ya se rompió alguna vez de verdad: front matter
-  incompleto, `category:` que no es ninguna de las 8 de `_config.yml`, fecha
+  incompleto, `category:` que no es ninguna de las de `_config.yml`, fecha
   del front matter distinta de la del nombre del archivo, `image:` o `<img>`
   apuntando a un archivo que no se subió, imágenes sin `alt`, `<figure>` sin
   su `<figcaption>`, delimitadores de fórmula con un solo backslash, el
   título repetido al principio del cuerpo y assets pesados (aviso arriba de
-  500 KB, error arriba de 1500 KB).
+  500 KB, error arriba de 1500 KB). También los `PENDIENTE` del panel:
+  error si `excerpt:` o `image:` todavía lo tienen (obligatorios), solo
+  aviso si lo tiene `tags:` (opcional; puede llegar si un `.md` se pega a
+  mano en el editor web). Busca la palabra exacta en mayúsculas, no un
+  pedazo de texto: un slug con "pendientes" en la ruta de la imagen no es
+  un pendiente (falso positivo real encontrado en las pruebas).
 - **Es una red de seguridad, no un portón.** GitHub Pages publica por su
   cuenta, en paralelo: si el workflow falla, el artículo igual salió, pero
   Elvis recibe el aviso en vez de enterarse semanas después. Convertirlo en
@@ -549,6 +573,27 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: categoría nueva "Otros" (slug `otros`, última de la lista),
+  con su página `categorias/otros.html`. Sin tocar ningún layout: menú,
+  panel "Secciones", formulario del panel, validador, migas, lateral y
+  buscador leen la lista de `_config.yml`. Encontrado en las pruebas: un
+  comentario dentro de la lista cortaba la lectura del panel y del
+  validador (veían 8); los dos ahora toleran comentarios. El lateral suma
+  una fila: peor caso 1024px, umbral del sticky de 1040 a 1080px de alto.
+  Mensajes que decían "las 8 categorías" pasan a no contar. Probado con 2
+  artículos de "Otros" creados y publicados en un clon aislado (migas,
+  Sugeridos, página de categoría, contador, buscador) y el sitio real con
+  "Otros" vacía.
+
+- 2026-09-24: "Crear artículo nuevo" suma `tags: [PENDIENTE]` al front
+  matter, opcional a diferencia de `excerpt:`/`image:`: al publicar,
+  `quitar_tags_pendientes()` lo saca de la copia (no bloquea y nunca llega
+  al sitio ni al feed). El validador ahora marca error por `PENDIENTE` en
+  `excerpt:`/`image:` y solo avisa en `tags:`; Sugeridos ignora "pendiente"
+  como tema. 36 pruebas en un clon aislado (creación, los tres caminos de
+  publicación, script de terminal con commit real, validador) + build real
+  con artículos pegados a mano y contraprueba sin la red de seguridad.
 
 - 2026-09-24: miniaturas en "Artículos recientes" del lateral de la portada
   (76x57, `loading="lazy"`, hueco pintado si falta `image:`). Peor caso

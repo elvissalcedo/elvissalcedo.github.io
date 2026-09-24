@@ -27,7 +27,9 @@ plugins:
   - jekyll-seo-tag
 
 # Fuente única para el menú y las páginas de categorías -- nada de esto se
-# vuelve a escribir a mano en ningún layout o include.
+# vuelve a escribir a mano en ningún layout o include. "Otros" va última a
+# propósito: temas que no encajan en las ambientales (tecnología aplicada,
+# reflexiones generales).
 categorias:
   - { name: "Agua", slug: "agua" }
   - { name: "Aire", slug: "aire" }
@@ -37,6 +39,7 @@ categorias:
   - { name: "Sostenibilidad y Energía", slug: "sostenibilidad-energia" }
   - { name: "Gestión y Política", slug: "gestion-politica" }
   - { name: "Filosofía y Decisión", slug: "filosofia-decision" }
+  - { name: "Otros", slug: "otros" }
 
 # Imagen por defecto al compartir en redes (Open Graph / Twitter). Va como
 # `defaults` y no como clave suelta porque jekyll-seo-tag solo lee `image`

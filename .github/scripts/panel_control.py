@@ -40,7 +40,7 @@ categorias de nombre compuesto (Toxicologia y Salud, Sostenibilidad y
 Energia, Gestion y Politica, Filosofia y Decision) eso da una URL rota
 (espacios y tildes literales). Confirmado con una build real de Jekyll en
 un clon aislado. Por eso este panel escribe SIEMPRE un `permalink:`
-explicito usando el slug prolijo de _config.yml, para las 8 categorias por
+explicito usando el slug prolijo de _config.yml, para todas las categorias por
 igual -- decision de Elvis del 2026-09-21 frente a esta alternativa.
 """
 import functools
@@ -85,7 +85,9 @@ def leer_categorias():
     unica, la misma que usa validar_articulos.py."""
     with open(os.path.join(RAIZ, "_config.yml"), encoding="utf-8") as fh:
         config = fh.read()
-    bloque = re.search(r"^categorias:\n((?:\s+-.*\n)+)", config, re.M)
+    # Tolera lineas de comentario dentro de la lista: sin eso, un "# ..."
+    # entre dos categorias cortaba la lectura y escondia las de abajo.
+    bloque = re.search(r"^categorias:\n((?:\s+(?:-|#).*\n)+)", config, re.M)
     if not bloque:
         return []
     filas = []
@@ -362,7 +364,7 @@ def crear_carpeta_articulo(titulo, categoria, fecha, categorias, slug=None):
 
     slug_cat = slug_de_categoria(categoria, categorias)
     if slug_cat is None:
-        raise ErrorPanel("La categoria «%s» no es ninguna de las 8 validas." % categoria)
+        raise ErrorPanel("La categoria «%s» no es ninguna de las categorías de _config.yml." % categoria)
 
     carpeta = os.path.join(RAIZ, "_posts", "articulos", slug)
     nombre_md = "%s-%s.md" % (fecha, slug)
@@ -391,6 +393,9 @@ def crear_carpeta_articulo(titulo, categoria, fecha, categorias, slug=None):
         "category: %s\n"
         'excerpt: "PENDIENTE -- completar con el resumen que entregue NotebookLM"\n'
         "image: PENDIENTE.jpg\n"
+        # Opcional, a diferencia de los dos de arriba: si queda asi, se
+        # publica igual sin tags (pa.quitar_tags_pendientes).
+        "tags: [PENDIENTE]\n"
         "permalink: %s\n"
         "---\n"
     ) % (titulo_yaml, fecha, categoria, permalink)
@@ -690,6 +695,7 @@ def revisar_y_copiar_borrador(nombre_carpeta):
     with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
         texto, _ = alinear_permalink(fh.read())
 
+    texto = pa.quitar_tags_pendientes(texto)
     pa.verificar_sin_pendientes(texto, nombre_validado)
 
     texto_final, _cambios, _referenciadas = pa.procesar_referencias(
@@ -1039,6 +1045,7 @@ def copiar_para_vista_previa(nombre_carpeta, tocados=None, deshacer_si_falla=Tru
     with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
         texto, _ = alinear_permalink(fh.read())
 
+    texto = pa.quitar_tags_pendientes(texto)
     texto = _neutralizar_image_pendiente(texto, set(imagenes))
     texto = _reemplazar_imagenes_faltantes(texto, set(imagenes))
 
@@ -1406,6 +1413,10 @@ def pagina_creado(carpeta, ruta_md, nombre_md, url_final):
     </div>
     <p>Andá a NotebookLM, pegá el contenido en este .md, reemplazá los <code>PENDIENTE</code>,
        guardá las imágenes en esta misma carpeta.</p>
+    <p><code>excerpt:</code> e <code>image:</code> son obligatorios: con <code>PENDIENTE</code> no
+       se publica. <code>tags:</code> es opcional: poné ahí el tema si el artículo comparte
+       uno con otro (así se sugieren entre sí); si lo dejás en <code>[PENDIENTE]</code>, se
+       publica igual, sin tags.</p>
     <p>Si cambiás la categoría o la fecha después de esto, actualizá también el
        <code>permalink:</code> del front matter a mano -- ya no se recalcula solo.</p>
     <a class="volver" href="/">&larr; Volver al panel</a>

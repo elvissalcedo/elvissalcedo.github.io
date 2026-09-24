@@ -42,13 +42,15 @@ def leer(ruta):
 
 
 # --------------------------------------------------------------------------
-# Las 8 categorías válidas salen de _config.yml, que es la fuente única.
+# Las categorías válidas salen de _config.yml, que es la fuente única.
 # Se leen con una expresión regular y no con PyYAML para no depender de nada
 # instalado en el runner.
 # --------------------------------------------------------------------------
 def categorias_validas():
     config = leer(os.path.join(RAIZ, "_config.yml"))
-    bloque = re.search(r"^categorias:\n((?:\s+-.*\n)+)", config, re.M)
+    # Tolera lineas de comentario dentro de la lista: sin eso, un "# ..."
+    # entre dos categorias cortaba la lectura y escondia las de abajo.
+    bloque = re.search(r"^categorias:\n((?:\s+(?:-|#).*\n)+)", config, re.M)
     if not bloque:
         error("_config.yml", 0, "no se encontró la lista `categorias:`")
         return set()
@@ -105,12 +107,32 @@ def validar_post(ruta, categorias):
         if clave not in fm or not fm[clave]:
             error(rel, 1, "falta `%s:` en el front matter" % clave)
 
+    # Los PENDIENTE que deja el panel de control: excerpt e image son
+    # obligatorios (bloquean); tags es opcional (solo avisa). En el flujo
+    # normal un tags PENDIENTE nunca llega hasta aca -- publicar_articulo.py
+    # lo saca al copiar --, pero un .md pegado a mano en el editor web si
+    # podria traerlo. El sitio lo ignora igual (ver Sugeridos en post.html).
+    # Se busca el marcador exacto (la palabra PENDIENTE, en mayusculas, como
+    # la escribe el panel), no un pedazo de texto: un slug como
+    # "...-tags-pendientes-..." en la ruta de la imagen no es un pendiente.
+    for clave in ("excerpt", "image"):
+        if re.search(r"\bPENDIENTE\b", fm.get(clave, "")):
+            error(rel, 1, "`%s:` sigue en PENDIENTE: es obligatorio, hay que "
+                          "completarlo con lo que entrego NotebookLM" % clave)
+    temas = [t.strip().strip("\"'").strip()
+             for t in fm.get("tags", "").strip().strip("[]").split(",")]
+    if any(t.upper() == "PENDIENTE" for t in temas):
+        aviso(rel, 1, "`tags:` sigue en PENDIENTE. Es opcional y el sitio lo "
+                      "ignora al armar Sugeridos, pero conviene poner el tema "
+                      "real o borrar la linea: el feed RSS publica los tags "
+                      "tal cual.")
+
     if fm.get("layout") and fm["layout"] != "post":
         error(rel, 1, "`layout:` tiene que ser `post`, dice `%s`" % fm["layout"])
 
     cat = fm.get("category")
     if cat and categorias and cat not in categorias:
-        error(rel, 1, "la categoria «%s» no es ninguna de las 8 de _config.yml. "
+        error(rel, 1, "la categoria «%s» no es ninguna de las de _config.yml. "
                       "Validas: %s" % (cat, " | ".join(sorted(categorias))))
 
     fecha_fm = fm["date"].split()[0] if fm.get("date") else None
