@@ -124,7 +124,10 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   parte del `.md` (front matter o cuerpo) -- son los campos que deja el
   panel de control de la sección siguiente para completar con lo que
   entregue NotebookLM. El mensaje de error señala las líneas exactas.
-  Excepción: `tags:` es opcional. Antes de ese chequeo,
+  Excepción: `tags:` es opcional. El panel ya no escribe
+  `tags: [PENDIENTE]` (desde el 2026-09-24 pone los temas del formulario o
+  ninguna línea), pero una carpeta creada con la versión anterior o un tags
+  a medio escribir a mano puede traerlo. Antes de ese chequeo,
   `quitar_tags_pendientes()` saca el `PENDIENTE` de la línea `tags:` de la
   COPIA que se publica (nunca del `.md` de la carpeta de trabajo): borra la
   línea si no queda ningún tema real, o deja solo los reales. Solo cuenta el
@@ -146,7 +149,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   separadas -- Editar, Eliminar y la lista de Vista previa en vivo -- ver
   más abajo).
 - **Crear artículo nuevo:** formulario con título, categoría (todas las de
-  `_config.yml`) y fecha. Arma el slug del título (minúsculas, sin
+  `_config.yml`), fecha y "Temas relacionados (opcional)" -- palabras
+  separadas por coma. Con temas, el `.md` sale con `tags: [Tema1, Tema2]` ya
+  completo (`normalizar_temas`: sin espacios de más, sin repetidos, sin
+  "PENDIENTE"; `linea_tags` entrecomilla solo lo que YAML leería distinto,
+  como `Agua: calidad` o `#reuso`). Sin temas, el `.md` sale SIN línea
+  `tags:` -- igual que los artículos viejos; nada queda pendiente. La
+  pantalla de duplicado reenvía los temas escritos. Arma el slug del título (minúsculas, sin
   tildes, espacios a guiones), avisa con una pantalla de confirmación
   explícita si ya existe una carpeta o archivo con ese slug (nunca crea
   el duplicado solo; si se confirma igual, lo crea como `<slug>-2`, nunca
@@ -155,9 +164,7 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   porque la ruta repite el slug dos veces y Windows sin rutas largas corta
   en 260 (el `title:` conserva el título completo)
   con el front matter listo salvo `excerpt:`/`image:` en `PENDIENTE` --
-  para que Elvis pegue ahí el contenido de NotebookLM -- y
-  `tags: [PENDIENTE]`, que es OPCIONAL: si queda así, se publica igual sin
-  tags (ver `quitar_tags_pendientes` más abajo). Igual que
+  para que Elvis pegue ahí el contenido de NotebookLM. Igual que
   `publicar_articulo.py`, esta carpeta de trabajo sigue sin publicarse
   hasta que se corra ese script.
 - El `permalink:` del front matter se escribe siempre explícito
@@ -573,6 +580,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: "Crear artículo nuevo" suma el campo "Temas relacionados
+  (opcional)" y deja de escribir `tags: [PENDIENTE]`: con temas, la línea
+  `tags:` sale completa; sin temas, el `.md` sale sin esa línea. Probado de
+  punta a punta con el servidor real del panel en un clon aislado (formulario,
+  duplicado, error de validación, signos que YAML leería distinto, publicación,
+  build y Sugeridos con y sin temas).
 
 - 2026-09-24: categoría nueva "Otros" (slug `otros`, última de la lista),
   con su página `categorias/otros.html`. Sin tocar ningún layout: menú,

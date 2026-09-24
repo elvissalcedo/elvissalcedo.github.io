@@ -305,9 +305,10 @@ def enriquecer_imagenes(texto, carpeta_origen=None):
 
 
 def quitar_tags_pendientes(texto):
-    """`tags:` es OPCIONAL, a diferencia de excerpt/image: el panel lo crea
-    como `tags: [PENDIENTE]` y puede quedar asi si el articulo no comparte
-    tema con ningun otro. Esta funcion saca ese PENDIENTE de la copia que se
+    """`tags:` es OPCIONAL, a diferencia de excerpt/image. Hoy el panel ya no
+    escribe `tags: [PENDIENTE]` (pone los temas del formulario, o ninguna
+    linea), pero una carpeta de trabajo creada con la version anterior --o
+    un tags a medio escribir a mano-- puede traerlo. Esta funcion saca ese PENDIENTE de la copia que se
     publica -- nunca del .md de la carpeta de trabajo -- antes de
     verificar_sin_pendientes, asi que no bloquea la publicacion y nunca
     llega al sitio (ni a "Sugeridos" ni al feed, que publica los tags).

@@ -354,7 +354,33 @@ def slug_libre(slug):
     return candidato
 
 
-def crear_carpeta_articulo(titulo, categoria, fecha, categorias, slug=None):
+def normalizar_temas(texto):
+    """"Fitorremediación,  suelos , ,Fitorremediación" -> ["Fitorremediación",
+    "suelos"]: separa por comas, saca espacios de mas, descarta vacios y
+    repetidos (sin distinguir mayusculas) y el marcador PENDIENTE, que no es
+    un tema. Una lista vacia significa "sin temas": el .md sale sin tags."""
+    temas, vistos = [], set()
+    for t in (texto or "").split(","):
+        t = " ".join(t.split())
+        clave = t.lower()
+        if t and clave != "pendiente" and clave not in vistos:
+            vistos.add(clave)
+            temas.append(t)
+    return temas
+
+
+def linea_tags(temas):
+    """`tags: [Fitorremediación, Suelos]` -- legible, como los que ya se
+    escriben a mano. Solo va entre comillas el tema que trae un caracter que
+    YAML leeria distinto (`Agua: calidad`, `#reuso`, `[x]`...)."""
+    def _yaml(t):
+        if re.search(r"[:#\[\]{}\"'&*!|>%@`]", t) or t[0] in "-?":
+            return '"%s"' % t.replace("\\", "\\\\").replace('"', '\\"')
+        return t
+    return "tags: [%s]\n" % ", ".join(_yaml(t) for t in temas)
+
+
+def crear_carpeta_articulo(titulo, categoria, fecha, categorias, slug=None, temas=None):
     slug = slug or slug_de_titulo(titulo)
     if not slug:
         raise ErrorPanel(
@@ -393,12 +419,13 @@ def crear_carpeta_articulo(titulo, categoria, fecha, categorias, slug=None):
         "category: %s\n"
         'excerpt: "PENDIENTE -- completar con el resumen que entregue NotebookLM"\n'
         "image: PENDIENTE.jpg\n"
-        # Opcional, a diferencia de los dos de arriba: si queda asi, se
-        # publica igual sin tags (pa.quitar_tags_pendientes).
-        "tags: [PENDIENTE]\n"
+        # tags: opcional -- solo si se escribieron temas en el formulario, y
+        # ya completo. Sin temas, el .md sale sin la linea (igual que los
+        # articulos viejos): nada queda "pendiente" de algo que no se exige.
+        "%s"
         "permalink: %s\n"
         "---\n"
-    ) % (titulo_yaml, fecha, categoria, permalink)
+    ) % (titulo_yaml, fecha, categoria, linea_tags(temas) if temas else "", permalink)
 
     try:
         os.makedirs(carpeta, exist_ok=True)
@@ -1358,6 +1385,13 @@ def formulario_crear(categorias, valores=None, error=None):
         <label for="fecha">Fecha</label>
         <input type="date" id="fecha" name="fecha" value="%s" required>
 
+        <label for="temas">Temas relacionados (opcional)</label>
+        <input type="text" id="temas" name="temas" value="%s"
+               placeholder="Ej.: Fitorremediación, Suelos" aria-describedby="temas-ayuda">
+        <p class="meta" id="temas-ayuda">Una o varias palabras separadas por coma. Los artículos
+           que comparten un tema se muestran en "Sugeridos" aunque sean de otra categoría.
+           Si lo dejás vacío, el artículo no lleva tema y no queda nada pendiente.</p>
+
         <button type="submit">Crear carpeta del artículo</button>
       </form>
     </div>
@@ -1367,6 +1401,7 @@ def formulario_crear(categorias, valores=None, error=None):
         html.escape(valores.get("titulo", "")),
         opciones,
         html.escape(valores.get("fecha") or hoy),
+        html.escape(valores.get("temas", "")),
     )
     return pagina("Crear artículo nuevo", cuerpo)
 
@@ -1384,6 +1419,7 @@ def pagina_duplicado(valores, duplicado, slug_alternativo):
       <input type="hidden" name="titulo" value="%s">
       <input type="hidden" name="categoria" value="%s">
       <input type="hidden" name="fecha" value="%s">
+      <input type="hidden" name="temas" value="%s">
       <input type="hidden" name="confirmar" value="1">
       <button type="submit" class="boton-peligro">Continuar de todas formas</button>
       <a class="boton boton-secundario" href="/crear">Cancelar</a>
@@ -1396,13 +1432,21 @@ def pagina_duplicado(valores, duplicado, slug_alternativo):
         html.escape(valores["titulo"]),
         html.escape(valores["categoria"]),
         html.escape(valores["fecha"]),
+        html.escape(valores.get("temas", "")),
     )
     return pagina("Ya existe un artículo con este nombre", cuerpo)
 
 
-def pagina_creado(carpeta, ruta_md, nombre_md, url_final):
+def pagina_creado(carpeta, ruta_md, nombre_md, url_final, temas=None):
     ruta_carpeta_rel = ruta_git(carpeta)
     ruta_md_rel = ruta_git(ruta_md)
+    if temas:
+        texto_temas = ("Temas: <strong>%s</strong> (ya quedaron en <code>tags:</code>)."
+                       % html.escape(", ".join(temas)))
+    else:
+        texto_temas = ("Sin temas: el .md no lleva <code>tags:</code>. Si después querés "
+                       "relacionarlo con otro artículo, agregá a mano "
+                       "<code>tags: [Tema]</code> en el front matter.")
     cuerpo = """
     <h1>Artículo creado</h1>
     <div class="exito">
@@ -1410,17 +1454,15 @@ def pagina_creado(carpeta, ruta_md, nombre_md, url_final):
       <p>Archivo: <code>%s</code></p>
       <p>URL que va a tener el artículo (ya con el permalink fijo escrito en el front matter):<br>
          <code>%s</code></p>
+      <p>%s</p>
     </div>
-    <p>Andá a NotebookLM, pegá el contenido en este .md, reemplazá los <code>PENDIENTE</code>,
+    <p>Andá a NotebookLM, pegá el contenido en este .md, reemplazá los <code>PENDIENTE</code>
+       (<code>excerpt:</code> e <code>image:</code>, sin eso no se publica),
        guardá las imágenes en esta misma carpeta.</p>
-    <p><code>excerpt:</code> e <code>image:</code> son obligatorios: con <code>PENDIENTE</code> no
-       se publica. <code>tags:</code> es opcional: poné ahí el tema si el artículo comparte
-       uno con otro (así se sugieren entre sí); si lo dejás en <code>[PENDIENTE]</code>, se
-       publica igual, sin tags.</p>
     <p>Si cambiás la categoría o la fecha después de esto, actualizá también el
        <code>permalink:</code> del front matter a mano -- ya no se recalcula solo.</p>
     <a class="volver" href="/">&larr; Volver al panel</a>
-    """ % (html.escape(ruta_carpeta_rel), html.escape(ruta_md_rel), html.escape(url_final))
+    """ % (html.escape(ruta_carpeta_rel), html.escape(ruta_md_rel), html.escape(url_final), texto_temas)
     return pagina("Artículo creado", cuerpo)
 
 
@@ -2095,6 +2137,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         titulo = (datos.get("titulo") or "").strip()
         categoria = (datos.get("categoria") or "").strip()
         fecha = (datos.get("fecha") or "").strip()
+        temas_texto = (datos.get("temas") or "").strip()
+        temas = normalizar_temas(temas_texto)
         confirmar = datos.get("confirmar") == "1"
 
         if not titulo:
@@ -2112,16 +2156,16 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         if duplicado:
             if not confirmar:
                 self.responder(pagina_duplicado(
-                    {"titulo": titulo, "categoria": categoria, "fecha": fecha},
+                    {"titulo": titulo, "categoria": categoria, "fecha": fecha, "temas": temas_texto},
                     duplicado, slug_libre(slug),
                 ))
                 return
             slug = slug_libre(slug)
 
         _, carpeta, ruta_md, nombre_md, url_final = crear_carpeta_articulo(
-            titulo, categoria, fecha, categorias, slug=slug
+            titulo, categoria, fecha, categorias, slug=slug, temas=temas
         )
-        self.responder(pagina_creado(carpeta, ruta_md, nombre_md, url_final))
+        self.responder(pagina_creado(carpeta, ruta_md, nombre_md, url_final, temas))
 
     def manejar_confirmar_eliminar(self):
         datos = self.leer_formulario()
