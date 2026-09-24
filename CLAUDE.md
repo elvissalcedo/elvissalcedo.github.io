@@ -475,6 +475,14 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
 
 ## Historial de cambios recientes
 
+- 2026-09-23: el panel alinea solo el `permalink:` con el `category:` del
+  front matter (`alinear_permalink`, solo el primer segmento; fecha, slug,
+  carpeta y nombre del `.md` no se tocan) al guardar en la vista previa en
+  vivo y en "Revisar y publicar", y lo reescribe también en el `.md` de la
+  carpeta de trabajo (preserva CRLF). Un permalink de otra forma (ej.
+  `/lavador-venturi.html`) o una categoría inválida no se tocan. El iframe
+  de la vista previa en vivo sigue la ruta nueva vía `/vivo/estado` (antes
+  quedaba en la vieja: "Not Found").
 - 2026-09-23: el panel fusiona "Editar artículo publicado", "Eliminar
   artículo publicado" y la lista de "Vista previa en vivo" en una sola
   pantalla, "Gestionar artículos" (`/gestionar`) -- las tres listaban lo

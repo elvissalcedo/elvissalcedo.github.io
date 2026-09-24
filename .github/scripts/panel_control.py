@@ -166,6 +166,67 @@ def leer_front_matter(ruta):
     return datos
 
 
+_PATRON_CATEGORIA_FM = re.compile(r'^category:[ \t]*(.*?)[ \t]*\r?$', re.M)
+# Solo el primer segmento (la categoria) de un permalink con la forma que
+# escribe "Crear articulo nuevo": /<slug-categoria>/AAAA/MM/DD/<slug>.html.
+# Un permalink de otra forma (ej. /lavador-venturi.html) no se toca.
+_PATRON_PERMALINK_FM = re.compile(
+    r'^permalink:[ \t]*["\']?/([^/\s"\']+)(?=/\d{4}/\d{2}/\d{2}/)', re.M)
+
+
+def alinear_permalink(texto):
+    """Devuelve (texto, cambio). Si el `permalink:` del front matter quedo con
+    una categoria distinta de la que dice `category:` (Elvis cambio la
+    categoria a mano despues de crear el articulo), reescribe SOLO ese primer
+    segmento con el slug de la categoria actual -- fecha, slug y el resto del
+    permalink quedan intactos. `cambio` es (slug_viejo, slug_nuevo), o None
+    si ya coincidian o si no hay nada seguro que corregir (sin permalink, de
+    otra forma, o una categoria que no es ninguna de _config.yml: eso ya lo
+    marca el validador)."""
+    if not texto.startswith("---"):
+        return texto, None
+    fin = texto.find("\n---", 3)
+    if fin == -1:
+        return texto, None
+    front_matter = texto[:fin]
+    m_cat = _PATRON_CATEGORIA_FM.search(front_matter)
+    m_link = _PATRON_PERMALINK_FM.search(front_matter)
+    if not m_cat or not m_link:
+        return texto, None
+    nombre = m_cat.group(1)
+    if len(nombre) > 1 and nombre[0] == nombre[-1] and nombre[0] in "\"'":
+        nombre = nombre[1:-1]
+    slug_cat = slug_de_categoria(nombre, leer_categorias())
+    if slug_cat is None or m_link.group(1) == slug_cat:
+        return texto, None
+    nuevo = front_matter[:m_link.start(1)] + slug_cat + front_matter[m_link.end(1):]
+    return nuevo + texto[fin:], (m_link.group(1), slug_cat)
+
+
+def alinear_permalink_en_disco(ruta_md):
+    """Aplica alinear_permalink al .md de la carpeta de trabajo y lo guarda
+    ahi, para que lo que ve Elvis en el editor coincida con lo que se publica.
+    Preserva los saltos de linea (newline="") y no falla si el archivo esta
+    bloqueado: los llamadores igual aplican la correccion en memoria antes de
+    renderizar, asi que la vista previa no depende de que este guardado."""
+    try:
+        with open(ruta_md, encoding="utf-8", newline="") as fh:
+            texto = fh.read()
+    except (OSError, UnicodeDecodeError):
+        return None
+    nuevo, cambio = alinear_permalink(texto)
+    if not cambio:
+        return None
+    try:
+        with open(ruta_md, "w", encoding="utf-8", newline="") as fh:
+            fh.write(nuevo)
+    except OSError:
+        return None
+    print("permalink: /%s/... -> /%s/... en %s (para que coincida con category:)"
+          % (cambio[0], cambio[1], os.path.basename(ruta_md)))
+    return cambio
+
+
 def git(*args):
     return subprocess.run(
         ["git", *args], cwd=RAIZ, capture_output=True, text=True,
@@ -625,8 +686,9 @@ def revisar_y_copiar_borrador(nombre_carpeta):
     nombre_md = pa.encontrar_md(carpeta, nombre_validado)
     imagenes = pa.encontrar_imagenes(carpeta, nombre_validado)
 
+    alinear_permalink_en_disco(os.path.join(carpeta, nombre_md))
     with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
-        texto = fh.read()
+        texto, _ = alinear_permalink(fh.read())
 
     pa.verificar_sin_pendientes(texto, nombre_validado)
 
@@ -973,8 +1035,9 @@ def copiar_para_vista_previa(nombre_carpeta, tocados=None, deshacer_si_falla=Tru
     nombre_md = pa.encontrar_md(carpeta, nombre_validado)
     imagenes = _encontrar_imagenes_vivo(carpeta)
 
+    alinear_permalink_en_disco(os.path.join(carpeta, nombre_md))
     with open(os.path.join(carpeta, nombre_md), encoding="utf-8") as fh:
-        texto = fh.read()
+        texto, _ = alinear_permalink(fh.read())
 
     texto = _neutralizar_image_pendiente(texto, set(imagenes))
     texto = _reemplazar_imagenes_faltantes(texto, set(imagenes))
@@ -1088,7 +1151,7 @@ def _bucle_vigilancia(nombre_carpeta, evento_detener):
             continue
         tocados = []
         try:
-            _, _, _, _, copiadas, _respaldo = copiar_para_vista_previa(
+            _, _, destino_md, _, copiadas, _respaldo = copiar_para_vista_previa(
                 nombre_carpeta, tocados, deshacer_si_falla=False
             )
         except Exception as e:
@@ -1111,6 +1174,10 @@ def _bucle_vigilancia(nombre_carpeta, evento_detener):
             continue
         huella_anterior = huella_actual
         _vista_previa_activa.ultimo_error = None
+        # Si cambio la categoria (y con ella el permalink), la pagina generada
+        # cambia de ruta: /vivo/estado se lo avisa al iframe.
+        _vista_previa_activa.ruta_site = ruta_generada_en_site(
+            leer_front_matter(destino_md), nombre_carpeta)
         # Union con lo ya copiado, no reemplazo: si una imagen nueva aparece
         # a mitad de sesion, "Detener vista previa" tiene que poder
         # descartarla tambien (descartar_vista_previa solo revisa lo que
@@ -1818,6 +1885,28 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
         '<div class="aviso">La última actualización automática falló (va a reintentar sola): %s</div>'
         % html.escape(ultimo_error)
     ) if ultimo_error else "")
+    # Si cambia el category: (y con el, el permalink), el articulo pasa a otra
+    # ruta: el iframe se movia solo a la vieja y daba "Not Found". Este sondeo
+    # lo lleva a la nueva, pero solo cuando Jekyll ya la termino de generar.
+    script_ruta = """
+    <script>
+    (function () {
+      var marco = document.querySelector('.vista-previa-frame');
+      if (!marco) { return; }
+      var enlace = marco.nextElementSibling && marco.nextElementSibling.querySelector('a');
+      var actual = marco.getAttribute('src');
+      setInterval(function () {
+        fetch('/vivo/estado').then(function (r) { return r.json(); }).then(function (e) {
+          if (e.listo && e.url && e.url !== actual) {
+            actual = e.url;
+            marco.src = e.url;
+            if (enlace) { enlace.href = e.url; }
+          }
+        }).catch(function () {});
+      }, 2000);
+    })();
+    </script>
+    """
     cuerpo = """
     <h1>Vista previa en vivo: %s</h1>
     <p class="subtitulo">Se actualiza sola cada vez que guardás un cambio en
@@ -1830,9 +1919,10 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
       <input type="hidden" name="carpeta" value="%s">
       <button type="submit" class="boton-secundario">Detener vista previa</button>
     </form>
+    %s
     """ % (
         html.escape(nombre_carpeta), bloque_error, bloque_iframe, link_directo,
-        html.escape(nombre_carpeta),
+        html.escape(nombre_carpeta), script_ruta,
     )
     return pagina("Vista previa en vivo", cuerpo)
 
@@ -1898,6 +1988,28 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 "/",
             ), status=500)
 
+    def _responder_estado_vivo(self):
+        """JSON para el sondeo de la vista previa en vivo: la URL actual del
+        articulo y si Jekyll ya la genero (200) -- mover el iframe antes daria
+        "Not Found" hasta que termine la reconstruccion."""
+        ruta_site = _vista_previa_activa.ruta_site
+        estado = {"url": None, "listo": False}
+        if ruta_site:
+            url = "http://127.0.0.1:%d/%s" % (PUERTO_SERVE_VIVO, ruta_site)
+            estado["url"] = url
+            try:
+                with urllib.request.urlopen(url, timeout=1) as respuesta:
+                    estado["listo"] = respuesta.status == 200
+            except (urllib.error.URLError, OSError):
+                pass
+        datos = json.dumps(estado).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(datos)))
+        self.end_headers()
+        self.wfile.write(datos)
+
     def _do_GET(self):
         ruta = urllib.parse.urlsplit(self.path).path
         if ruta == "/":
@@ -1911,6 +2023,8 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
             self._redirigir("/gestionar")
         elif ruta == "/publicar":
             self.responder(pagina_lista_publicar(listar_borradores()))
+        elif ruta == "/vivo/estado":
+            self._responder_estado_vivo()
         elif ruta == "/vivo":
             if _vista_previa_activa.carpeta:
                 self.responder(pagina_vivo_activa(
