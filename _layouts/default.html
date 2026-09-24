@@ -139,5 +139,16 @@
 
   <script src="/assets/js/articulo.js"></script>
   <script src="/assets/js/buscador.js"></script>
+
+  {%- comment -%}
+    GoatCounter: cuenta visitas sin cookies ni datos personales. `async`:
+    se baja en paralelo y nunca frena el dibujo de la página ni las fuentes.
+    Por su cuenta NO cuenta nada en localhost/127.0.0.1 ni dentro de un
+    iframe -- la vista previa del panel de control (127.0.0.1, en un iframe)
+    no ensucia las estadísticas. Por ahora solo acumula datos: nada del
+    sitio los lee todavía.
+  {%- endcomment %}
+  <script data-goatcounter="https://elvissalcedo.goatcounter.com/count"
+      async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

@@ -327,6 +327,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   `jekyll-seo-tag`) y la lista única `categorias` (nombre + slug) que
   alimenta el menú y las páginas de categoría -- se edita en un solo
   lugar, nunca a mano en cada archivo.
+- **Analítica: GoatCounter** (`elvissalcedo.goatcounter.com`), sin cookies ni
+  datos personales. Un solo `<script async>` al final del `<body>` de
+  `_layouts/default.html`, así que cuenta todas las páginas y nunca frena el
+  dibujo ni las fuentes. Por su cuenta no cuenta nada en `localhost`/`127.x`
+  ni dentro de un iframe: la vista previa del panel no ensucia los datos. Por
+  ahora solo acumula visitas; nada del sitio las lee todavía (un futuro "Lo
+  más leído" las usaría).
 - `_layouts/default.html` — `<head>` (incluye `{% seo %}`, las fuentes de
   Google y MathJax/Mermaid), header/footer (`_includes/`), `{{ content }}`.
   Las fuentes se piden acá con `preconnect` + `<link>`, NO con un `@import`
@@ -539,6 +546,12 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: instala GoatCounter (script `async` al final del `<body>` del
+  layout base, en las 13 páginas HTML). Verificado en Edge real: en local y
+  dentro de un iframe no cuenta; con el dominio real simulado manda una
+  visita por página con la ruta correcta (envío interceptado en el
+  navegador, nunca llegó a GoatCounter). Sin cambios en nada más.
 
 - 2026-09-24: portada en secciones -- líneas finas entre la destacada y la
   grilla y entre el contenido y el pie, y un lateral nuevo con categorías y
