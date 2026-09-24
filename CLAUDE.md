@@ -33,10 +33,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   padre: ..."), reglas de citas APA 7 completas, el método Feynman para
   explicar cada término técnico nuevo, la estructura narrativa elegida
   caso por caso entre 7 bloques posibles (solo Desarrollo técnico y
-  Referencias son obligatorios, más dos funciones fijas de forma libre:
-  un antecedente que va de lo global a lo puntual y la idea central
-  explicada primero en simple; NotebookLM propone la estructura en un
-  mensaje corto y espera el "ok" de Elvis) con títulos de sección
+  Referencias son obligatorios, más tres funciones fijas de forma libre:
+  un antecedente que va de lo global a lo puntual, la idea central
+  explicada primero en simple y una postura propia sostenida con
+  evidencia -- el artículo es argumentativo dentro de la divulgación,
+  con cohesión entre párrafos, términos técnicos constantes y una sola
+  idea central que el plan declara antes de escribir; NotebookLM propone
+  la estructura en un mensaje corto y espera el "ok" de Elvis) con títulos de sección
   creativos, preguntas finales orientadas a analizar/evaluar/crear
   (Bloom, sin nombrarlo) y vacíos planteados como oportunidad solo
   cuando el vacío lo sugiere, el bloque de front matter listo para pegar, el formato de
@@ -46,8 +49,9 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   del conocimiento.
 - **El prompt corto** (`03-prompt-notebooklm.txt`, local, no versionado --
   ver nota arriba): lo que Elvis pega en el chat de NotebookLM cada vez
-  que pide un artículo nuevo. Ya no repite las reglas: remite al documento
-  fuente y solo marca los pasos de la sesión (identificar el dosier,
+  que pide un artículo nuevo (444 palabras, tope de 600). Ya no repite las
+  reglas: remite al documento fuente y solo marca los pasos de la sesión
+  (identificar el dosier,
   proponer la estructura y esperar el "ok", un bloque de código por
   mensaje, autocrítica final). Deja que NotebookLM decida en cuántos
   mensajes entregar la respuesta según el contenido real, esperando
@@ -580,6 +584,15 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: las instrucciones de NotebookLM suman género argumentativo
+  (postura propia con evidencia, tercera función fija), cohesión textual
+  (enlace entre párrafos, términos técnicos constantes; varía la forma de
+  la transición, nunca si se conectan las ideas) y coherencia local/global
+  (idea central declarada en el plan), con dos ítems nuevos en el checklist
+  de la sección 8. El prompt corto suma un párrafo con lo mismo y queda en
+  444 palabras (tope de 600). Ambos archivos siguen locales y sin versionar;
+  solo cambia esta descripción.
 
 - 2026-09-24: "Crear artículo nuevo" suma el campo "Temas relacionados
   (opcional)" y deja de escribir `tags: [PENDIENTE]`: con temas, la línea
