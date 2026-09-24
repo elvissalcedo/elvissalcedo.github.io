@@ -120,10 +120,14 @@
   exactamente igual. `layout.clase_main` funciona porque Jekyll suma el
   front matter del layout hijo (category.html) al de este. La misma clase
   va también en <body>, para que el encabezado se alinee con esa grilla
-  (ver .page-body-listado en styles.css).
+  (ver .page-body-listado en styles.css). `es-portada` marca solo la
+  portada: ahí el pie de página lleva una línea arriba que lo separa del
+  contenido (las categorías no la llevan).
 {%- endcomment %}
 {%- assign clase_main = page.clase_main | default: layout.clase_main %}
-<body{% if clase_main %} class="con-{{ clase_main }}"{% endif %}>
+{%- capture clases_body %}{% if clase_main %}con-{{ clase_main }}{% endif %}{% if page.url == "/" %} es-portada{% endif %}{% endcapture %}
+{%- assign clases_body = clases_body | strip %}
+<body{% if clases_body != "" %} class="{{ clases_body }}"{% endif %}>
 
 {% include header.html %}
 

@@ -373,7 +373,18 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   destacada (`lista-posts.html` con `destacar=true`, solo en `index.html`;
   las categorías no destacan ninguno): extracto completo, imagen a la
   izquierda desde 1100px y apilada debajo de eso, sin `loading="lazy"`
-  porque es lo primero que se ve.
+  porque es lo primero que se ve. Debajo, separada por una línea fina
+  (`.portada-cuerpo`), la grilla con el resto y al costado el lateral
+  (`_includes/portada-lateral.html`): las 8 categorías con su conteo (las
+  vacías atenuadas, no ocultas) y los 5 artículos más recientes, solo título
+  y fecha. Se llama "recientes" a propósito: el sitio no mide visitas, así
+  que no hay "lo más leído". Desde 1100px va al costado (300px); debajo, a
+  lo ancho después de la grilla (sus dos bloques lado a lado en tablet). Es
+  sticky solo en pantallas de 1040px de alto o más: el peor caso del lateral
+  mide 985px (títulos topeados en 3 renglones, medido con 100 artículos de
+  prueba), y en una pantalla más baja el sticky tapaba los últimos
+  recientes. Una segunda línea separa el contenido del pie de página, solo
+  en la portada (`body.es-portada`).
 - `_posts/` — un artículo por archivo, `AAAA-MM-DD-slug.md`. El primer
   artículo real (`lavador-venturi.html` original) vive acá como
   `2026-09-17-lavador-venturi.md`, con `permalink: /lavador-venturi.html`
@@ -528,6 +539,14 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: portada en secciones -- líneas finas entre la destacada y la
+  grilla y entre el contenido y el pie, y un lateral nuevo con categorías y
+  conteo + los 5 artículos más recientes (título y fecha). Al costado desde
+  1100px, debajo de la grilla en tablet y celular. La destacada y las
+  tarjetas no cambian. Probado en Edge real vía CDP de 390 a 1920px sobre el
+  sitio real (4 artículos) y sobre una copia aislada con 100 artículos de
+  prueba (conteos, ocultos, títulos largos, sticky).
 
 - 2026-09-24: portada y categorías a 1480px (antes 1120; 4 columnas desde
   ~1600px, encabezado alineado), artículo más reciente destacado arriba de

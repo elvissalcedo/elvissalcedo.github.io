@@ -1,0 +1,39 @@
+{%- comment -%}
+  Lateral de la portada: categorías con su conteo y los 5 artículos más
+  recientes. Nada de "lo más leído": el sitio no mide visitas, así que se
+  dice lo que es -- recientes.
+
+  Pensado para crecer sin cambiar de forma: las categorías son siempre las
+  8 de _config.yml (solo cambian los números), y "recientes" es siempre un
+  máximo de 5, haya 4 artículos o 400. Las categorías sin artículos se
+  muestran atenuadas en vez de esconderse: el menú del sitio las lista igual,
+  y así el lateral no cambia de alto a medida que se van llenando.
+{%- endcomment -%}
+{%- assign visibles_lat = site.posts | where_exp: "p", "p.hidden != true" %}
+    <aside class="portada-lateral" aria-label="Categorías y artículos recientes">
+      <section class="lateral-bloque">
+        <h2 class="lateral-titulo">Categorías</h2>
+        <ul class="lateral-categorias">
+          {%- for cat in site.categorias %}
+          {%- assign cantidad_cat = visibles_lat | where: "category", cat.name | size %}
+          <li{% if cantidad_cat == 0 %} class="vacia"{% endif %}>
+            <a href="/categorias/{{ cat.slug }}.html">
+              <span>{{ cat.name }}</span>
+              <span class="lateral-conteo" aria-label="{{ cantidad_cat }} {% if cantidad_cat == 1 %}artículo{% else %}artículos{% endif %}">{{ cantidad_cat }}</span>
+            </a>
+          </li>
+          {%- endfor %}
+        </ul>
+      </section>
+      <section class="lateral-bloque">
+        <h2 class="lateral-titulo">Artículos recientes</h2>
+        <ol class="lateral-recientes">
+          {%- for p in visibles_lat limit: 5 %}
+          <li>
+            <a href="{{ p.url }}">{{ p.title }}</a>
+            <time datetime="{{ p.date | date: '%Y-%m-%d' }}">{% include fecha-es.html date=p.date %}</time>
+          </li>
+          {%- endfor %}
+        </ol>
+      </section>
+    </aside>

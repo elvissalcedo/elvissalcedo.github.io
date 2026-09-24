@@ -6,23 +6,34 @@
     include.posts    -- la colección ya filtrada que hay que listar.
     include.vacio    -- el texto del aviso cuando esa colección está vacía.
     include.destacar -- true solo en la portada: el artículo más reciente va
-                        arriba, en una tarjeta grande, y el resto en la
-                        grilla. Las categorías no lo usan: ahí todos son del
-                        mismo tema y no tiene sentido destacar uno.
+                        arriba, en una tarjeta grande; debajo, separados por
+                        una línea, la grilla con el resto y al costado el
+                        lateral (_includes/portada-lateral.html). Las
+                        categorías no lo usan: ahí todos son del mismo tema y
+                        no tiene sentido destacar uno.
 {%- endcomment -%}
       {%- assign visibles = include.posts | where_exp: "post", "post.hidden != true" %}
-      {%- assign desde = 0 %}
       {%- if include.destacar and visibles.size > 0 %}
 {% include post-card.html post=visibles.first destacada=true %}
-        {%- assign desde = 1 %}
-      {%- endif %}
-      {%- if visibles.size > desde %}
+    <div class="portada-cuerpo">
+      <div class="portada-grilla">
+        {%- if visibles.size > 1 %}
+        <div class="posts">
+          {%- for post in visibles offset: 1 %}
+{% include post-card.html post=post %}
+          {%- endfor %}
+        </div>
+        {%- endif %}
+      </div>
+{% include portada-lateral.html %}
+    </div>
+      {%- elsif visibles.size > 0 %}
     <div class="posts">
-        {%- for post in visibles offset: desde %}
+        {%- for post in visibles %}
 {% include post-card.html post=post %}
         {%- endfor %}
     </div>
-      {%- elsif visibles.size == 0 %}
+      {%- else %}
     <div class="posts">
       <div class="post-card aviso">
         <p class="post-excerpt">{{ include.vacio }}</p>

@@ -483,6 +483,134 @@ blockquote {
   .post-card.destacada .post-title { font-size: clamp(28px, 2.2vw, 34px); }
 }
 
+/* ==========================================================================
+   PORTADA: SECCIONES Y LATERAL
+   Tres bloques que se leen por separado: la destacada, la grilla con su
+   lateral, y el pie. Los separa una línea fina del mismo verde grisáceo de
+   los bordes (--border), no una raya dura.
+   ========================================================================== */
+.portada-cuerpo {
+  border-top: 1px solid var(--border);
+  padding-top: 32px;
+}
+/* La línea antes del pie, solo en la portada. Va al ancho de la grilla (no
+   de borde a borde) para que se lea como el cierre del contenido. */
+.es-portada .page-body { padding-bottom: 56px; }
+.es-portada .site-footer {
+  width: min(calc(100% - 40px), calc(var(--ancho-listado) - 40px));
+  margin: 0 auto;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 639px) {
+  .es-portada .site-footer { width: calc(100% - 32px); }
+}
+
+/* ---- Lateral: categorías con conteo + artículos recientes ---- */
+.portada-lateral { margin-top: 40px; }
+.lateral-bloque + .lateral-bloque { margin-top: 36px; }
+.lateral-titulo {
+  margin: 0 0 4px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--heading);
+  color: var(--heading);
+  font: 600 20px 'Spectral', serif;
+}
+.lateral-categorias,
+.lateral-recientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lateral-categorias li,
+.lateral-recientes li { border-bottom: 1px solid var(--border); }
+.lateral-categorias a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 2px;
+  color: var(--heading);
+  font: 600 14px 'Sora', sans-serif;
+}
+.lateral-categorias a:visited { color: var(--heading); }
+.lateral-categorias a:hover { color: var(--heading-alt); text-decoration: none; }
+.lateral-categorias a:hover span:first-child { text-decoration: underline; }
+.lateral-conteo {
+  flex: none;
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  font: 600 12px 'JetBrains Mono', monospace;
+  text-align: center;
+}
+/* Categorías todavía sin artículos: presentes (el menú también las lista)
+   pero en segundo plano. */
+.lateral-categorias li.vacia a { color: var(--muted); font-weight: 500; }
+.lateral-categorias li.vacia .lateral-conteo {
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+.lateral-recientes li { padding: 12px 2px; }
+/* Tope de 3 renglones por título: el alto del lateral queda acotado aunque
+   lleguen títulos más largos (el título completo está en el artículo). */
+.lateral-recientes a {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--heading);
+  font: 600 16px/1.35 'Spectral', serif;
+}
+/* Con mouse, filas de categorías más bajas; al dedo le quedan sus 44px. */
+@media (hover: hover) and (pointer: fine) {
+  .lateral-categorias a { min-height: 38px; padding: 6px 2px; }
+}
+.lateral-recientes a:visited { color: var(--heading); }
+.lateral-recientes a:hover { color: var(--heading-alt); }
+.lateral-recientes time {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+/* Tablet: el lateral va debajo de la grilla, con sus dos bloques lado a
+   lado en vez de uno encima del otro. */
+@media (min-width: 640px) and (max-width: 1099px) {
+  .portada-lateral {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .lateral-bloque + .lateral-bloque { margin-top: 0; }
+}
+/* Escritorio: el lateral al costado de la grilla. Además la acompaña al
+   bajar (sticky), pero solo en pantallas de 1040px de alto o más: con los
+   títulos topeados en 3 renglones, el peor caso del lateral mide 985px
+   (medido con 100 artículos de prueba), y en una pantalla más baja el
+   sticky dejaba los últimos "recientes" tapados hasta llegar al final de
+   la grilla. */
+@media (min-width: 1100px) {
+  .portada-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 40px;
+    align-items: start;
+  }
+  .portada-lateral { margin-top: 0; }
+}
+@media (min-width: 1100px) and (min-height: 1040px) {
+  .portada-lateral {
+    position: sticky;
+    top: 24px;
+  }
+}
+
 .post-card-thumb {
   display: block;
   aspect-ratio: 16 / 9;
