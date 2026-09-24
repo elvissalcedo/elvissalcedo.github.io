@@ -383,8 +383,11 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   porque es lo primero que se ve. Debajo, separada por una línea fina
   (`.portada-cuerpo`), la grilla con el resto y al costado el lateral
   (`_includes/portada-lateral.html`): las 8 categorías con su conteo (las
-  vacías atenuadas, no ocultas) y los 5 artículos más recientes, solo título
-  y fecha. Se llama "recientes" a propósito: el sitio no mide visitas, así
+  vacías atenuadas, no ocultas) y los 5 artículos más recientes: miniatura
+  de 76x57 a la izquierda (la misma `image:` de su tarjeta; un hueco pintado
+  si el artículo no tiene) y título y fecha a la derecha. La miniatura no
+  suma alto: un título de 3 renglones más la fecha (~86px) siempre es más
+  alto que ella (57px). Se llama "recientes" a propósito: el sitio no mide visitas, así
   que no hay "lo más leído". Desde 1100px va al costado (300px); debajo, a
   lo ancho después de la grilla (sus dos bloques lado a lado en tablet). Es
   sticky solo en pantallas de 1040px de alto o más: el peor caso del lateral
@@ -546,6 +549,12 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: miniaturas en "Artículos recientes" del lateral de la portada
+  (76x57, `loading="lazy"`, hueco pintado si falta `image:`). Peor caso
+  vuelto a medir con 103 artículos de prueba y los 5 recientes con títulos
+  topeados en 3 renglones: sigue en 985px, así que el umbral del sticky
+  (1040px de alto) no cambia. Categorías, líneas y sticky sin cambios.
 
 - 2026-09-24: instala GoatCounter (script `async` al final del `<body>` del
   layout base, en las 13 páginas HTML). Verificado en Edge real: en local y

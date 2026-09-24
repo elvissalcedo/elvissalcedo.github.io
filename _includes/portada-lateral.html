@@ -27,11 +27,25 @@
       </section>
       <section class="lateral-bloque">
         <h2 class="lateral-titulo">Artículos recientes</h2>
+        {%- comment -%}
+          Cada reciente lleva a la izquierda una miniatura: la misma imagen
+          de su tarjeta (`image:` del front matter), recortada chica. El
+          enlace de la miniatura queda fuera del teclado y del lector de
+          pantalla (repetiría el del título). Un artículo sin `image:` deja
+          el hueco pintado, para que los títulos sigan alineados.
+        {%- endcomment %}
         <ol class="lateral-recientes">
           {%- for p in visibles_lat limit: 5 %}
           <li>
-            <a href="{{ p.url }}">{{ p.title }}</a>
-            <time datetime="{{ p.date | date: '%Y-%m-%d' }}">{% include fecha-es.html date=p.date %}</time>
+            {%- if p.image %}
+            <a class="reciente-miniatura" href="{{ p.url }}" tabindex="-1" aria-hidden="true"><img src="{{ p.image }}" alt="" width="76" height="57" loading="lazy" decoding="async"></a>
+            {%- else %}
+            <span class="reciente-miniatura" aria-hidden="true"></span>
+            {%- endif %}
+            <div class="reciente-texto">
+              <a href="{{ p.url }}">{{ p.title }}</a>
+              <time datetime="{{ p.date | date: '%Y-%m-%d' }}">{% include fecha-es.html date=p.date %}</time>
+            </div>
           </li>
           {%- endfor %}
         </ol>
