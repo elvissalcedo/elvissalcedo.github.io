@@ -38,7 +38,10 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   explicada primero en simple y una postura propia sostenida con
   evidencia -- el artículo es argumentativo dentro de la divulgación,
   con cohesión entre párrafos, términos técnicos constantes y una sola
-  idea central que el plan declara antes de escribir; NotebookLM propone
+  idea central que el plan declara antes de escribir, sin muletillas de
+  texto generado (patrón a vigilar, no lista vetada), con variedad
+  sintáctica más allá del largo y que enganche al lector sin inventar
+  dramatismo; NotebookLM propone
   la estructura en un mensaje corto y espera el "ok" de Elvis) con títulos de sección
   creativos, preguntas finales orientadas a analizar/evaluar/crear
   (Bloom, sin nombrarlo) y vacíos planteados como oportunidad solo
@@ -49,7 +52,7 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   del conocimiento.
 - **El prompt corto** (`03-prompt-notebooklm.txt`, local, no versionado --
   ver nota arriba): lo que Elvis pega en el chat de NotebookLM cada vez
-  que pide un artículo nuevo (444 palabras, tope de 600). Ya no repite las
+  que pide un artículo nuevo (538 palabras, tope de 600). Ya no repite las
   reglas: remite al documento fuente y solo marca los pasos de la sesión
   (identificar el dosier,
   proponer la estructura y esperar el "ok", un bloque de código por
@@ -584,6 +587,16 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: las instrucciones de NotebookLM suman tres reglas en la
+  sección 4, junto al efecto fábrica: muletillas de texto generado (patrón
+  a vigilar, no lista vetada; los términos técnicos centrales quedan
+  exceptuados), variedad sintáctica más allá del largo (orden de la frase,
+  tipo de oración, gerundios encadenados) y que el artículo enganche sin
+  inventar dramatismo; más un ítem de autocrítica en la sección 8. El
+  prompt corto suma un párrafo y queda en 538 palabras (tope de 600).
+  Ambos archivos siguen locales y sin versionar; solo cambia esta
+  descripción.
 
 - 2026-09-24: las instrucciones de NotebookLM suman género argumentativo
   (postura propia con evidencia, tercera función fija), cohesión textual
