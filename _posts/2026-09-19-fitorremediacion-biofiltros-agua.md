@@ -3,6 +3,7 @@ layout: post
 title: "Fitorremediación y Biofiltros: La Biología Vegetal como Ingeniería de Depuración"
 date: 2026-09-19
 category: Agua
+tags: [Fitorremediación]
 excerpt: "Un análisis técnico e ingenieril sobre los mecanismos biológicos de fitoextracción y biofiltración vegetal para el tratamiento de efluentes residuales y remediación de metales pesados."
 image: /assets/imagenes/fitorremediacion-biofiltros-agua/esquema-biofiltro-subsuperficial.png
 ---

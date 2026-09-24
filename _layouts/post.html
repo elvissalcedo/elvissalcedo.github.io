@@ -44,36 +44,59 @@ layout: default
     </div>
 
     {%- comment -%}
-      Sugeridos: hasta 3 artículos, primero los de la misma categoría (del más
-      nuevo al más viejo) y, si no alcanzan -- la mayoría de las categorías
-      tiene un solo artículo --, se completa con los más recientes del sitio.
+      Sugeridos: hasta 5 artículos, y SOLO si están relacionados de verdad.
+      Nunca se rellena con artículos sin relación solo por ser recientes: si
+      no hay ninguno relacionado, la sección directamente no aparece.
+
+      Cuenta como relacionado:
+        1. la misma categoría (primero, del más nuevo al más viejo);
+        2. al menos un tema en común en `tags:` del front matter -- sirve
+           para unir artículos de categorías distintas sobre el mismo tema
+           (p. ej. dos de fitorremediación, uno en Agua y otro en Suelo). Hoy
+           ningún artículo tiene `tags:`, así que por ahora cuenta solo la
+           categoría; el día que se agreguen, funcionan sin tocar nada acá.
+           Se comparan en minúsculas ("Fitorremediación" = "fitorremediación").
+
       Nunca el artículo actual, nunca uno oculto, nunca uno repetido. No usa
       visitas ni analítica: el sitio no las registra.
-      `ya_elegidos` guarda las URL elegidas entre barras ("|/a.html|/b.html|")
-      para que `contains` no confunda una URL con el final de otra.
+      `ya_elegidos` y `temas_pagina` van entre barras ("|a|b|") para que
+      `contains` no confunda un valor con el final de otro.
     {%- endcomment %}
+    {%- assign maximo_sug = 5 %}
     {%- assign visibles_sug = site.posts | where_exp: "p", "p.hidden != true" %}
-    {%- assign misma_categoria = visibles_sug | where: "category", page.category %}
     {%- assign ya_elegidos = "|" %}
     {%- assign cantidad_sug = 0 %}
     {%- capture tarjetas_sug %}
-      {%- for p in misma_categoria %}
-        {%- if cantidad_sug < 3 and p.url != page.url %}
-{% include post-card.html post=p compacta=true nivel=3 %}
-          {%- assign ya_elegidos = ya_elegidos | append: p.url | append: "|" %}
-          {%- assign cantidad_sug = cantidad_sug | plus: 1 %}
-        {%- endif %}
-      {%- endfor %}
-      {%- for p in visibles_sug %}
-        {%- assign clave_sug = "|" | append: p.url | append: "|" %}
-        {%- if cantidad_sug < 3 and p.url != page.url %}
-          {%- unless ya_elegidos contains clave_sug %}
+      {%- if page.category %}
+        {%- assign misma_categoria = visibles_sug | where: "category", page.category %}
+        {%- for p in misma_categoria %}
+          {%- if cantidad_sug < maximo_sug and p.url != page.url %}
 {% include post-card.html post=p compacta=true nivel=3 %}
             {%- assign ya_elegidos = ya_elegidos | append: p.url | append: "|" %}
             {%- assign cantidad_sug = cantidad_sug | plus: 1 %}
-          {%- endunless %}
-        {%- endif %}
-      {%- endfor %}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+      {%- if page.tags.size > 0 %}
+        {%- assign temas_pagina = page.tags | join: "|" | downcase | prepend: "|" | append: "|" %}
+        {%- for p in visibles_sug %}
+          {%- assign clave_sug = "|" | append: p.url | append: "|" %}
+          {%- if cantidad_sug < maximo_sug and p.url != page.url and p.tags.size > 0 %}
+            {%- unless ya_elegidos contains clave_sug %}
+              {%- assign comparte_tema = false %}
+              {%- for tema in p.tags %}
+                {%- assign clave_tema = tema | downcase | prepend: "|" | append: "|" %}
+                {%- if temas_pagina contains clave_tema %}{% assign comparte_tema = true %}{% endif %}
+              {%- endfor %}
+              {%- if comparte_tema %}
+{% include post-card.html post=p compacta=true nivel=3 %}
+                {%- assign ya_elegidos = ya_elegidos | append: p.url | append: "|" %}
+                {%- assign cantidad_sug = cantidad_sug | plus: 1 %}
+              {%- endif %}
+            {%- endunless %}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
     {%- endcapture %}
     {%- if cantidad_sug > 0 %}
     <section class="sugeridos" aria-labelledby="sugeridos-titulo">

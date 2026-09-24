@@ -343,9 +343,13 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   (formateada en español vía `_includes/fecha-es.html`, GitHub Pages no
   permite plugins de localización), categoría, `.article-layout` (post-body +
   TOC flotante armado por `assets/js/articulo.js`) y al final **Sugeridos**:
-  hasta 3 tarjetas compactas, primero de la misma categoría y, si no
-  alcanzan, completadas con las más recientes (nunca el artículo actual ni
-  uno oculto). Sin `tags:` ni analítica: el sitio no tiene ninguna de las dos.
+  de 0 a 5 tarjetas compactas, SOLO de artículos relacionados de verdad --
+  primero la misma categoría y después los que compartan al menos un tema
+  en `tags:` (comparados en minúsculas). Nunca se rellena con artículos sin
+  relación: si no hay ninguno, la sección no aparece (hoy, con una sola
+  entrada por categoría y sin `tags:`, no aparece en ninguno). Para unir dos
+  artículos de categorías distintas sobre el mismo tema basta con darles un
+  `tags:` en común. Sin analítica: el sitio no la tiene.
 - `_layouts/category.html` — loop de `site.posts` filtrado por
   `page.category`, con aviso "próximamente" si la categoría está vacía.
 - `_includes/header.html` + `_includes/nav-enlaces.html` — el menú se
@@ -362,8 +366,14 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   el buscador no se dibuja.
 - Ancho: los artículos siguen en `.page-body` (860px, columna de lectura de
   580px con el índice). La portada y las categorías piden por front matter
-  `clase_main: page-body-listado` (1120px, 3 columnas de tarjetas) -- con
-  860px entraban 2 columnas por 8px de diferencia, no por decisión.
+  `clase_main: page-body-listado` (`--ancho-listado`, 1480px; tarjetas de
+  300px mínimo: 3 columnas a 1280px, 4 desde ~1600px) y el encabezado se
+  alinea con esa grilla en esas páginas (`body.con-page-body-listado`).
+- Portada: el artículo más reciente (visible) va arriba en una tarjeta
+  destacada (`lista-posts.html` con `destacar=true`, solo en `index.html`;
+  las categorías no destacan ninguno): extracto completo, imagen a la
+  izquierda desde 1100px y apilada debajo de eso, sin `loading="lazy"`
+  porque es lo primero que se ve.
 - `_posts/` — un artículo por archivo, `AAAA-MM-DD-slug.md`. El primer
   artículo real (`lavador-venturi.html` original) vive acá como
   `2026-09-17-lavador-venturi.md`, con `permalink: /lavador-venturi.html`
@@ -440,6 +450,11 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   16:9.** Con `overflow` visible, `aspect-ratio` deja que la altura natural
   de la imagen le gane a la proporción: una infografía vertical (la del
   maíz) estiraba su tarjeta y la fila entera de la grilla.
+- **La foto de la tarjeta destacada NO usa `aspect-ratio` en la vista de
+  dos columnas.** En un ítem de grilla, `aspect-ratio` + un alto hace que el
+  navegador calcule el ANCHO a partir del alto: con un extracto largo al
+  lado, la foto se salía de su columna y tapaba el texto (medido a 1000px).
+  Llena su celda con `min-height` y `object-fit: cover`.
 
 - **Una infografía densa se marca a mano: no hay forma de detectarla
   sola.** Una imagen con mucho texto adentro (un esquema con etiquetas, un
@@ -513,6 +528,17 @@ disco, nunca asumir que un `git show`/`git log` los va a encontrar.
   detalle técnico (byline, fechas, etiquetas).
 
 ## Historial de cambios recientes
+
+- 2026-09-24: portada y categorías a 1480px (antes 1120; 4 columnas desde
+  ~1600px, encabezado alineado), artículo más reciente destacado arriba de
+  la portada (extracto completo), tarjetas con borde y sombra en todos los
+  anchos, y Sugeridos solo con artículos relacionados de verdad (misma
+  categoría o `tags:` en común, hasta 5, cero si no hay ninguno -- ya no
+  rellena con los más recientes). Primer uso real de `tags:`: los dos
+  artículos de fitorremediación (Agua y Suelo) llevan
+  `tags: [Fitorremediación]` y se sugieren entre sí. Probado en Edge real vía CDP de 390 a
+  2560px (217 pruebas), con Sugeridos verificado sobre una copia aislada con
+  artículos de prueba (7 del mismo tema, ocultos, `tags:` entre categorías).
 
 - 2026-09-23: navegación y portada -- en celular (<= 768px) el menú de 9
   entradas sobre la foto pasa a un panel "Secciones" (`<details>`, sin JS)

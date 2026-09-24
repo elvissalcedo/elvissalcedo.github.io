@@ -358,13 +358,21 @@ blockquote {
    accidente del número. Los artículos no usan esta clase: su ancho de
    lectura no cambia. La piden por front matter (`clase_main`), ver
    _layouts/default.html. */
-.page-body-listado { max-width: 1120px; }
+/* 1480px: en un monitor de 1600-1920px la grilla usa casi todo el ancho
+   (antes, con 1120px, quedaban 240-400px vacíos a cada lado). Un solo
+   número para el contenedor y para el encabezado, así nunca se desalinean. */
+:root { --ancho-listado: 1480px; }
+.page-body-listado { max-width: var(--ancho-listado); }
+/* Tarjetas de al menos 300px en los listados: con el contenedor ancho, el
+   mínimo de 260px metía 5 columnas angostas a 1600px y los títulos se
+   partían en 4-5 renglones. Con 300 son 4 columnas ahí y 3 a 1280px. */
+.page-body-listado .posts { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 /* En esas mismas páginas, el encabezado se ensancha igual para que el
-   nombre del sitio arranque en la misma línea que la primera tarjeta:
-   1080px = 1120 menos los 20px de margen de cada lado de .page-body. La
+   nombre del sitio arranque en la misma línea que la primera tarjeta: el
+   ancho del listado menos los 20px de margen de cada lado de .page-body. La
    regla base de .inner (860px) no cambia: en un artículo el encabezado
    sigue alineado con la columna de lectura. */
-.con-page-body-listado .site-header .inner { max-width: 1080px; }
+.con-page-body-listado .site-header .inner { max-width: calc(var(--ancho-listado) - 40px); }
 
 /* ==========================================================================
    GRILLA DE TARJETAS -- portada y páginas de categoría. Estilo "tarjeta de
@@ -378,13 +386,101 @@ blockquote {
   gap: 24px;
 }
 
+/* Marco en todos los anchos: un borde (sobrevive al "oscurecer páginas" del
+   navegador, que repinta los colores y se come las sombras suaves) y una
+   sombra de dos capas -- una corta que asienta la tarjeta y una larga que la
+   despega del fondo. Al pasar el mouse sube apenas y la sombra se abre: la
+   tarjeta entera se siente un objeto, no un bloque de texto. */
 .post-card {
   display: flex;
   flex-direction: column;
   background: var(--surface);
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(26, 60, 52, 0.06), 0 10px 24px -16px rgba(26, 60, 52, 0.35);
+  box-shadow: 0 1px 3px rgba(26, 60, 52, 0.1), 0 8px 20px -6px rgba(26, 60, 52, 0.28);
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+.post-card:not(.aviso):hover {
+  border-color: #c9d4cc;
+  box-shadow: 0 2px 4px rgba(26, 60, 52, 0.1), 0 16px 32px -10px rgba(26, 60, 52, 0.38);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .post-card { transition: none; }
+  .post-card:not(.aviso):hover { transform: none; }
+}
+
+/* ---- Tarjeta destacada (solo portada: el artículo más reciente) ----
+   Ocupa todo el ancho, arriba de la grilla. En escritorio la imagen va a la
+   izquierda y el texto a la derecha; en celular, imagen arriba como las
+   demás pero con título más grande. El extracto va completo, sin recortar. */
+.post-card.destacada { margin-bottom: 32px; }
+.post-card.destacada .post-card-body { padding: 24px 24px 28px; }
+.post-card.destacada .post-title {
+  margin: 4px 0 12px;
+  font-size: 27px;
+  line-height: 1.2;
+}
+.post-card.destacada .post-excerpt {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+.post-card-nuevo {
+  display: inline-block;
+  background: var(--accent);
+  color: #ffffff;
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.post-card-leer {
+  display: inline-block;
+  margin-top: 18px;
+  font: 600 13px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* Tablet y escritorio angosto: apilada, pero con la foto más baja (2:1) para
+   que no ocupe media pantalla antes del título. */
+@media (min-width: 640px) and (max-width: 1099px) {
+  .post-card.destacada .post-card-thumb { aspect-ratio: 2 / 1; }
+  .post-card.destacada .post-title { font-size: 30px; }
+}
+/* Dos columnas recién desde 1100px: con menos ancho, la columna de texto
+   quedaba en ~350px y el título se partía en 7 renglones (medido a 1000px). */
+@media (min-width: 1100px) {
+  .post-card.destacada {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  /* La imagen llena su celda de la grilla: el alto lo marca el texto de al
+     lado (con un mínimo), y la foto se recorta con object-fit. Sin
+     aspect-ratio a propósito: en un ítem de grilla, aspect-ratio + alto
+     hace que el navegador calcule el ANCHO a partir del alto, y con un
+     extracto largo la foto se salía de su columna (medido a 1000px). */
+  .post-card.destacada .post-card-thumb {
+    position: relative;
+    aspect-ratio: auto;
+    min-height: 340px;
+  }
+  .post-card.destacada .post-card-thumb img {
+    position: absolute;
+    inset: 0;
+  }
+  .post-card.destacada .post-card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 36px 40px;
+  }
+  .post-card.destacada .post-title { font-size: clamp(28px, 2.2vw, 34px); }
 }
 
 .post-card-thumb {
@@ -409,8 +505,9 @@ blockquote {
 
 .post-card-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   margin: 0 0 10px;
 }
 .post-card-category {
@@ -718,8 +815,8 @@ blockquote {
 }
 
 /* ---- Sugeridos (final del artículo) ----
-   Hasta 3 tarjetas compactas (sin extracto). La selección la arma
-   _layouts/post.html: misma categoría primero, después los más recientes. */
+   De 0 a 5 tarjetas compactas (sin extracto), solo de artículos
+   relacionados de verdad: la selección la arma _layouts/post.html. */
 .sugeridos {
   margin-top: 56px;
   padding-top: 28px;
@@ -1000,16 +1097,6 @@ blockquote {
 }
 
 @media (max-width: 768px) {
-  /* Tarjetas: la sombra de escritorio es tan suave que en una pantalla
-     chica y brillante -- o con el "oscurecer páginas" del navegador, que
-     repinta los colores -- la tarjeta parecía texto suelto. En celular se
-     le suma un borde (sobrevive a cualquier repintado de color) y una
-     sombra más marcada. */
-  .post-card {
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 3px rgba(26, 60, 52, 0.1), 0 8px 20px -6px rgba(26, 60, 52, 0.28);
-  }
-
   /* Sugeridos en celular: una tarjeta debajo de otra, con la miniatura al
      costado en vez de arriba -- tres fotos a lo ancho eran tres pantallas
      de scroll para llegar al pie. */

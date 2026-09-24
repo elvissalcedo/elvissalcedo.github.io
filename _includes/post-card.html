@@ -1,24 +1,33 @@
 {%- comment -%}
-  Parámetros opcionales (los usa la sección "Sugeridos" de _layouts/post.html):
-    include.compacta -- true: sin extracto, y en celular miniatura al costado.
-    include.nivel    -- nivel del título (2 por defecto; 3 debajo de un h2).
+  Parámetros opcionales:
+    include.compacta  -- true: sin extracto, y en celular miniatura al
+                         costado (sección "Sugeridos" de _layouts/post.html).
+    include.destacada -- true: tarjeta grande del artículo más reciente en la
+                         portada (_includes/lista-posts.html), con el
+                         extracto completo en vez de recortado.
+    include.nivel     -- nivel del título (2 por defecto; 3 debajo de un h2).
 {%- endcomment -%}
 {%- assign nivel_titulo = include.nivel | default: 2 %}
-      <div class="post-card{% if include.compacta %} compacta{% endif %}">
+      <div class="post-card{% if include.compacta %} compacta{% endif %}{% if include.destacada %} destacada{% endif %}">
         {% if include.post.image %}
         <a class="post-card-thumb" href="{{ include.post.url }}" tabindex="-1" aria-hidden="true">
           {%- comment -%}
             loading="lazy": la miniatura se baja recién cuando está por
             entrar en pantalla, no las cuatro de golpe al abrir la portada.
+            La destacada es la excepción: es lo primero que se ve al abrir
+            la portada, y demorarla solo haría que apareciera tarde.
             No hace falta declarar width/height acá porque .post-card-thumb
-            ya reserva el lugar con aspect-ratio 16/9 (ver styles.css), así
-            que la tarjeta no salta cuando la imagen termina de cargar.
+            ya reserva el lugar con aspect-ratio (ver styles.css), así que
+            la tarjeta no salta cuando la imagen termina de cargar.
           {%- endcomment -%}
-          <img src="{{ include.post.image }}" alt="" loading="lazy" decoding="async">
+          <img src="{{ include.post.image }}" alt=""{% if include.destacada %} fetchpriority="high"{% else %} loading="lazy"{% endif %} decoding="async">
         </a>
         {% endif %}
         <div class="post-card-body">
           <div class="post-card-meta">
+            {%- if include.destacada %}
+            <span class="post-card-nuevo">Lo más reciente</span>
+            {%- endif %}
             <span class="post-card-category">{{ include.post.category }}</span>
             <span class="post-card-date">{% include fecha-es.html date=include.post.date %}</span>
           </div>
@@ -26,5 +35,8 @@
           {%- unless include.compacta %}
           <p class="post-excerpt">{{ include.post.excerpt }}</p>
           {%- endunless %}
+          {%- if include.destacada %}
+          <a class="post-card-leer" href="{{ include.post.url }}" aria-hidden="true" tabindex="-1">Leer el artículo &rarr;</a>
+          {%- endif %}
         </div>
       </div>
