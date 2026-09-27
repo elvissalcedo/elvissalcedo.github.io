@@ -24,6 +24,40 @@
   --border: #dde4de;
 }
 
+/* ==========================================================================
+   MODO OSCURO -- sigue prefers-color-scheme del sistema/navegador, sin
+   selector manual ni JS (mismo criterio que prefers-reduced-motion, más
+   abajo). Redefine las mismas 10 variables de :root; como casi todo el sitio
+   ya lee su color de ahí, el resto del CSS se re-tematiza solo, sin tocar
+   ninguna otra regla. Contraste verificado (WCAG): texto 13.2:1, títulos
+   15.2:1, enlaces 7.4:1, texto muted 6.6:1 -- todos por encima del mínimo
+   AA (4.5:1).
+   El encabezado/hero, el texto blanco sobre él y el acento con texto blanco
+   encima (insignia "Nuevo", hover de redes sociales) NO cambian a propósito:
+   son colores fijos sobre una foto o un fondo de color, no sobre --bg/
+   --surface, así que ya funcionan igual en cualquier modo. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #10201a;
+    --surface: #17281f;
+    --text: #dbe6de;
+    --heading: #eef5f0;
+    --heading-alt: #7bc496;
+    --muted: #93a69b;
+    --link: #6fb3e0;
+    --accent: #c2703a;
+    --label-bg: #1e332a;
+    --border: #2a3f34;
+  }
+
+  /* Los únicos dos bordes de contenido que no colgaban de --border sino de
+     un gris claro fijo (pensado solo para fondo claro) -- se oscurecen acá
+     nomás, sin tocar la regla original de más abajo. */
+  .post-body h2 { border-bottom-color: #2a3f34; }
+  .sugeridos { border-top-color: #2a3f34; }
+  .post-card:not(.aviso):hover { border-color: #38503f; }
+}
+
 * { box-sizing: border-box; }
 
 body {

@@ -14,9 +14,6 @@ author: "Elvis Salcedo"
 url: "https://elvissalcedo.github.io"
 lang: es
 
-twitter:
-  card: summary_large_image
-
 markdown: kramdown
 kramdown:
   math_engine: null
