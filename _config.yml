@@ -1,0 +1,72 @@
+# jekyll-seo-tag es la ÚNICA fuente de <title>, description, canonical, Open
+# Graph y JSON-LD -- ninguna página los escribe a mano.
+#
+# `title` va SIN la barra "|": seo-tag pasa el título por kramdown antes de
+# usarlo, y kramdown lee una línea con "|" como fila de tabla y se come la
+# barra ("Elvis Salcedo | Ingeniería Ambiental" salía como "Elvis Salcedo
+# Ingeniería Ambiental"). La barra la vuelve a poner seo-tag al unir
+# title + tagline, así que el <title> publicado sigue siendo
+# "Elvis Salcedo | Ingeniería Ambiental".
+title: "Elvis Salcedo"
+tagline: "Ingeniería Ambiental"
+description: "Bitácora de ingeniería ambiental de Elvis Salcedo: agua, aire, suelo y residuos, explicados con rigor técnico y lenguaje claro."
+author: "Elvis Salcedo"
+url: "https://elvissalcedo.github.io"
+lang: es
+
+twitter:
+  card: summary_large_image
+
+markdown: kramdown
+kramdown:
+  math_engine: null
+
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Fuente única para el menú y las páginas de categorías -- nada de esto se
+# vuelve a escribir a mano en ningún layout o include. "Otros" va última a
+# propósito: temas que no encajan en las ambientales (tecnología aplicada,
+# reflexiones generales).
+categorias:
+  - { name: "Agua", slug: "agua" }
+  - { name: "Aire", slug: "aire" }
+  - { name: "Ruido", slug: "ruido" }
+  - { name: "Suelo", slug: "suelo" }
+  - { name: "Toxicología y Salud", slug: "toxicologia-salud" }
+  - { name: "Sostenibilidad y Energía", slug: "sostenibilidad-energia" }
+  - { name: "Gestión y Política", slug: "gestion-politica" }
+  - { name: "Filosofía y Decisión", slug: "filosofia-decision" }
+  - { name: "Otros", slug: "otros" }
+
+# Imagen por defecto al compartir en redes (Open Graph / Twitter). Va como
+# `defaults` y no como clave suelta porque jekyll-seo-tag solo lee `image`
+# del front matter de la página, nunca del sitio. El scope es "pages": un
+# post usa la imagen de su propio `image:`, que además es la miniatura de su
+# tarjeta en la portada.
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      image: /assets/og-cover.jpg
+
+exclude:
+  - 02-instrucciones-notebooklm.md
+  - 03-prompt-notebooklm.txt
+  - CLAUDE.md
+  # Lanzador local del panel de control: sin esto Jekyll lo copiaba a _site/
+  # y quedaba publicado (descargable) en el sitio real.
+  - panel-control-gitpage.bat
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - node_modules
+  # Carpetas de trabajo de publicar_articulo.py (ver .github/scripts/). Jekyll
+  # busca posts en subcarpetas de _posts/ tambien, asi que sin este exclude
+  # cualquier borrador con nombre AAAA-MM-DD-*.md ahi adentro se publicaria
+  # dos veces: una vez bien (la copia que hace el script en _posts/) y otra
+  # rota (el original, con <img src="archivo.jpg"> sin resolver).
+  - _posts/articulos

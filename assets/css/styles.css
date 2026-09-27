@@ -1,0 +1,1303 @@
+/* ==========================================================================
+   Elvis Salcedo | Ingeniería Ambiental -- hoja de estilos del sitio Jekyll.
+   Hoja única: la cargan _layouts/default.html y, por herencia, todas las
+   páginas (portada, categorías, artículos). Cada bloque de abajo está en
+   uso por un layout, un include o el Markdown de un artículo -- si una
+   regla deja de usarse, se borra, no se comenta.
+   ========================================================================== */
+
+/* Las fuentes ya NO se piden acá con @import: las carga _layouts/default.html
+   desde el <head>, en paralelo con esta hoja en vez de una después de la
+   otra (un @import obliga al navegador a bajar primero este archivo para
+   recién entonces enterarse de que faltan las fuentes). */
+
+:root {
+  --bg: #f4f6f3;
+  --surface: #ffffff;
+  --text: #3a453f;
+  --heading: #1a3c34;
+  --heading-alt: #2c5f2d;
+  --muted: #5c6a63;
+  --link: #1a5c8a;
+  --accent: #b5622a;
+  --label-bg: #eaf0ec;
+  --border: #dde4de;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 16px 'Sora', sans-serif;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:visited { color: var(--link); }
+a:hover { color: var(--heading-alt); text-decoration: underline; }
+
+blockquote {
+  color: var(--heading-alt);
+  font: italic 400 20px 'Spectral', serif;
+  border-left: 3px solid var(--accent);
+  padding-left: 16px;
+  margin: 1.4em 0;
+}
+
+/* ---- Encabezado / hero ---- */
+/* Foto real de portada (assets/hero-banner.jpg) con el mismo criterio que
+   bitacora-verde.css: degradado más oscuro del lado izquierdo (donde va el
+   título) que del derecho (donde está el interés visual de la foto), para
+   que el texto blanco quede legible encima de cualquier foto. Si algún día
+   no hay foto, el gradiente de fondo (mismo verde de antes) queda como
+   respaldo detrás de la imagen. */
+.site-header {
+  background:
+    linear-gradient(to right, rgba(15, 26, 22, 0.72) 0%, rgba(15, 26, 22, 0.5) 38%, rgba(15, 26, 22, 0.22) 68%),
+    url('../hero-banner.jpg'),
+    linear-gradient(120deg, #1a3c34 0%, #234d3f 60%, #2c5f2d 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 48px 20px 28px;
+  text-align: left;
+  /* Referencia para el panel "Secciones" y la lista del buscador, que se
+     despliegan justo debajo del encabezado, por encima de la página. */
+  position: relative;
+}
+.site-header .inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.site-header h1 {
+  margin: 0 0 6px;
+  color: #ffffff;
+  font: 600 42px 'Spectral', serif;
+  letter-spacing: 0.01em;
+}
+.site-header p.tagline {
+  margin: 0 0 24px;
+  color: #cfe0d9;
+  font: 400 15px 'Sora', sans-serif;
+}
+
+.site-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 4px;
+  margin: 0;
+  padding: 0;
+}
+.site-nav li a {
+  display: inline-block;
+  padding: 8px 10px;
+  color: #cfe0d9;
+  font: 600 13px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 3px solid transparent;
+}
+.site-nav li a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+.site-nav li a.selected {
+  color: #ffffff;
+  border-bottom-color: var(--accent);
+}
+
+/* Solo para lectores de pantalla: la etiqueta del buscador y el aviso de
+   cuántos resultados hay. Invisible, pero no display:none (eso lo borraría
+   también para el lector). */
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   FILA DE ACCIONES DEL ENCABEZADO -- botón "Secciones" (solo celular) y
+   buscador. En escritorio el buscador va a la derecha de la bajada, en el
+   mismo renglón (ver el @media min-width: 769px más abajo); en celular,
+   "Secciones" y el buscador comparten una fila debajo de la bajada.
+   ========================================================================== */
+.header-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- Panel "Secciones" (menú del celular) ----
+   Reemplaza en pantallas <= 768px al menú completo impreso sobre la foto.
+   No es el ícono de tres rayitas: es un botón con nombre ("Secciones") y un
+   ícono de cuadrícula, que dice qué hay adentro antes de tocarlo. */
+.nav-movil { display: none; }
+.nav-movil summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  background: rgba(15, 26, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  font: 600 12px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.nav-movil summary::-webkit-details-marker { display: none; }
+.nav-movil summary::marker { content: ''; }
+.nav-movil summary svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+.nav-movil summary:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+.nav-movil[open] summary {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: var(--heading);
+}
+.nav-movil-panel {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: calc(100% - 8px);
+  z-index: 30;
+  padding: 8px;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(15, 26, 22, 0.12), 0 16px 36px -10px rgba(15, 26, 22, 0.5);
+}
+.nav-movil-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.nav-movil-panel a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--heading);
+  font: 600 13px/1.3 'Sora', sans-serif;
+}
+.nav-movil-panel a:visited { color: var(--heading); }
+.nav-movil-panel a:hover {
+  background: var(--label-bg);
+  color: var(--heading);
+  text-decoration: none;
+}
+.nav-movil-panel a.selected {
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* ---- Buscador (lo arma assets/js/buscador.js) ---- */
+.buscador { position: relative; }
+.buscador-form { position: relative; margin: 0; }
+.buscador-caja { position: relative; }
+.buscador-icono {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.buscador-form input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 14px 0 36px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--heading);
+  font: 400 14px 'Sora', sans-serif;
+}
+.buscador-form input::placeholder { color: var(--muted); opacity: 1; }
+.buscador-form input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  background: #ffffff;
+}
+.buscador-resultados {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(15, 26, 22, 0.12), 0 16px 36px -10px rgba(15, 26, 22, 0.5);
+}
+.buscador-resultados a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--text);
+}
+.buscador-resultados a:visited { color: var(--text); }
+.buscador-resultados a:hover,
+.buscador-resultados li[aria-selected="true"] a {
+  background: var(--label-bg);
+  text-decoration: none;
+}
+.buscador-meta {
+  display: block;
+  color: var(--muted);
+  font: 500 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.buscador-titulo {
+  display: block;
+  margin: 3px 0 4px;
+  color: var(--heading);
+  font: 600 16px/1.3 'Spectral', serif;
+}
+.buscador-extracto {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text);
+  font: 400 13px/1.45 'Lora', Georgia, serif;
+}
+.buscador-vacio {
+  padding: 12px;
+  color: var(--muted);
+  font: 400 14px 'Sora', sans-serif;
+}
+
+/* Escritorio: menú completo como siempre, y el buscador a la derecha de la
+   bajada, en el mismo renglón -- el encabezado casi no crece. */
+@media (min-width: 769px) {
+  .site-header .inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 24px;
+    align-items: center;
+  }
+  .site-header h1,
+  .site-nav { grid-column: 1 / -1; }
+  .site-header p.tagline { grid-column: 1; grid-row: 2; margin: 0; }
+  .header-acciones { grid-column: 2; grid-row: 2; }
+  .site-nav { margin-top: 16px; }
+  .buscador { width: 260px; }
+}
+
+/* Celular y tablet angosta: fuera el menú completo, entra "Secciones". */
+@media (max-width: 768px) {
+  .site-nav { display: none; }
+  .nav-movil { display: block; flex: none; }
+  .buscador { flex: 1 1 auto; min-width: 0; }
+  /* La lista de resultados se ancla al encabezado entero (no al campo, que
+     acá es angosto) y ocupa todo el ancho, igual que el panel "Secciones". */
+  .buscador,
+  .buscador-form { position: static; }
+  .buscador-resultados {
+    left: 16px;
+    right: 16px;
+    top: calc(100% - 8px);
+    width: auto;
+    max-width: none;
+  }
+}
+/* ---- Título de página (artículo y página de categoría) ---- */
+/* Estaba repetido como style="" en _layouts/post.html y en
+   _layouts/category.html, con la única diferencia del margen de abajo. */
+.page-title {
+  margin: 0 0 24px;
+  color: var(--heading);
+  font: 600 30px 'Spectral', serif;
+}
+.page-title-post { margin-bottom: 4px; }
+.post-meta-cabecera { margin: 0 0 24px; }
+
+/* ---- Contenido ---- */
+.page-body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+/* Portada y páginas de categoría: más anchas que un artículo, para que la
+   grilla de tarjetas tenga lugar. Con 860px entraban 2 columnas por 8px
+   (3 necesitan 828px útiles y había 820) -- no era una decisión, era un
+   accidente del número. Los artículos no usan esta clase: su ancho de
+   lectura no cambia. La piden por front matter (`clase_main`), ver
+   _layouts/default.html. */
+/* 1480px: en un monitor de 1600-1920px la grilla usa casi todo el ancho
+   (antes, con 1120px, quedaban 240-400px vacíos a cada lado). Un solo
+   número para el contenedor y para el encabezado, así nunca se desalinean. */
+:root { --ancho-listado: 1480px; }
+.page-body-listado { max-width: var(--ancho-listado); }
+/* Tarjetas de al menos 300px en los listados: con el contenedor ancho, el
+   mínimo de 260px metía 5 columnas angostas a 1600px y los títulos se
+   partían en 4-5 renglones. Con 300 son 4 columnas ahí y 3 a 1280px. */
+.page-body-listado .posts { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+/* En esas mismas páginas, el encabezado se ensancha igual para que el
+   nombre del sitio arranque en la misma línea que la primera tarjeta: el
+   ancho del listado menos los 20px de margen de cada lado de .page-body. La
+   regla base de .inner (860px) no cambia: en un artículo el encabezado
+   sigue alineado con la columna de lectura. */
+.con-page-body-listado .site-header .inner { max-width: calc(var(--ancho-listado) - 40px); }
+
+/* ==========================================================================
+   GRILLA DE TARJETAS -- portada y páginas de categoría. Estilo "tarjeta de
+   noticias" (miniatura arriba + etiqueta de categoría/fecha + título +
+   extracto), reusable sea que haya un solo artículo o decenas: el grid se
+   acomoda solo con auto-fill, sin tocar el CSS al agregar posts nuevos.
+   ========================================================================== */
+.posts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+/* Marco en todos los anchos: un borde (sobrevive al "oscurecer páginas" del
+   navegador, que repinta los colores y se come las sombras suaves) y una
+   sombra de dos capas -- una corta que asienta la tarjeta y una larga que la
+   despega del fondo. Al pasar el mouse sube apenas y la sombra se abre: la
+   tarjeta entera se siente un objeto, no un bloque de texto. */
+.post-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(26, 60, 52, 0.1), 0 8px 20px -6px rgba(26, 60, 52, 0.28);
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+.post-card:not(.aviso):hover {
+  border-color: #c9d4cc;
+  box-shadow: 0 2px 4px rgba(26, 60, 52, 0.1), 0 16px 32px -10px rgba(26, 60, 52, 0.38);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .post-card { transition: none; }
+  .post-card:not(.aviso):hover { transform: none; }
+}
+
+/* ---- Tarjeta destacada (solo portada: el artículo más reciente) ----
+   Ocupa todo el ancho, arriba de la grilla. En escritorio la imagen va a la
+   izquierda y el texto a la derecha; en celular, imagen arriba como las
+   demás pero con título más grande. El extracto va completo, sin recortar. */
+.post-card.destacada { margin-bottom: 32px; }
+.post-card.destacada .post-card-body { padding: 24px 24px 28px; }
+.post-card.destacada .post-title {
+  margin: 4px 0 12px;
+  font-size: 27px;
+  line-height: 1.2;
+}
+.post-card.destacada .post-excerpt {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+.post-card-nuevo {
+  display: inline-block;
+  background: var(--accent);
+  color: #ffffff;
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.post-card-leer {
+  display: inline-block;
+  margin-top: 18px;
+  font: 600 13px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* Tablet y escritorio angosto: apilada, pero con la foto más baja (2:1) para
+   que no ocupe media pantalla antes del título. */
+@media (min-width: 640px) and (max-width: 1099px) {
+  .post-card.destacada .post-card-thumb { aspect-ratio: 2 / 1; }
+  .post-card.destacada .post-title { font-size: 30px; }
+}
+/* Dos columnas recién desde 1100px: con menos ancho, la columna de texto
+   quedaba en ~350px y el título se partía en 7 renglones (medido a 1000px). */
+@media (min-width: 1100px) {
+  .post-card.destacada {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  /* La imagen llena su celda de la grilla: el alto lo marca el texto de al
+     lado (con un mínimo), y la foto se recorta con object-fit. Sin
+     aspect-ratio a propósito: en un ítem de grilla, aspect-ratio + alto
+     hace que el navegador calcule el ANCHO a partir del alto, y con un
+     extracto largo la foto se salía de su columna (medido a 1000px). */
+  .post-card.destacada .post-card-thumb {
+    position: relative;
+    aspect-ratio: auto;
+    min-height: 340px;
+  }
+  .post-card.destacada .post-card-thumb img {
+    position: absolute;
+    inset: 0;
+  }
+  .post-card.destacada .post-card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 36px 40px;
+  }
+  .post-card.destacada .post-title { font-size: clamp(28px, 2.2vw, 34px); }
+}
+
+/* ==========================================================================
+   PORTADA: SECCIONES Y LATERAL
+   Tres bloques que se leen por separado: la destacada, la grilla con su
+   lateral, y el pie. Los separa una línea fina del mismo verde grisáceo de
+   los bordes (--border), no una raya dura.
+   ========================================================================== */
+.portada-cuerpo {
+  border-top: 1px solid var(--border);
+  padding-top: 32px;
+}
+/* La línea antes del pie, solo en la portada. Va al ancho de la grilla (no
+   de borde a borde) para que se lea como el cierre del contenido. */
+.es-portada .page-body { padding-bottom: 56px; }
+.es-portada .site-footer {
+  width: min(calc(100% - 40px), calc(var(--ancho-listado) - 40px));
+  margin: 0 auto;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 639px) {
+  .es-portada .site-footer { width: calc(100% - 32px); }
+}
+
+/* ---- Lateral: categorías con conteo + artículos recientes ---- */
+.portada-lateral { margin-top: 40px; }
+.lateral-bloque + .lateral-bloque { margin-top: 36px; }
+.lateral-titulo {
+  margin: 0 0 4px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--heading);
+  color: var(--heading);
+  font: 600 20px 'Spectral', serif;
+}
+.lateral-categorias,
+.lateral-recientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lateral-categorias li,
+.lateral-recientes li { border-bottom: 1px solid var(--border); }
+.lateral-categorias a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 2px;
+  color: var(--heading);
+  font: 600 14px 'Sora', sans-serif;
+}
+.lateral-categorias a:visited { color: var(--heading); }
+.lateral-categorias a:hover { color: var(--heading-alt); text-decoration: none; }
+.lateral-categorias a:hover span:first-child { text-decoration: underline; }
+.lateral-conteo {
+  flex: none;
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  font: 600 12px 'JetBrains Mono', monospace;
+  text-align: center;
+}
+/* Categorías todavía sin artículos: presentes (el menú también las lista)
+   pero en segundo plano. */
+.lateral-categorias li.vacia a { color: var(--muted); font-weight: 500; }
+.lateral-categorias li.vacia .lateral-conteo {
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+.lateral-recientes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 2px;
+}
+/* Miniatura 4:3 de 76x57: la imagen de la tarjeta del artículo, recortada
+   con object-fit. Sin imagen, el recuadro queda pintado igual para que los
+   títulos no se corran. */
+.reciente-miniatura {
+  flex: none;
+  display: block;
+  width: 76px;
+  height: 57px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--label-bg);
+}
+.reciente-miniatura img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.reciente-texto { flex: 1 1 auto; min-width: 0; }
+/* Tope de 3 renglones por título: el alto del lateral queda acotado aunque
+   lleguen títulos más largos (el título completo está en el artículo). */
+.reciente-texto a {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--heading);
+  font: 600 16px/1.35 'Spectral', serif;
+}
+/* Con mouse, filas de categorías más bajas; al dedo le quedan sus 44px. */
+@media (hover: hover) and (pointer: fine) {
+  .lateral-categorias a { min-height: 38px; padding: 6px 2px; }
+}
+.reciente-texto a:visited { color: var(--heading); }
+.reciente-texto a:hover { color: var(--heading-alt); }
+.lateral-recientes time {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+/* Tablet: el lateral va debajo de la grilla, con sus dos bloques lado a
+   lado en vez de uno encima del otro. */
+@media (min-width: 640px) and (max-width: 1099px) {
+  .portada-lateral {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .lateral-bloque + .lateral-bloque { margin-top: 0; }
+}
+/* Escritorio: el lateral al costado de la grilla. Además la acompaña al
+   bajar (sticky), pero solo en pantallas de 1080px de alto o más: con los
+   títulos topeados en 3 renglones y 9 categorías, el peor caso del lateral
+   mide 1024px (medido con 103 artículos de prueba; con 8 categorías eran
+   985), y en una pantalla más baja el sticky dejaba los últimos
+   "recientes" tapados hasta llegar al final de la grilla. OJO: cada
+   categoría nueva suma ~39px -- volver a medir y subir este número. */
+@media (min-width: 1100px) {
+  .portada-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 40px;
+    align-items: start;
+  }
+  .portada-lateral { margin-top: 0; }
+}
+@media (min-width: 1100px) and (min-height: 1080px) {
+  .portada-lateral {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+.post-card-thumb {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--label-bg);
+  /* Sin esto el 16:9 no se cumple con imágenes verticales: con overflow
+     visible, el navegador deja que la altura natural de la foto le gane a la
+     proporción, y una infografía alta estiraba la tarjeta y toda su fila. */
+  overflow: hidden;
+}
+.post-card-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.post-card-body {
+  padding: 18px 20px 22px;
+}
+
+.post-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0 0 10px;
+}
+.post-card-category {
+  display: inline-block;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.post-card-date {
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+.post-card .post-title {
+  margin: 0 0 8px;
+  color: var(--heading);
+  font: 600 21px 'Spectral', serif;
+  line-height: 1.25;
+}
+.post-card .post-title a {
+  color: inherit;
+}
+.post-card .post-title a:hover {
+  color: var(--heading-alt);
+}
+
+.post-meta {
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+  margin: 0 0 12px;
+}
+
+.post-excerpt {
+  color: var(--text);
+  font: 400 15px/1.55 'Lora', Georgia, serif;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mensaje "próximamente" mientras no hay artículos reales -- misma tarjeta
+   (.post-card) que se usa para los posts, ocupando todo el ancho de la
+   grilla en vez de una sola columna. */
+.post-card.aviso {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 28px;
+}
+.post-card.aviso .post-excerpt {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+/* ---- Cuerpo de artículo (post-body, cuando exista contenido real) ---- */
+/* El texto va alineado a la izquierda por defecto y solo se justifica en
+   pantallas anchas (ver el @media del final). En una columna angosta de
+   celular, justificar obliga al navegador a estirar los espacios entre
+   palabras y aparecen "ríos" blancos irregulares que cuestan de leer; con
+   la columna de ~580px del escritorio eso no pasa. */
+.post-body {
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.6;
+  text-align: left;
+  /* Un DOI o una URL de la bibliografía es una sola "palabra" larguísima que
+     el navegador no sabe cortar: se salía de la pantalla y arrastraba toda
+     la página de costado (medido: 96px de desborde en una entrada de las
+     Referencias, en un celular de 383px). Con esto, una palabra que no entra
+     se parte al final de la línea. El texto normal no se ve afectado: solo
+     actúa cuando algo de verdad no entra. */
+  overflow-wrap: break-word;
+}
+.post-body h2 {
+  color: var(--heading);
+  font: 600 22px 'Spectral', serif;
+  border-bottom: 2px solid #e3e8e4;
+  padding-bottom: 6px;
+}
+.post-body h3 {
+  color: var(--heading-alt);
+  font: 600 18px 'Spectral', serif;
+}
+/* height: auto es obligatorio ahora que cada <img> declara width/height
+   reales: sin esto el navegador respeta el alto del atributo mientras achica
+   el ancho al de la columna, y la imagen sale aplastada. Con height: auto
+   usa esos dos números solo para calcular la proporción y reservar el lugar
+   antes de que la imagen cargue. */
+.post-body img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* ==========================================================================
+   INFOGRAFÍA DENSA -- una imagen con mucho texto adentro (un esquema con
+   etiquetas, un diagrama de flujo con leyendas) se vuelve ilegible si se la
+   achica a los ~343px de ancho que tiene la columna en un celular.
+   Estas NO se achican: se muestran a un tamaño donde el texto interno se
+   siga leyendo y se recorren de costado, igual que las tablas anchas y las
+   fórmulas largas. Además, tocarlas abre el archivo original, donde el
+   pellizco para hacer zoom del teléfono funciona sin nada de por medio.
+
+   No se detectan solas: no hay forma de distinguir por peso o por medidas
+   una infografía cargada de texto de una foto (se midieron las 13 imágenes
+   del sitio y los valores se pisan entre sí). Se marcan de dos maneras, la
+   que resulte más cómoda:
+     1. Nombrando el archivo `infografia-loquesea.jpg` -- publicar_articulo.py
+        le pone la clase solo, sin tocar nada del .md.
+     2. Escribiendo class="infografia" en el <img> del artículo.
+   ========================================================================== */
+.post-body .infografia-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.post-body .infografia-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.post-body .infografia-enlace {
+  display: block;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+@media (max-width: 959px) {
+  /* Techo de 720px: si la imagen es más chica, se ve a su tamaño real; si es
+     más grande, se recorta a 720 y se recorre de costado (recorrer 1536px en
+     una pantalla de 383 sería eterno).
+     Acá NO se toca `width`: el atributo width="1536" del <img> ya le da al
+     navegador un ancho concreto desde el HTML, y con eso reserva el lugar
+     exacto antes de que la imagen cargue. Poniendo `width: auto` la imagen
+     quedaba en 0x0 hasta terminar de bajar (es `loading="lazy"`) y el texto
+     pegaba el salto que justamente estamos evitando. */
+  .post-body img.infografia {
+    max-width: 720px;
+  }
+}
+
+/* ==========================================================================
+   TABLAS DE ARTÍCULO
+   Una tabla Markdown normal (`| col | col |`, que es lo que entrega
+   NotebookLM) sale de kramdown como <table> pelado, sin clases: por eso el
+   estilo cuelga del elemento, no de una clase que haya que acordarse de
+   escribir. Los valores son los mismos que el artículo del Venturi traía
+   repetidos como style="" en cada <th> y cada <td>, ahora en un solo lugar.
+
+   El scroll horizontal es lo que hace usable en celular una tabla de 5
+   columnas: el envoltorio .tabla-scroll lo pone articulo.js en cada tabla al
+   cargar la página, así que no hay que escribirlo a mano en el Markdown.
+   ========================================================================== */
+.post-body .tabla-scroll {
+  overflow-x: auto;
+  margin: 1.4em 0;
+  -webkit-overflow-scrolling: touch;
+}
+.post-body .tabla-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.post-body table {
+  border-collapse: collapse;
+  margin: 1.4em 0;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+.post-body .tabla-scroll table { margin: 0; }
+
+.post-body th,
+.post-body td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.post-body th {
+  background: var(--label-bg);
+  color: var(--heading);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   FIGURA CON PIE DE FOTO -- formato estándar para toda imagen real de un
+   artículo (no decorativa): <figure class="post-figure"><img>
+   <figcaption>Figura N. Descripción. Fuente: Autor (Año).</figcaption>
+   </figure>. Reemplaza la vieja convención de un <img> seguido de un <p>
+   suelto con "Fuente: ..." -- mismo criterio visual (imagen redondeada,
+   pie de foto discreto en mono/muted) pero semánticamente correcto y sin
+   depender de que el párrafo de la fuente quede pegado a la imagen.
+   ========================================================================== */
+.post-body figure.post-figure {
+  margin: 1.6em 0;
+  text-align: center;
+}
+.post-body figure.post-figure img {
+  display: block;
+  margin: 0 auto;
+}
+.post-body figure.post-figure figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font: 500 13px 'JetBrains Mono', monospace;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   LATEX / MATHJAX -- bloques de fórmula del flujo actual (Elvis copia directo
+   desde el bloque de código de NotebookLM). Es el ÚNICO sistema de fórmulas
+   del sitio: MathJax procesa el texto que trae sus delimitadores
+   \(...\)/\[...\] y arma la fórmula. .formula-latex solo centra el párrafo
+   contenedor -- el espaciado y el centrado del bloque matemático en sí los
+   pone MathJax (mjx-container[display="true"] ya centra por defecto, así que
+   un artículo en Markdown puro se ve bien sin usar esta clase). */
+.post-body p.formula-latex {
+  text-align: center;
+  margin: 1.6em 0;
+}
+
+/* Una fórmula en bloque se dibuja con su ancho natural, y MathJax no la
+   achica: en celular, una ecuación larga se salía de la pantalla y arrastraba
+   toda la página de costado (medido: 467px de contenido en una pantalla de
+   383px). Cada bloque se desliza ahora dentro de su propia caja, igual que
+   las tablas anchas -- la página deja de moverse y la fórmula se lee entera
+   corriéndola con el dedo. El tabindex se lo pone articulo.js solo a las que
+   de verdad se desbordan, para que también se pueda recorrer con el teclado. */
+.post-body mjx-container[display="true"] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 6px;
+  -webkit-overflow-scrolling: touch;
+}
+.post-body mjx-container[display="true"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   MERMAID -- el SVG que genera assets/js/articulo.js (ver _layouts/default.html)
+   no trae ninguna regla del sitio por defecto: sin esto, un diagrama más
+   ancho que la columna del artículo (762px vs ~580px con el índice flotante
+   activo) igual se ve porque Mermaid ya pone width="100%", pero conviene
+   dejarlo explícito -- mismo criterio que .post-body img -- para que nunca
+   se desborde en pantallas angostas (celular). No arregla una etiqueta de
+   diagrama con el alto calculado demasiado justo -- eso se corrige en el
+   propio .md, acortando la etiqueta. */
+.post-body .mermaid-diagrama svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 28px;
+  font: 600 13px 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* En un artículo, debajo de "Volver al inicio" vienen las migas de pan: el
+   espacio grande va después de las dos, no entre una y otra. */
+.back-link:has(+ .migas) { margin-bottom: 14px; }
+
+/* ---- Migas de pan (artículo): Inicio › Categoría › Título ----
+   Un solo renglón: si el título no entra, se corta con "…" -- está escrito
+   completo justo abajo, como título del artículo. */
+.migas {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font: 500 12px 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.migas ol {
+  display: flex;
+  align-items: baseline;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.migas li {
+  flex: none;
+  white-space: nowrap;
+}
+.migas li + li::before {
+  content: "›";
+  content: "›" / "";
+  margin: 0 8px;
+}
+.migas li:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Sugeridos (final del artículo) ----
+   De 0 a 5 tarjetas compactas (sin extracto), solo de artículos
+   relacionados de verdad: la selección la arma _layouts/post.html. */
+.sugeridos {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 2px solid #e3e8e4;
+}
+.sugeridos-titulo {
+  margin: 0 0 20px;
+  color: var(--heading);
+  font: 600 22px 'Spectral', serif;
+}
+.posts-sugeridos {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+.post-card.compacta .post-card-body { padding: 14px 16px 18px; }
+.post-card.compacta .post-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* ---- Pie de página ---- */
+.site-footer {
+  color: var(--muted);
+  font: 500 12px 'Sora', sans-serif;
+  letter-spacing: 0.02em;
+  text-align: center;
+  padding: 28px 20px 48px;
+}
+.site-footer a { color: var(--link); }
+
+/* ---- Redes sociales (footer) ---- */
+/* SVG de Simple Icons insertados directo en el HTML -- sin depender de
+   ninguna imagen externa. LinkedIn tiene link real; el resto ("pendiente")
+   usa href="#" hasta que Elvis tenga cada cuenta lista -- mismo estilo
+   visual, solo más tenues, para que no parezcan un error. */
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--label-bg);
+  color: var(--heading-alt);
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.social-links a:hover {
+  background: var(--heading-alt);
+  color: #ffffff;
+  text-decoration: none;
+}
+.social-links svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.social-links a.pendiente {
+  opacity: .45;
+  cursor: default;
+}
+.social-links a.pendiente:hover {
+  background: var(--label-bg);
+  color: var(--heading-alt);
+}
+
+/* ==========================================================================
+   CALLOUTS -- cuadro de nota dentro de un artículo. Combina los dos patrones
+   que ya usa el sitio: el borde lateral de acento de blockquote (--accent) y
+   el fondo suave de las etiquetas de categoría (--label-bg).
+   Uso: <div class="callout"><p>Texto de la nota.</p></div>
+   ========================================================================== */
+.callout {
+  background: var(--label-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 14px 18px;
+  margin: 1.4em 0;
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--heading); }
+
+/* ==========================================================================
+   ÍNDICE FLOTANTE (tabla de contenidos del artículo)
+   <nav class="toc"> lateral, listando los <h2> del post-body -- se arma y
+   se resalta (scroll-spy) con JS vanilla, ver assets/js/articulo.js. En
+   pantallas angostas se queda arriba del artículo, en vez de flotar (no hay
+   espacio lateral para eso en celular).
+   ========================================================================== */
+.toc {
+  font: 500 13px 'Sora', sans-serif;
+}
+.toc .toc-title {
+  color: var(--muted);
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border);
+}
+.toc li a {
+  display: block;
+  padding: 5px 0 5px 12px;
+  color: var(--muted);
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+}
+.toc li a:hover {
+  color: var(--heading-alt);
+  text-decoration: none;
+}
+.toc li a.activo {
+  color: var(--heading);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   ÍNDICE PLEGABLE (solo celular)
+   El índice flotante de escritorio, en pantallas angostas, quedaba DESPUÉS
+   del artículo -- al final de 20.000px de scroll, donde ya no sirve para
+   navegar. Este bloque lo reemplaza en celular: va arriba de todo, justo
+   debajo del título, cerrado por defecto para no empujar el comienzo de la
+   lectura. Lo arma assets/js/articulo.js con los mismos <h2> y la misma
+   tipografía y colores del índice de escritorio -- no es un componente
+   nuevo, es el mismo índice en otra forma.
+   ========================================================================== */
+.toc-movil {
+  margin: 0 0 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.toc-movil summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--muted);
+  font: 600 11px 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  list-style: none;
+}
+/* El triangulito propio del navegador se saca en los dos dialectos: acá se
+   usa una flecha propia, que gira al abrir. */
+.toc-movil summary::-webkit-details-marker { display: none; }
+.toc-movil summary::marker { content: ''; }
+.toc-movil summary:hover { color: var(--heading); }
+.toc-movil summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.toc-movil summary svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  transition: transform 0.18s ease;
+}
+.toc-movil[open] summary svg { transform: rotate(90deg); }
+.toc-movil nav {
+  padding: 0 16px 14px;
+  font: 500 13px 'Sora', sans-serif;
+}
+.toc-movil ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border);
+}
+.toc-movil li a {
+  display: block;
+  padding: 7px 0 7px 12px;
+  color: var(--muted);
+}
+.toc-movil li a:hover {
+  color: var(--heading-alt);
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toc-movil summary svg { transition: none; }
+}
+
+/* ---- Botón "Volver arriba" ----
+   Lo crea assets/js/articulo.js y sólo se ve con la clase .visible, que el
+   script agrega después de bajar una pantalla. Fijo abajo a la derecha, con
+   env(safe-area-inset-*) para que en un iPhone no quede debajo de la barra
+   de gestos. 48px de lado: el mínimo cómodo para tocar con el pulgar. */
+
+/* El centinela que decide cuándo mostrarlo: alto real (lo fija el script)
+   pero sin ocupar lugar ni verse, porque está fuera del flujo. */
+.ir-arriba-centinela {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.ir-arriba {
+  position: fixed;
+  right: 16px;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 20;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--heading);
+  box-shadow: 0 2px 10px rgba(26, 60, 52, 0.18);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+.ir-arriba.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.ir-arriba:hover {
+  background: var(--heading);
+  border-color: var(--heading);
+  color: #fff;
+}
+.ir-arriba:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.ir-arriba svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ir-arriba { transition: none; }
+}
+
+/* ==========================================================================
+   CELULAR -- el encabezado ocupaba cerca del 40% de la primera pantalla
+   (título a 42px + bajada + menú de 8 categorías) antes de que empezara el
+   artículo. Acá se compacta todo eso para que el título del artículo se vea
+   apenas abre la página, sin deslizar.
+   ========================================================================== */
+@media (max-width: 639px) {
+  .site-header { padding: 28px 16px 16px; }
+  .site-header h1 { font-size: 28px; line-height: 1.15; }
+  .site-header p.tagline { font-size: 14px; margin-bottom: 16px; }
+  .page-body { padding: 24px 16px 64px; }
+  .page-title { font-size: 24px; }
+}
+
+@media (max-width: 768px) {
+  /* Sugeridos en celular: una tarjeta debajo de otra, con la miniatura al
+     costado en vez de arriba -- tres fotos a lo ancho eran tres pantallas
+     de scroll para llegar al pie. */
+  .posts-sugeridos { grid-template-columns: 1fr; gap: 12px; }
+  .post-card.compacta { flex-direction: row; }
+  /* La imagen va en absoluto: así la altura de la tarjeta la marca el texto,
+     no la foto (una infografía alta estiraba la tarjeta entera). */
+  .post-card.compacta .post-card-thumb {
+    position: relative;
+    flex: 0 0 104px;
+    aspect-ratio: auto;
+    min-height: 96px;
+  }
+  .post-card.compacta .post-card-thumb img {
+    position: absolute;
+    inset: 0;
+  }
+  .post-card.compacta .post-card-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 12px 14px;
+  }
+  .post-card.compacta .post-card-meta {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin-bottom: 6px;
+  }
+  .post-card.compacta .post-title { font-size: 16px; }
+}
+
+/* El índice plegable y el flotante son el mismo índice: nunca se ven los
+   dos a la vez. */
+@media (max-width: 959px) {
+  .toc { display: none; }
+}
+
+@media (min-width: 960px) {
+  .toc-movil { display: none; }
+  .post-body { text-align: justify; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 40px;
+    align-items: start;
+  }
+  .toc {
+    position: sticky;
+    top: 24px;
+  }
+}

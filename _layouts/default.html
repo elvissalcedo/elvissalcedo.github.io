@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% seo %}
+  {%- comment -%}
+    Un post con `hidden: true` (el banco de pruebas) ya queda fuera de la
+    portada y del sitemap, pero su permalink sigue siendo una URL pública:
+    sin esto, un buscador que llegue por cualquier vía lo indexa igual.
+  {%- endcomment -%}
+  {% if page.hidden %}<meta name="robots" content="noindex, nofollow">
+  {% endif %}
+  {%- comment -%}
+    Las fuentes se piden acá y no con un @import dentro de styles.css: con el
+    @import el navegador tenía que bajar PRIMERO la hoja de estilos y recién
+    ahí descubría que necesitaba las fuentes, una detrás de la otra. Desde el
+    <head> las dos descargas arrancan en paralelo. El preconnect abre la
+    conexión con Google Fonts antes de que haga falta.
+  {%- endcomment -%}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@400;500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+
+  {%- comment -%}
+    MathJax y Mermaid son las dos descargas más pesadas del sitio y hasta
+    ahora se bajaban en TODAS las páginas -- también en la portada y en las
+    páginas de categoría, que no tienen ni una fórmula ni un diagrama. Acá se
+    mira el HTML ya generado de la página y se cargan solo si de verdad hay
+    algo que renderizar. Los delimitadores se buscan tal como quedan en el
+    HTML final (\( \[ de un solo backslash: kramdown ya se comió el otro).
+  {%- endcomment -%}
+  {%- assign necesita_formulas = false -%}
+  {%- if content contains '\(' or content contains '\[' or content contains 'formula-latex' -%}
+    {%- assign necesita_formulas = true -%}
+  {%- endif -%}
+  {%- assign necesita_mermaid = false -%}
+  {%- if content contains 'language-mermaid' -%}
+    {%- assign necesita_mermaid = true -%}
+  {%- endif -%}
+
+  <!-- MathJax: renderiza LaTeX real (\(...\) inline, \[...\] en bloque) en el
+       navegador. Versión fijada (no "latest"). Se carga acá en el layout base
+       -- no solo en los posts -- porque Liquid no permite que un layout hijo
+       inyecte contenido en el <head> del padre; el script es async y no pesa
+       en las páginas sin fórmulas. Delimitadores \(...\)/\[...\], no $...$,
+       para no chocar con montos en soles/dólares en el texto. El paquete
+       "ams" habilita entornos como \begin{align}...\end{align} -- sin él,
+       MathJax no reconoce \begin{align} y lo deja como texto crudo. -->
+  {%- if necesita_formulas %}
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        packages: {'[+]': ['ams']}
+      },
+      // Avisa cuando las fórmulas ya están dibujadas. articulo.js lo espera
+      // para marcar como "desplazable" solo las que no entran a lo ancho.
+      // Hace falta este aviso explícito porque articulo.js corre al final
+      // del <body>, cuando MathJax (que se carga async) todavía no publicó
+      // su objeto startup: preguntarle en ese momento no sirve de nada.
+      startup: {
+        pageReady: function () {
+          return window.MathJax.startup.defaultPageReady().then(function () {
+            document.dispatchEvent(new CustomEvent('formulas-listas'));
+          });
+        }
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+  {%- endif %}
+
+  <!-- Mermaid: renderiza los bloques ```mermaid como diagramas SVG en el
+       navegador. Versión fijada (no "latest"), igual que MathJax. Kramdown
+       convierte un bloque ```mermaid en <pre><code class="language-mermaid">,
+       nunca en un <div>, así que buscamos ese selector puntual. Se usa
+       .textContent (no .innerHTML) porque kramdown escapa el símbolo mayor
+       que de las flechas de Mermaid a la entidad &gt;, y solo .textContent
+       lo decodifica de vuelta a texto plano antes de pasarlo a
+       mermaid.render(). Import type="module" ya es asíncrono por
+       naturaleza -- no bloquea el resto de la página.
+       flowchart.htmlLabels: false -- Mermaid dibuja el texto como <text> SVG
+       puro en vez de HTML dentro de un <foreignObject>. Encontrado con
+       evidencia real: con htmlLabels true (el default), los descendentes
+       (g, j, q, y) de las etiquetas salen cortados o corrompidos en
+       cualquier diagrama que quede escalado por debajo de su tamaño nativo
+       (que es casi siempre, porque la columna del artículo es más angosta
+       que el ancho que Mermaid calcula) -- es un bug de rasterizado de
+       Chromium con foreignObject dentro de un SVG escalado vía CSS, no algo
+       que un ajuste de line-height pueda terminar de resolver (se probó y
+       solo tapaba parte del problema). Con htmlLabels:false esto desaparece
+       de raíz porque ya no hay HTML ni CSS involucrado en el texto del
+       diagrama. Costo real: las etiquetas de nodo ya NO aceptan <br>/<small>
+       -- un salto de línea dentro de una etiqueta se escribe con \n literal
+       (sintaxis propia de Mermaid), nunca con HTML. -->
+  {%- if necesita_mermaid %}
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({ startOnLoad: false, flowchart: { htmlLabels: false } });
+
+    document.querySelectorAll("pre > code.language-mermaid").forEach(async (bloque, indice) => {
+      const definicion = bloque.textContent;
+      const { svg } = await mermaid.render("mermaid-diagrama-" + indice, definicion);
+      const contenedor = document.createElement("div");
+      contenedor.classList.add("mermaid-diagrama");
+      contenedor.innerHTML = svg;
+      bloque.closest("pre").replaceWith(contenedor);
+    });
+  </script>
+  {%- endif %}
+</head>
+{%- comment -%}
+  clase_main: la portada (index.html) y las páginas de categoría (layout
+  category) piden `page-body-listado`, un contenedor más ancho para la
+  grilla de tarjetas. Los artículos no la piden: su ancho de lectura queda
+  exactamente igual. `layout.clase_main` funciona porque Jekyll suma el
+  front matter del layout hijo (category.html) al de este. La misma clase
+  va también en <body>, para que el encabezado se alinee con esa grilla
+  (ver .page-body-listado en styles.css). `es-portada` marca solo la
+  portada: ahí el pie de página lleva una línea arriba que lo separa del
+  contenido (las categorías no la llevan).
+{%- endcomment %}
+{%- assign clase_main = page.clase_main | default: layout.clase_main %}
+{%- capture clases_body %}{% if clase_main %}con-{{ clase_main }}{% endif %}{% if page.url == "/" %} es-portada{% endif %}{% endcapture %}
+{%- assign clases_body = clases_body | strip %}
+<body{% if clases_body != "" %} class="{{ clases_body }}"{% endif %}>
+
+{% include header.html %}
+
+  <main class="page-body{% if clase_main %} {{ clase_main }}{% endif %}">
+{{ content }}
+  </main>
+
+{% include footer.html %}
+
+  <script src="/assets/js/articulo.js"></script>
+  <script src="/assets/js/buscador.js"></script>
+
+  {%- comment -%}
+    GoatCounter: cuenta visitas sin cookies ni datos personales. `async`:
+    se baja en paralelo y nunca frena el dibujo de la página ni las fuentes.
+    Por su cuenta NO cuenta nada en localhost/127.0.0.1 ni dentro de un
+    iframe -- la vista previa del panel de control (127.0.0.1, en un iframe)
+    no ensucia las estadísticas. Por ahora solo acumula datos: nada del
+    sitio los lee todavía.
+  {%- endcomment %}
+  <script data-goatcounter="https://elvissalcedo.goatcounter.com/count"
+      async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

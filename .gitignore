@@ -1,0 +1,32 @@
+# Jekyll build output y caché local -- nunca se comitea, GitHub Pages
+# genera el sitio publicado por su cuenta a partir de _config.yml/_posts/etc.
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# Bundler local (si se instalan las gemas dentro del repo en vez de global)
+.bundle/
+vendor/
+
+# Bytecode que deja Python al importar los scripts del panel de control
+# (panel_control.py importa publicar_articulo.py y validar_articulos.py).
+# Se regenera solo; no tiene nada que hacer en el repo.
+__pycache__/
+*.pyc
+
+# Documentos de trabajo con NotebookLM -- retirados del repo el 2026-09-22
+# (decisión de Elvis), pero siguen existiendo en el disco como referencia
+# personal fuera de control de versiones. Nunca se comitean ni se suben.
+02-instrucciones-notebooklm.md
+03-prompt-notebooklm.txt
+
+# CLAUDE.md -- retirado del repo el 2026-09-27 (decisión de Elvis: el repo
+# tiene que ser publico para que funcione GitHub Pages en el plan Free, pero
+# este archivo es el diario tecnico interno del proyecto -- decisiones,
+# incidentes reales, como se construyo con IA -- que no tiene nada que ver
+# con el contenido publico del sitio ni lo necesita ningun script/workflow
+# para funcionar. Mismo criterio que 02/03: sigue existiendo en el disco de
+# Elvis como referencia (Claude Code lo sigue leyendo solo al abrir esta
+# carpeta), pero nunca se comitea ni se sube.
+CLAUDE.md
