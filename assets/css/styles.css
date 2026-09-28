@@ -22,6 +22,14 @@
   --accent: #b5622a;
   --label-bg: #eaf0ec;
   --border: #dde4de;
+  /* Ancho del contenedor de un articulo (y del encabezado que se le alinea
+     encima, ver .site-header .inner). No es el ancho de la columna de
+     texto: a >= 960px el articulo se arma en grid con el indice flotante de
+     200px + 40px de gap (ver .article-layout al final del archivo), asi que
+     el texto real queda en ~720px con este valor. Antes eran 860px fijos
+     (~580px de texto) -- se sentia angosto en un monitor grande; subido acá
+     el 2026-09-28 a pedido de Elvis, sin tocar el resto del layout. */
+  --ancho-articulo: 1000px;
 }
 
 /* ==========================================================================
@@ -101,7 +109,7 @@ blockquote {
   position: relative;
 }
 .site-header .inner {
-  max-width: 860px;
+  max-width: var(--ancho-articulo);
   margin: 0 auto;
 }
 .site-header h1 {
@@ -382,7 +390,7 @@ blockquote {
 
 /* ---- Contenido ---- */
 .page-body {
-  max-width: 860px;
+  max-width: var(--ancho-articulo);
   margin: 0 auto;
   padding: 32px 20px 80px;
 }
@@ -404,8 +412,8 @@ blockquote {
 /* En esas mismas páginas, el encabezado se ensancha igual para que el
    nombre del sitio arranque en la misma línea que la primera tarjeta: el
    ancho del listado menos los 20px de margen de cada lado de .page-body. La
-   regla base de .inner (860px) no cambia: en un artículo el encabezado
-   sigue alineado con la columna de lectura. */
+   regla base de .inner (--ancho-articulo) no cambia: en un artículo el
+   encabezado sigue alineado con la columna de lectura. */
 .con-page-body-listado .site-header .inner { max-width: calc(var(--ancho-listado) - 40px); }
 
 /* ==========================================================================
@@ -762,7 +770,7 @@ blockquote {
    pantallas anchas (ver el @media del final). En una columna angosta de
    celular, justificar obliga al navegador a estirar los espacios entre
    palabras y aparecen "ríos" blancos irregulares que cuestan de leer; con
-   la columna de ~580px del escritorio eso no pasa. */
+   la columna de ~720px del escritorio eso no pasa. */
 .post-body {
   color: var(--text);
   font-family: 'Lora', Georgia, serif;
@@ -945,7 +953,7 @@ blockquote {
 /* ==========================================================================
    MERMAID -- el SVG que genera assets/js/articulo.js (ver _layouts/default.html)
    no trae ninguna regla del sitio por defecto: sin esto, un diagrama más
-   ancho que la columna del artículo (762px vs ~580px con el índice flotante
+   ancho que la columna del artículo (762px vs ~720px con el índice flotante
    activo) igual se ve porque Mermaid ya pone width="100%", pero conviene
    dejarlo explícito -- mismo criterio que .post-body img -- para que nunca
    se desborde en pantallas angostas (celular). No arregla una etiqueta de

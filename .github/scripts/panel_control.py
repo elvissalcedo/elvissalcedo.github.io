@@ -24,12 +24,15 @@ tanto) + `git add` + commit + push cuando Elvis aprieta "Confirmar y
 publicar"; si en cambio aprieta "Volver a editar", deshace la copia sin
 dejar rastro.
 "Vista previa en vivo" reemplaza a Ctrl+Shift+V de VS Code: copia el
-borrador igual que "Publicar borrador" pero sin chequear PENDIENTE ni
-correr el validador, arranca (o reusa) `bundle exec jekyll serve
---livereload` en segundo plano, abre la URL directa del articulo y vigila
-la carpeta de trabajo cada 1.5 segundos para volver a copiar solo en cada
-cambio -- Jekyll se refresca solo via livereload. "Detener vista previa"
-corta la vigilancia y descarta la copia, sin commitear nada.
+borrador igual que "Publicar borrador", arranca (o reusa) `bundle exec
+jekyll serve --livereload` en segundo plano, abre la URL directa del
+articulo y vigila la carpeta de trabajo cada 1.5 segundos para volver a
+copiar y a correr validar_articulos.py en cada cambio -- Jekyll se
+refresca solo via livereload, el bloque de errores/avisos de arriba del
+iframe no (recien se actualiza en la proxima carga de /vivo). No arma el
+build completo del sitio (eso lo sigue haciendo solo "Publicar borrador").
+"Detener vista previa" corta la vigilancia y descarta la copia, sin
+commitear nada.
 "Eliminar articulo publicado" borra un articulo que ya esta en _posts/
 (con git rm + commit local, nunca push).
 
@@ -1114,6 +1117,8 @@ class _EstadoVistaPrevia:
         self.evento_detener = None
         self.hilo = None
         self.ultimo_error = None
+        self.errores = []
+        self.avisos = []
 
 
 _vista_previa_activa = _EstadoVistaPrevia()
@@ -1217,6 +1222,14 @@ def _bucle_vigilancia(nombre_carpeta, evento_detener):
             continue
         huella_anterior = huella_actual
         _vista_previa_activa.ultimo_error = None
+        # Vista previa en vivo usaba jekyll serve solo -- kramdown puede
+        # renderizar un delimitador de formula roto (backslash simple antes
+        # de $ () []) sin que se note a simple vista (ver validar_latex en
+        # validar_articulos.py), asi que el error solo salia recien en
+        # "Revisar y publicar". Se recalcula en cada tick, igual que
+        # ruta_site, para que quede al dia mientras se sigue editando.
+        _vista_previa_activa.errores, _vista_previa_activa.avisos = validar_borrador(
+            destino_md, nombre_carpeta, copiadas)
         # Si cambio la categoria (y con ella el permalink), la pagina generada
         # cambia de ruta: /vivo/estado se lo avisa al iframe.
         _vista_previa_activa.ruta_site = ruta_generada_en_site(
@@ -1772,9 +1785,11 @@ def pagina_lista_publicar(borradores):
         filas = '<ul class="lista-articulos">%s</ul>' % "".join(items)
     cuerpo = """
     <h1>Publicar borrador</h1>
-    <p class="subtitulo">"Vista previa" es solo para mirar mientras escribís
-       (no chequea <code>PENDIENTE</code> ni corre el validador); "Revisar y
-       publicar" es el paso real, con el build completo antes de comitear.</p>
+    <p class="subtitulo">"Vista previa" corre <code>validar_articulos.py</code>
+       igual que "Revisar y publicar" (así que un error como un delimitador de
+       fórmula sin escapar ya se ve ahí), pero es solo para mirar mientras
+       escribís: no arma el build completo del sitio. "Revisar y publicar" es
+       el paso real, con ese build completo antes de comitear.</p>
     <div class="tarjeta">%s</div>
     <a class="volver" href="/">&larr; Volver</a>
     """ % filas
@@ -1929,7 +1944,8 @@ def pagina_vivo_sin_actividad():
     return pagina("Vista previa en vivo", cuerpo)
 
 
-def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
+def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None,
+                        errores=None, avisos=None):
     if ruta_site:
         src = "http://127.0.0.1:%d/%s" % (PUERTO_SERVE_VIVO, ruta_site)
         bloque_iframe = '<iframe class="vista-previa-frame" src="%s"></iframe>' % html.escape(src)
@@ -1948,6 +1964,7 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
         '<div class="aviso">La última actualización automática falló (va a reintentar sola): %s</div>'
         % html.escape(ultimo_error)
     ) if ultimo_error else "")
+    bloque_validacion = bloque_validacion_html(errores or [], avisos or [])
     # Si cambia el category: (y con el, el permalink), el articulo pasa a otra
     # ruta: el iframe se movia solo a la vieja y daba "Not Found". Este sondeo
     # lo lleva a la nueva, pero solo cuando Jekyll ya la termino de generar.
@@ -1973,8 +1990,10 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
     cuerpo = """
     <h1>Vista previa en vivo: %s</h1>
     <p class="subtitulo">Se actualiza sola cada vez que guardás un cambio en
-       la carpeta de trabajo (cada 1-2 segundos). No chequea <code>PENDIENTE</code>,
-       no corre el validador, no comitea nada.</p>
+       la carpeta de trabajo (cada 1-2 segundos), corriendo el mismo
+       <code>validar_articulos.py</code> que "Revisar y publicar" -- pero no
+       arma el build completo del sitio ni comitea nada.</p>
+    %s
     %s
     %s
     %s
@@ -1984,7 +2003,7 @@ def pagina_vivo_activa(nombre_carpeta, ruta_site, ultimo_error, respaldo=None):
     </form>
     %s
     """ % (
-        html.escape(nombre_carpeta), bloque_error, bloque_iframe, link_directo,
+        html.escape(nombre_carpeta), bloque_validacion, bloque_error, bloque_iframe, link_directo,
         html.escape(nombre_carpeta), script_ruta,
     )
     return pagina("Vista previa en vivo", cuerpo)
@@ -2093,6 +2112,7 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 self.responder(pagina_vivo_activa(
                     _vista_previa_activa.carpeta, _vista_previa_activa.ruta_site,
                     _vista_previa_activa.ultimo_error,
+                    errores=_vista_previa_activa.errores, avisos=_vista_previa_activa.avisos,
                 ))
             else:
                 self.responder(pagina_vivo_sin_actividad())
@@ -2375,6 +2395,7 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
                 self.responder(pagina_vivo_activa(
                     _vista_previa_activa.carpeta, _vista_previa_activa.ruta_site,
                     _vista_previa_activa.ultimo_error,
+                    errores=_vista_previa_activa.errores, avisos=_vista_previa_activa.avisos,
                 ))
                 return
 
@@ -2417,6 +2438,7 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
 
         fm = leer_front_matter(destino_md)
         ruta_site = ruta_generada_en_site(fm, nombre_validado)
+        errores, avisos = validar_borrador(destino_md, nombre_validado, copiadas)
 
         evento_detener = threading.Event()
         hilo = threading.Thread(
@@ -2430,10 +2452,13 @@ class ManejadorPanel(http.server.BaseHTTPRequestHandler):
         _vista_previa_activa.evento_detener = evento_detener
         _vista_previa_activa.hilo = hilo
         _vista_previa_activa.ultimo_error = None
+        _vista_previa_activa.errores = errores
+        _vista_previa_activa.avisos = avisos
 
         hilo.start()
 
-        self.responder(pagina_vivo_activa(nombre_validado, ruta_site, None, respaldo))
+        self.responder(pagina_vivo_activa(nombre_validado, ruta_site, None, respaldo,
+                                           errores=errores, avisos=avisos))
 
     def manejar_vivo_detener(self):
         carpeta, respaldos = _detener_vista_previa_activa()
