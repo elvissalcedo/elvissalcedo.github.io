@@ -12,16 +12,30 @@
    recién entonces enterarse de que faltan las fuentes). */
 
 :root {
-  --bg: #f4f6f3;
-  --surface: #ffffff;
-  --text: #3a453f;
-  --heading: #1a3c34;
-  --heading-alt: #2c5f2d;
-  --muted: #5c6a63;
+  /* Paleta bosque/arena (2026-10-13): fondos de arena cálida, títulos en
+     verde bosque y el acento tostado. Los valores cambiaron, los nombres no:
+     el resto de la hoja sigue leyendo las mismas variables. Contraste de
+     cada par texto/fondo en el comentario del modo oscuro, más abajo. */
+  --bg: #f3f0eb;
+  --surface: #fbfaf7;
+  --text: #1c2621;
+  --heading: #1b2e24;
+  --heading-alt: #2a4736;
+  /* #5e6b62 era el valor de partida: sobre --label-bg (fila elegida del
+     buscador) daba 4.29:1. Un punto más oscuro llega a 4.55:1. */
+  --muted: #5a675e;
   --link: #1a5c8a;
-  --accent: #b5622a;
-  --label-bg: #eaf0ec;
-  --border: #dde4de;
+  --accent: #9a4f1f;
+  --label-bg: #e6e1d6;
+  --border: #ddd6c9;
+  /* Fijos en los dos modos: fondos oscuros de bloque (pie de página, franja
+     de cifras, capa del encabezado) y su texto. --earth es solo decorativo
+     (bordes, íconos): sobre un fondo claro no alcanza contraste de texto. */
+  --forest-dark: #121c16;
+  --forest: #1b2e24;
+  --forest-accent: #2a4736;
+  --earth: #c5a880;
+  --on-dark: #ffffff;
   /* Ancho del contenedor de un articulo (y del encabezado que se le alinea
      encima, ver .site-header .inner). No es el ancho de la columna de
      texto: a >= 960px el articulo se arma en grid con el indice flotante de
@@ -37,33 +51,37 @@
    selector manual ni JS (mismo criterio que prefers-reduced-motion, más
    abajo). Redefine las mismas 10 variables de :root; como casi todo el sitio
    ya lee su color de ahí, el resto del CSS se re-tematiza solo, sin tocar
-   ninguna otra regla. Contraste verificado (WCAG): texto 13.2:1, títulos
-   15.2:1, enlaces 7.4:1, texto muted 6.6:1 -- todos por encima del mínimo
-   AA (4.5:1).
-   El encabezado/hero, el texto blanco sobre él y el acento con texto blanco
-   encima (insignia "Nuevo", hover de redes sociales) NO cambian a propósito:
-   son colores fijos sobre una foto o un fondo de color, no sobre --bg/
-   --surface, así que ya funcionan igual en cualquier modo. */
+   ninguna otra regla. Contraste verificado con script (WCAG 2.x), sobre
+   --bg / --surface:
+     claro:  texto 13.7 / 14.9, títulos 12.6 / 13.8, títulos alt 9.0 / 9.8,
+             muted 5.2 / 5.7 (4.55 sobre --label-bg), enlaces 6.3 / 6.8,
+             acento 5.3 / 5.7.
+     oscuro: texto 13.6 / 11.2, títulos 15.4 / 12.6, títulos alt 9.3 / 7.6,
+             muted 7.8 / 6.4 (5.6 sobre --label-bg), enlaces 9.3 / 7.6,
+             acento 6.2 / 5.1.
+   Todos por encima del mínimo AA (4.5:1).
+   El encabezado/hero, el texto blanco sobre él, la insignia "Lo más
+   reciente" (blanco sobre #8a4519: 7.1:1) y los bloques sobre --forest /
+   --forest-dark (blanco: 14.4 / 17.5) NO cambian a propósito: son colores
+   fijos sobre una foto o un fondo de color, no sobre --bg/--surface, así
+   que ya funcionan igual en cualquier modo. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #10201a;
-    --surface: #17281f;
-    --text: #dbe6de;
-    --heading: #eef5f0;
-    --heading-alt: #7bc496;
-    --muted: #93a69b;
-    --link: #6fb3e0;
-    --accent: #c2703a;
-    --label-bg: #1e332a;
-    --border: #2a3f34;
+    --bg: #121c16;
+    --surface: #1b2e24;
+    --text: #dfe5df;
+    --heading: #f3f0eb;
+    --heading-alt: #9cc7a9;
+    --muted: #a3b0a7;
+    --link: #8cc4e8;
+    --accent: #d08a55;
+    --label-bg: #22382c;
+    --border: #2f4a3b;
   }
 
-  /* Los únicos dos bordes de contenido que no colgaban de --border sino de
-     un gris claro fijo (pensado solo para fondo claro) -- se oscurecen acá
-     nomás, sin tocar la regla original de más abajo. */
-  .post-body h2 { border-bottom-color: #2a3f34; }
-  .sugeridos { border-top-color: #2a3f34; }
-  .post-card:not(.aviso):hover { border-color: #38503f; }
+  /* El borde de una tarjeta al pasar el mouse: un paso más claro que
+     --border, que en modo oscuro es más visible que uno más oscuro. */
+  .post-card:not(.aviso):hover { border-color: #3d5c4a; }
 }
 
 * { box-sizing: border-box; }
@@ -145,9 +163,9 @@ blockquote {
    respaldo detrás de la imagen. */
 .site-header {
   background:
-    linear-gradient(to right, rgba(15, 26, 22, 0.72) 0%, rgba(15, 26, 22, 0.5) 38%, rgba(15, 26, 22, 0.22) 68%),
+    linear-gradient(to right, rgba(18, 28, 22, 0.72) 0%, rgba(18, 28, 22, 0.5) 38%, rgba(18, 28, 22, 0.22) 68%),
     url('../hero-banner.jpg'),
-    linear-gradient(120deg, #1a3c34 0%, #234d3f 60%, #2c5f2d 100%);
+    linear-gradient(120deg, var(--forest-dark) 0%, var(--forest) 60%, var(--forest-accent) 100%);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -240,7 +258,7 @@ blockquote {
   height: 40px;
   padding: 0 14px;
   border-radius: 20px;
-  background: rgba(15, 26, 22, 0.6);
+  background: rgba(18, 28, 22, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.4);
   color: #ffffff;
   font: 600 12px 'Sora', sans-serif;
@@ -280,7 +298,7 @@ blockquote {
   padding: 8px;
   background: var(--surface);
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(15, 26, 22, 0.12), 0 16px 36px -10px rgba(15, 26, 22, 0.5);
+  box-shadow: 0 2px 6px rgba(18, 28, 22, 0.12), 0 16px 36px -10px rgba(18, 28, 22, 0.5);
 }
 .nav-movil-panel ul {
   list-style: none;
@@ -358,7 +376,7 @@ blockquote {
   padding: 6px;
   background: var(--surface);
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(15, 26, 22, 0.12), 0 16px 36px -10px rgba(15, 26, 22, 0.5);
+  box-shadow: 0 2px 6px rgba(18, 28, 22, 0.12), 0 16px 36px -10px rgba(18, 28, 22, 0.5);
 }
 .buscador-resultados a {
   display: block;
@@ -496,12 +514,12 @@ blockquote {
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(26, 60, 52, 0.1), 0 8px 20px -6px rgba(26, 60, 52, 0.28);
+  box-shadow: 0 1px 3px rgba(27, 46, 36, 0.1), 0 8px 20px -6px rgba(27, 46, 36, 0.28);
   transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
 }
 .post-card:not(.aviso):hover {
-  border-color: #c9d4cc;
-  box-shadow: 0 2px 4px rgba(26, 60, 52, 0.1), 0 16px 32px -10px rgba(26, 60, 52, 0.38);
+  border-color: #c9bfae;
+  box-shadow: 0 2px 4px rgba(27, 46, 36, 0.1), 0 16px 32px -10px rgba(27, 46, 36, 0.38);
   transform: translateY(-2px);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -847,7 +865,7 @@ blockquote {
 .post-body h2 {
   color: var(--heading);
   font: 600 22px 'Spectral', serif;
-  border-bottom: 2px solid #e3e8e4;
+  border-bottom: 2px solid var(--border);
   padding-bottom: 6px;
 }
 .post-body h3 {
@@ -1075,7 +1093,7 @@ blockquote {
 .sugeridos {
   margin-top: 56px;
   padding-top: 28px;
-  border-top: 2px solid #e3e8e4;
+  border-top: 2px solid var(--border);
 }
 .sugeridos-titulo {
   margin: 0 0 20px;
@@ -1317,7 +1335,7 @@ blockquote {
   border-radius: 50%;
   background: var(--surface);
   color: var(--heading);
-  box-shadow: 0 2px 10px rgba(26, 60, 52, 0.18);
+  box-shadow: 0 2px 10px rgba(27, 46, 36, 0.18);
   cursor: pointer;
   opacity: 0;
   visibility: hidden;
