@@ -1,6 +1,16 @@
   <header class="site-header">
     <div class="inner">
-      <h1>Elvis Salcedo | Ingeniería Ambiental</h1>
+      {%- comment -%}
+        Un solo <h1> por página: el nombre del sitio es <h1> solo en la
+        portada. En un artículo, una categoría o el 404 el <h1> es el título
+        de esa página, y el nombre del sitio pasa a <p> con la misma clase
+        (.sitio-nombre), así se ve exactamente igual.
+      {%- endcomment %}
+      {%- if page.url == "/" %}
+      <h1 class="sitio-nombre">Elvis Salcedo | Ingeniería Ambiental</h1>
+      {%- else %}
+      <p class="sitio-nombre">Elvis Salcedo | Ingeniería Ambiental</p>
+      {%- endif %}
       <p class="tagline">Agua, aire, suelo y residuos, explicados con rigor técnico.</p>
       {%- comment -%}
         Escritorio: el menú completo, como siempre. En celular (<= 768px) se

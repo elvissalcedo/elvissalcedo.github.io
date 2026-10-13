@@ -132,10 +132,18 @@
 {%- capture clases_body %}{% if clase_main %}con-{{ clase_main }}{% endif %}{% if page.url == "/" %} es-portada{% endif %}{% endcapture %}
 {%- assign clases_body = clases_body | strip %}
 <body{% if clases_body != "" %} class="{{ clases_body }}"{% endif %}>
+  {%- comment -%}
+    Enlace "Saltar al contenido": lo primero que alcanza el Tab, para no
+    tener que recorrer el menú entero en cada página. Oculto hasta que
+    recibe el foco (ver .saltar-contenido en styles.css). El tabindex="-1"
+    de <main> deja que el foco del teclado se mude de verdad al contenido,
+    no solo la vista.
+  {%- endcomment %}
+  <a class="saltar-contenido" href="#contenido">Saltar al contenido</a>
 
 {% include header.html %}
 
-  <main class="page-body{% if clase_main %} {{ clase_main }}{% endif %}">
+  <main id="contenido" tabindex="-1" class="page-body{% if clase_main %} {{ clase_main }}{% endif %}">
 {{ content }}
   </main>
 

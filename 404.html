@@ -1,0 +1,25 @@
+---
+layout: default
+permalink: /404.html
+sitemap: false
+title: Página no encontrada
+---
+{%- comment -%}
+  Página 404: GitHub Pages la sirve sola para cualquier dirección que no
+  exista. Sin buscador propio ni JavaScript: un mensaje corto, la vuelta a la
+  portada y las categorías (las mismas de _config.yml que usa el menú).
+{%- endcomment %}
+    <h1 class="page-title">Página no encontrada</h1>
+
+    <div class="texto-corrido pagina-404">
+      <p>La dirección que buscas no existe o el artículo cambió de lugar. Puedes volver a la portada o entrar por una de las categorías.</p>
+
+      <p><a class="boton-flecha" href="/">Volver al inicio <span class="boton-flecha-icono" aria-hidden="true">&rarr;</span></a></p>
+
+      <h2 class="pagina-404-subtitulo">Categorías</h2>
+      <ul class="pagina-404-categorias">
+        {%- for cat in site.categorias %}
+        <li><a href="/categorias/{{ cat.slug }}.html">{{ cat.name }}</a></li>
+        {%- endfor %}
+      </ul>
+    </div>

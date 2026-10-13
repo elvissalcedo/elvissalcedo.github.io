@@ -76,7 +76,9 @@
     // pero en celular ese menú ahora está oculto detrás de "Secciones" y el
     // foco caía en un elemento invisible. Desde el nombre del sitio, el
     // siguiente Tab llega al menú (o a "Secciones") y al buscador.
-    var destino = document.querySelector('.site-header h1') || document.querySelector('h1');
+    // Se busca por clase y no por etiqueta: el nombre del sitio es <h1> solo
+    // en la portada; en el resto de las páginas es un <p> (ver header.html).
+    var destino = document.querySelector('.sitio-nombre') || document.querySelector('h1');
     if (destino) {
       if (!destino.hasAttribute('tabindex')) destino.setAttribute('tabindex', '-1');
       destino.focus({ preventScroll: true });

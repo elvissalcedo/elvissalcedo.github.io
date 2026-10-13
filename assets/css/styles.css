@@ -79,6 +79,55 @@ a { color: var(--link); text-decoration: none; }
 a:visited { color: var(--link); }
 a:hover { color: var(--heading-alt); text-decoration: underline; }
 
+/* ---- Foco visible (teclado) ----
+   Un solo anillo para todo el sitio, del color de los enlaces (--link): en
+   los dos modos contrasta más de 3:1 contra --bg y --surface, que es lo que
+   pide WCAG para un indicador de foco. :focus-visible y no :focus: con el
+   mouse no aparece, con el teclado siempre. Los componentes que ya tenían su
+   propio anillo (tablas, fórmulas, buscador, índice) lo conservan. */
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+/* <main> recibe el foco desde "Saltar al contenido" (tabindex="-1"): un
+   anillo alrededor de la página entera no ayuda a nadie. */
+#contenido:focus { outline: none; }
+
+/* ---- Enlaces dentro del texto de un artículo ----
+   Subrayados siempre, no solo al pasar el mouse: un enlace que se distingue
+   solo por el color no lo ve quien no distingue ese color (WCAG 1.4.1). Los
+   enlaces de componentes (tarjetas, menú, índice, botones) quedan como
+   estaban: ahí la forma ya dice que son enlaces. La imagen de una
+   infografía también es un enlace, pero no lleva texto que subrayar. */
+.post-body a:not(.infografia-enlace),
+.texto-corrido a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* ---- "Saltar al contenido" ----
+   Primer elemento que alcanza el Tab en cada página. Fuera de la pantalla
+   hasta que recibe el foco; ahí aparece arriba a la izquierda, sobre el
+   encabezado. */
+.saltar-contenido {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--heading);
+  font: 600 14px 'Sora', sans-serif;
+  transform: translateY(-200%);
+}
+.saltar-contenido:visited { color: var(--heading); }
+.saltar-contenido:focus {
+  transform: none;
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
 blockquote {
   color: var(--heading-alt);
   font: italic 400 20px 'Spectral', serif;
@@ -112,7 +161,9 @@ blockquote {
   max-width: var(--ancho-articulo);
   margin: 0 auto;
 }
-.site-header h1 {
+/* Nombre del sitio: <h1> en la portada, <p> en el resto (ver header.html).
+   Cuelga de la clase y no de la etiqueta para que se vea igual en los dos. */
+.sitio-nombre {
   margin: 0 0 6px;
   color: #ffffff;
   font: 600 42px 'Spectral', serif;
@@ -206,7 +257,12 @@ blockquote {
   height: 17px;
   flex: none;
 }
-.nav-movil summary:focus-visible {
+/* Sobre la foto del encabezado el anillo azul se pierde: ahí va blanco.
+   Solo para lo que está pintado encima de la foto -- el panel "Secciones" y
+   la lista del buscador se abren sobre --surface y usan el anillo común. */
+.nav-movil summary:focus-visible,
+.site-nav a:focus-visible,
+.sitio-nombre:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
@@ -352,7 +408,7 @@ blockquote {
     column-gap: 24px;
     align-items: center;
   }
-  .site-header h1,
+  .sitio-nombre,
   .site-nav { grid-column: 1 / -1; }
   .site-header p.tagline { grid-column: 1; grid-row: 2; margin: 0; }
   .header-acciones { grid-column: 2; grid-row: 2; }
@@ -471,9 +527,12 @@ blockquote {
   font-size: 16.5px;
   line-height: 1.6;
 }
+/* Fondo fijo, no var(--accent): con el acento claro del modo oscuro el
+   texto blanco no llegaba a 4.5:1. Este tostado oscuro lo cumple en los dos
+   modos (ver el cálculo en el comentario del modo oscuro). */
 .post-card-nuevo {
   display: inline-block;
-  background: var(--accent);
+  background: #8a4519;
   color: #ffffff;
   font: 600 11px 'JetBrains Mono', monospace;
   letter-spacing: 0.03em;
@@ -1033,6 +1092,25 @@ blockquote {
   font-size: 18px;
 }
 
+/* ---- Página 404 (404.html) ---- */
+.pagina-404 {
+  max-width: 640px;
+  color: var(--text);
+  font: 400 17px/1.6 'Lora', Georgia, serif;
+}
+.pagina-404-subtitulo {
+  margin: 36px 0 12px;
+  color: var(--heading);
+  font: 600 22px 'Spectral', serif;
+}
+.pagina-404-categorias {
+  margin: 0;
+  padding-left: 20px;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
 /* ---- Pie de página ---- */
 .site-footer {
   color: var(--muted);
@@ -1045,9 +1123,9 @@ blockquote {
 
 /* ---- Redes sociales (footer) ---- */
 /* SVG de Simple Icons insertados directo en el HTML -- sin depender de
-   ninguna imagen externa. LinkedIn tiene link real; el resto ("pendiente")
-   usa href="#" hasta que Elvis tenga cada cuenta lista -- mismo estilo
-   visual, solo más tenues, para que no parezcan un error. */
+   ninguna imagen externa. Solo LinkedIn por ahora: las demás redes se suman
+   en _includes/footer.html cuando exista cada cuenta (antes estaban con
+   href="#", enlaces que no llevaban a ningún lado). */
 .social-links {
   display: flex;
   justify-content: center;
@@ -1063,7 +1141,7 @@ blockquote {
   border-radius: 50%;
   background: var(--label-bg);
   color: var(--heading-alt);
-  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+  transition: background-color .15s ease, color .15s ease;
 }
 .social-links a:hover {
   background: var(--heading-alt);
@@ -1074,14 +1152,6 @@ blockquote {
   width: 16px;
   height: 16px;
   fill: currentColor;
-}
-.social-links a.pendiente {
-  opacity: .45;
-  cursor: default;
-}
-.social-links a.pendiente:hover {
-  background: var(--label-bg);
-  color: var(--heading-alt);
 }
 
 /* ==========================================================================
@@ -1286,7 +1356,7 @@ blockquote {
    ========================================================================== */
 @media (max-width: 639px) {
   .site-header { padding: 28px 16px 16px; }
-  .site-header h1 { font-size: 28px; line-height: 1.15; }
+  .sitio-nombre { font-size: 28px; line-height: 1.15; }
   .site-header p.tagline { font-size: 14px; margin-bottom: 16px; }
   .page-body { padding: 24px 16px 64px; }
   .page-title { font-size: 24px; }
