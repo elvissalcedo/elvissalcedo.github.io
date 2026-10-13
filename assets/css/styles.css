@@ -358,10 +358,13 @@ blockquote {
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.95);
-  color: var(--heading);
+  /* Colores fijos, no var(--heading)/var(--muted): el campo es blanco en los
+     dos modos (va sobre la foto del encabezado) y en modo oscuro esas
+     variables son claras -- el texto escrito quedaba crema sobre blanco. */
+  color: #1c2621;
   font: 400 14px 'Sora', sans-serif;
 }
-.buscador-form input::placeholder { color: var(--muted); opacity: 1; }
+.buscador-form input::placeholder { color: #5a675e; opacity: 1; }
 .buscador-form input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -1469,10 +1472,13 @@ a.boton-flecha:hover {
   visibility: visible;
   transform: none;
 }
+/* Fondo fijo (--forest-accent), no var(--heading): en modo oscuro --heading
+   es crema y la flecha blanca desaparecía. Blanco sobre --forest-accent da
+   10.2:1 en los dos modos. */
 .ir-arriba:hover {
-  background: var(--heading);
-  border-color: var(--heading);
-  color: #fff;
+  background: var(--forest-accent);
+  border-color: var(--forest-accent);
+  color: var(--on-dark);
 }
 .ir-arriba:focus-visible {
   outline: 2px solid var(--accent);
