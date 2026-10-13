@@ -99,12 +99,43 @@
        de raíz porque ya no hay HTML ni CSS involucrado en el texto del
        diagrama. Costo real: las etiquetas de nodo ya NO aceptan <br>/<small>
        -- un salto de línea dentro de una etiqueta se escribe con \n literal
-       (sintaxis propia de Mermaid), nunca con HTML. -->
+       (sintaxis propia de Mermaid), nunca con HTML.
+       Versión exacta (10.9.1), no "@10": una 10.x nueva podía cambiar cómo
+       se dibujan los diagramas sin que nadie tocara el sitio.
+       Tema "base" con los colores leídos de las variables CSS del sitio al
+       momento de dibujar: el tema por defecto de Mermaid es lila y no se
+       adapta al modo oscuro (texto oscuro sobre fondo oscuro). Mermaid
+       necesita colores reales (hex), no var(--x), por eso se leen con
+       getComputedStyle. Si el sistema cambia de modo con la página abierta,
+       los diagramas se ven con los colores nuevos recién al recargar. -->
   {%- if necesita_mermaid %}
   <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";
 
-    mermaid.initialize({ startOnLoad: false, flowchart: { htmlLabels: false } });
+    const estilo = getComputedStyle(document.documentElement);
+    const color = (nombre) => estilo.getPropertyValue(nombre).trim();
+
+    mermaid.initialize({
+      startOnLoad: false,
+      flowchart: { htmlLabels: false },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Sora, sans-serif",
+        background: color("--bg"),
+        primaryColor: color("--label-bg"),
+        primaryTextColor: color("--text"),
+        primaryBorderColor: color("--heading-alt"),
+        secondaryColor: color("--surface"),
+        tertiaryColor: color("--surface"),
+        lineColor: color("--muted"),
+        textColor: color("--text"),
+        titleColor: color("--heading"),
+        edgeLabelBackground: color("--bg"),
+        clusterBkg: color("--surface"),
+        clusterBorder: color("--border"),
+        nodeTextColor: color("--text")
+      }
+    });
 
     document.querySelectorAll("pre > code.language-mermaid").forEach(async (bloque, indice) => {
       const definicion = bloque.textContent;

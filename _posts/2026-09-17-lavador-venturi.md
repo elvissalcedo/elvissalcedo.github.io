@@ -45,11 +45,11 @@ graph LR
     C --> D([Hacia el Ciclón])
 
     %% Estilos estéticos para hacer juego con tus gráficos anteriores
-    style A1 fill:#ffebee,stroke:#c62828,stroke-width:1.5px
-    style A2 fill:#ffebee,stroke:#c62828,stroke-width:1.5px
-    style B fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
-    style C fill:#fff3e0,stroke:#ff9800,stroke-width:1.5px
-    style D fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style A1 fill:#ffebee,stroke:#c62828,stroke-width:1.5px,color:#1c2621
+    style A2 fill:#ffebee,stroke:#c62828,stroke-width:1.5px,color:#1c2621
+    style B fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#1c2621
+    style C fill:#fff3e0,stroke:#ff9800,stroke-width:1.5px,color:#1c2621
+    style D fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1c2621
 ```
 
 
@@ -162,10 +162,10 @@ graph TD
     end
 
     %% Personalización de estilos visuales profesionales
-    style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:1.5px
-    style B2 fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
-    style E1 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
-    style F2 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:1.5px,color:#1c2621
+    style B2 fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#1c2621
+    style E1 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1c2621
+    style F2 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1c2621
 ```
 
 Un avance decisivo en el diseño cinético de estos equipos radica en la distinción entre dos regímenes de operación hidrodinámica: **no sumergido** y **sumergido** (Bal et al., 2020).
@@ -217,9 +217,9 @@ graph LR
     B --> C
 
     %% Estilos estéticos profesionales
-    style A fill:#fff3e0,stroke:#ff9800,stroke-width:1.5px
-    style B fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
-    style C fill:#e8f5e9,stroke:#4caf50,stroke-width:1.5px
+    style A fill:#fff3e0,stroke:#ff9800,stroke-width:1.5px,color:#1c2621
+    style B fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#1c2621
+    style C fill:#e8f5e9,stroke:#4caf50,stroke-width:1.5px,color:#1c2621
 ```
 
 La ceniza volante industrial no es inerte, está constituida por un mosaico de óxidos metálicos básicos como óxido de calcio (\\(\text{CaO}\\)), óxido de magnesio (\\(\text{MgO}\\)) y alúmina (\\(\text{Al}\_2\text{O}\_3\\)) (Bal et al., 2019; Bal et al., 2020). Durante la turbulencia extrema en la garganta y el lecho de burbujas, las partículas de ceniza volante suspendidas se adscriben a las burbujas de gas, ofreciendo una vasta área superficial activa donde las moléculas de \\(\text{HCl}\\) se adsorben de forma preferente (Bal et al., 2019). 
