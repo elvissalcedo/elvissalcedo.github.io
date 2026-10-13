@@ -160,10 +160,15 @@ blockquote {
    título) que del derecho (donde está el interés visual de la foto), para
    que el texto blanco quede legible encima de cualquier foto. Si algún día
    no hay foto, el gradiente de fondo (mismo verde de antes) queda como
-   respaldo detrás de la imagen. */
+   respaldo detrás de la imagen.
+   Encima de la foto va además una capa pareja de --forest-dark al 40 %
+   (2026-10-13): oscurece también la mitad derecha, donde caen el buscador
+   y el final del menú, y tiñe la foto con el verde de la paleta. Solo
+   color: el alto y el relleno del encabezado no cambian. */
 .site-header {
   background:
     linear-gradient(to right, rgba(18, 28, 22, 0.72) 0%, rgba(18, 28, 22, 0.5) 38%, rgba(18, 28, 22, 0.22) 68%),
+    linear-gradient(rgba(18, 28, 22, 0.4), rgba(18, 28, 22, 0.4)),
     url('../hero-banner.jpg'),
     linear-gradient(120deg, var(--forest-dark) 0%, var(--forest) 60%, var(--forest-accent) 100%);
   background-size: cover;
@@ -610,6 +615,53 @@ blockquote {
   padding-top: 32px;
 }
 .es-portada .page-body { padding-bottom: 56px; }
+
+/* ---- Franja "El sitio en cifras" (_includes/portada-metricas.html) ----
+   Entre la destacada y la grilla, solo en la portada. Compacta a propósito
+   (~100px de alto en escritorio): la portada sigue siendo de artículos, la
+   franja solo resume. Fondo --forest-dark, números en Spectral y etiquetas
+   en Sora; blanco sobre --forest-dark 17.5:1, etiquetas (#c8d2cb) 11.2:1.
+   En celular sigue siendo una fila de tres, con números más chicos. */
+.portada-metricas {
+  margin: 0 0 32px;
+  padding: 18px 8px;
+  border-radius: 8px;
+  background: var(--forest-dark);
+  color: var(--on-dark);
+}
+.metricas-lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+/* El número va arriba y la etiqueta abajo solo a la vista: en el HTML el
+   <dt> va primero, así un lector de pantalla dice "Artículos publicados: 5". */
+.metrica {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 4px 16px;
+  text-align: center;
+}
+.metrica + .metrica { border-left: 1px solid rgba(255, 255, 255, 0.12); }
+.metrica dd {
+  margin: 0;
+  color: var(--on-dark);
+  font: 600 2.4rem/1.1 'Spectral', serif;
+}
+.metrica dt {
+  margin-top: 4px;
+  color: #c8d2cb;
+  font: 500 13px/1.3 'Sora', sans-serif;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 639px) {
+  .portada-metricas { margin-bottom: 24px; padding: 14px 4px; }
+  .metrica { padding: 2px 8px; }
+  .metrica dd { font-size: 1.6rem; }
+  .metrica dt { font-size: 11px; }
+}
 
 /* ---- Lateral: categorías con conteo + artículos recientes ---- */
 .portada-lateral { margin-top: 40px; }

@@ -1,0 +1,50 @@
+{%- comment -%}
+  Franja "El sitio en cifras" (solo portada, entre la destacada y la grilla;
+  la llama _includes/lista-posts.html cuando index.html pasa metricas=true).
+  Tres números, todos contados con Liquid en cada build a partir de los
+  artículos reales -- nada escrito a mano, nada inventado:
+    1. artículos visibles (mismo filtro `hidden` que la portada);
+    2. categorías de _config.yml con al menos un artículo visible;
+    3. temas distintos de `tags:` en los artículos visibles, comparados en
+       minúsculas ("Fitorremediación" = "fitorremediación") y sin contar
+       "pendiente" (lo que deja el panel en un `tags:` sin completar).
+  `temas_vistos` va entre barras ("|a|b|") para que `contains` no confunda
+  un tema con el final de otro, igual que en _layouts/post.html.
+{%- endcomment -%}
+{%- assign visibles_met = site.posts | where_exp: "p", "p.hidden != true" %}
+{%- assign total_articulos = visibles_met.size %}
+{%- assign total_categorias = 0 %}
+{%- for cat in site.categorias %}
+  {%- assign cantidad_met = visibles_met | where: "category", cat.name | size %}
+  {%- if cantidad_met > 0 %}{% assign total_categorias = total_categorias | plus: 1 %}{% endif %}
+{%- endfor %}
+{%- assign temas_vistos = "|" %}
+{%- assign total_temas = 0 %}
+{%- for p in visibles_met %}
+  {%- for tema in p.tags %}
+    {%- assign tema_min = tema | downcase | strip %}
+    {%- assign clave_met = "|" | append: tema_min | append: "|" %}
+    {%- if tema_min != "" and tema_min != "pendiente" %}
+      {%- unless temas_vistos contains clave_met %}
+        {%- assign temas_vistos = temas_vistos | append: tema_min | append: "|" %}
+        {%- assign total_temas = total_temas | plus: 1 %}
+      {%- endunless %}
+    {%- endif %}
+  {%- endfor %}
+{%- endfor %}
+    <section class="portada-metricas" aria-label="El sitio en cifras">
+      <dl class="metricas-lista">
+        <div class="metrica">
+          <dt>{% if total_articulos == 1 %}Artículo publicado{% else %}Artículos publicados{% endif %}</dt>
+          <dd>{{ total_articulos }}</dd>
+        </div>
+        <div class="metrica">
+          <dt>{% if total_categorias == 1 %}Categoría con artículos{% else %}Categorías con artículos{% endif %}</dt>
+          <dd>{{ total_categorias }}</dd>
+        </div>
+        <div class="metrica">
+          <dt>{% if total_temas == 1 %}Tema relacionado{% else %}Temas relacionados{% endif %}</dt>
+          <dd>{{ total_temas }}</dd>
+        </div>
+      </dl>
+    </section>
