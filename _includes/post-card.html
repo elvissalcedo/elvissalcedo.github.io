@@ -36,7 +36,7 @@
           <p class="post-excerpt">{{ include.post.excerpt }}</p>
           {%- endunless %}
           {%- if include.destacada %}
-          <a class="post-card-leer" href="{{ include.post.url }}" aria-hidden="true" tabindex="-1">Leer el artículo &rarr;</a>
+          <a class="post-card-leer boton-flecha" href="{{ include.post.url }}" aria-hidden="true" tabindex="-1">Leer el artículo <span class="boton-flecha-icono">&rarr;</span></a>
           {%- endif %}
         </div>
       </div>
