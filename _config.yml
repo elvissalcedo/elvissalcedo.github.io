@@ -61,6 +61,10 @@ exclude:
   - Gemfile.lock
   - vendor
   - node_modules
+  # Carpetas locales de trabajo con IA (no versionadas): sin esto el build
+  # local de la vista previa las copiaba a _site/ y el panel las servia.
+  - odd
+  - .atl
   # Carpetas de trabajo de publicar_articulo.py (ver .github/scripts/). Jekyll
   # busca posts en subcarpetas de _posts/ tambien, asi que sin este exclude
   # cualquier borrador con nombre AAAA-MM-DD-*.md ahi adentro se publicaria
