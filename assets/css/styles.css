@@ -1172,6 +1172,193 @@ blockquote {
 }
 
 /* ==========================================================================
+   PRESENTACIÓN DE LA PORTADA (_includes/portada-hero.html) -- quién es
+   Elvis, antes de la lista de artículos. Tarjeta sobre --surface con los
+   mismos colores de texto que el resto (contraste ya verificado arriba, en
+   los dos modos). Foto al costado desde 720px; debajo de eso, apilada arriba
+   del texto y a lo ancho de la columna.
+   ========================================================================== */
+.portada-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin: 0 0 40px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.portada-hero-foto {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 420px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.portada-hero-texto { min-width: 0; }
+.portada-hero-nombre {
+  margin: 0 0 6px;
+  color: var(--heading);
+  font: 600 32px/1.15 'Spectral', serif;
+}
+.portada-hero-rol {
+  margin: 0 0 14px;
+  color: var(--heading-alt);
+  font: 500 15px/1.5 'Sora', sans-serif;
+}
+.portada-hero-valor {
+  margin: 0 0 10px;
+  color: var(--text);
+  font: 400 17px/1.6 'Lora', Georgia, serif;
+}
+.portada-hero-dato {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font: 500 13px/1.6 'JetBrains Mono', monospace;
+}
+.portada-hero-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+/* Botón secundario: misma píldora que .boton-flecha pero sin relleno, con
+   el color de los títulos. Sobre --surface: 13.8:1 en claro y 12.6:1 en
+   oscuro (mismo par que los títulos, ver el comentario del modo oscuro). */
+a.boton-secundario {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 22px;
+  border: 1px solid var(--heading-alt);
+  border-radius: 999px;
+  color: var(--heading);
+  font: 600 14px 'Sora', sans-serif;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+a.boton-secundario:visited { color: var(--heading); }
+a.boton-secundario:hover {
+  background: var(--label-bg);
+  color: var(--heading);
+  text-decoration: none;
+}
+/* Enlace de texto: subrayado siempre (no se distingue solo por el color). */
+a.portada-hero-enlace {
+  font: 600 14px 'Sora', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+/* El botón "Leer mis análisis" salta acá: un poco de aire arriba para que
+   la tarjeta destacada no quede pegada al borde de la ventana. */
+.portada-analisis { scroll-margin-top: 16px; }
+
+@media (min-width: 720px) {
+  .portada-hero {
+    grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
+    gap: 32px;
+    align-items: center;
+    padding: 28px;
+  }
+  .portada-hero-foto { max-width: none; }
+}
+@media (max-width: 639px) {
+  .portada-hero { margin-bottom: 28px; padding: 16px; }
+  .portada-hero-nombre { font-size: 26px; }
+  .portada-hero-valor { font-size: 16px; }
+}
+
+/* ==========================================================================
+   PÁGINA "SOBRE MÍ" (sobre-mi.html) -- columna de lectura de 720px como el
+   texto de un artículo, línea de tiempo de experiencia y listas de
+   certificaciones y herramientas. Solo variables de la paleta: se
+   re-tematiza sola en modo oscuro.
+   ========================================================================== */
+.sobre-mi {
+  max-width: 720px;
+  color: var(--text);
+  font: 400 17px/1.6 'Lora', Georgia, serif;
+}
+.sobre-mi-subtitulo {
+  margin: 40px 0 14px;
+  color: var(--heading);
+  font: 600 24px 'Spectral', serif;
+}
+.sobre-mi section:first-child .sobre-mi-subtitulo { margin-top: 0; }
+
+/* Línea de tiempo: una raya vertical de --border a la izquierda y un punto
+   de --accent por puesto. El punto es decorativo (::before), no lleva
+   información que no esté ya en el texto. */
+.linea-tiempo {
+  margin: 0;
+  padding: 0 0 0 22px;
+  list-style: none;
+  border-left: 2px solid var(--border);
+}
+.linea-tiempo-item {
+  position: relative;
+  margin: 0 0 28px;
+}
+.linea-tiempo-item:last-child { margin-bottom: 0; }
+.linea-tiempo-item::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: -29px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.linea-tiempo-cargo {
+  margin: 0 0 4px;
+  color: var(--heading);
+  font: 600 19px/1.3 'Spectral', serif;
+}
+.linea-tiempo-meta {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font: 500 13px/1.5 'Sora', sans-serif;
+}
+.linea-tiempo-empresa { color: var(--heading-alt); font-weight: 600; }
+.linea-tiempo-item p:last-child { margin-bottom: 0; }
+
+.lista-credenciales {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.lista-credenciales li {
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.lista-credenciales strong {
+  display: block;
+  color: var(--heading);
+  font: 600 15px/1.45 'Sora', sans-serif;
+}
+.lista-credenciales-detalle {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font: 400 14px/1.5 'Sora', sans-serif;
+}
+.sobre-mi-contacto {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .sobre-mi { font-size: 16px; }
+  .sobre-mi-subtitulo { font-size: 21px; }
+}
+
+/* ==========================================================================
    PIE DE PÁGINA -- columnas sobre el verde bosque (--forest), texto claro
    (--on-dark) y una línea fina de arena (--earth) arriba. Contraste: blanco
    sobre --forest 14.4:1, la bajada (#c8d2cb) 9.3:1 y los títulos de columna

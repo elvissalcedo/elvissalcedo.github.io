@@ -1,0 +1,97 @@
+---
+layout: default
+title: Sobre mí
+description: Elvis Salcedo, Tecnólogo Ambiental (SENATI) y estudiante de último año de Ingeniería Ambiental (UPN). Trayectoria en monitoreo ambiental de campo, certificaciones, herramientas y contacto.
+permalink: /sobre-mi.html
+---
+{%- comment -%}
+  Página "Sobre mí" (portafolio-blog, etapa 1). Un solo <h1>, el título de
+  la página; el nombre del sitio ya pasa a <p> fuera de la portada
+  (_includes/header.html). Solo datos reales: nada de adjetivos ni cifras
+  que no estén en la trayectoria de Elvis, y el nivel de cada herramienta
+  dicho tal como es. El correo va con "@" y "." como entidades HTML, igual
+  que en el pie (_includes/footer.html), para frenar a los bots más simples.
+{%- endcomment %}
+    <h1 class="page-title">Sobre mí</h1>
+
+    <div class="texto-corrido sobre-mi">
+      <section aria-labelledby="sobre-mi-perfil">
+        <h2 id="sobre-mi-perfil" class="sobre-mi-subtitulo">Perfil</h2>
+        <p>Soy Tecnólogo Ambiental titulado por SENATI y estudio el último año de Ingeniería Ambiental en la Universidad Privada del Norte (UPN). Empecé en campo, ejecutando monitoreos de calidad de agua, aire, suelo, ruido y factores ergonómicos. Esa etapa me enseñó algo que ningún curso reemplaza: entender de dónde vienen los datos y qué puede salir mal al tomarlos.</p>
+        <p>Hoy complemento esa base con QGIS, AutoCAD, AERMOD y análisis de datos, que aplico a la gestión de residuos sólidos, la ecoeficiencia y el cumplimiento normativo. Mi perfil es integral: entiendo cómo se conectan los distintos componentes ambientales de un proyecto, desde la toma de muestra hasta el informe.</p>
+        <p>En este sitio publico análisis técnicos sobre temas ambientales, basados en literatura científica y normativa. Es mi forma de seguir profundizando y de mostrar cómo pienso un problema.</p>
+        <p>Busco incorporarme a consultoras ambientales o empresas del sector industrial y minero-energético.</p>
+      </section>
+
+      {%- comment -%}
+        Línea de tiempo: la experiencia más reciente primero. Cada fecha va en
+        <time datetime="AAAA-MM"> para que el período sea legible por máquina.
+      {%- endcomment %}
+      <section aria-labelledby="sobre-mi-experiencia">
+        <h2 id="sobre-mi-experiencia" class="sobre-mi-subtitulo">Experiencia</h2>
+        <ol class="linea-tiempo">
+          <li class="linea-tiempo-item">
+            <h3 class="linea-tiempo-cargo">Supervisor de Operaciones</h3>
+            <p class="linea-tiempo-meta"><span class="linea-tiempo-empresa">AMBECORP S.A.C.</span> &middot; <time datetime="2023-03">mar. 2023</time> – <time datetime="2023-05">may. 2023</time></p>
+            <p>Supervisé la ejecución de servicios técnicos en campo y elaboré reportes de seguimiento. Lideré cuadrillas de 4 a 6 colaboradores en turnos diurnos y nocturnos.</p>
+          </li>
+          <li class="linea-tiempo-item">
+            <h3 class="linea-tiempo-cargo">Analista de Campo Ambiental</h3>
+            <p class="linea-tiempo-meta"><span class="linea-tiempo-empresa">R-LAB S.A.C.</span> (Ate, Lima) &middot; <time datetime="2022-06">jun. 2022</time> – <time datetime="2023-02">feb. 2023</time></p>
+            <p>Ejecuté monitoreos ambientales y ocupacionales para los sectores minero (Proyecto Cobriza, Unidad Minera Recuperada), hidrocarburos e industria pesquera bajo competencia de PRODUCE: agua superficial y subterránea, ruido, emisiones y calidad de aire. Implementé un sistema de inventario de equipos y optimicé la logística de envío de muestras a laboratorios acreditados.</p>
+          </li>
+          <li class="linea-tiempo-item">
+            <h3 class="linea-tiempo-cargo">Practicante de SSOMA</h3>
+            <p class="linea-tiempo-meta"><span class="linea-tiempo-empresa">GEHSIMA S.A.C.</span> &middot; <time datetime="2022-03">mar. 2022</time> – <time datetime="2022-06">jun. 2022</time></p>
+            <p>Apoyo técnico en la implementación de la Ley N.° 29783, elaboración de matrices IPERC, procedimientos para trabajos de alto riesgo y capacitaciones al personal operativo.</p>
+          </li>
+          <li class="linea-tiempo-item">
+            <h3 class="linea-tiempo-cargo">Asistente de Medio Ambiente</h3>
+            <p class="linea-tiempo-meta"><span class="linea-tiempo-empresa">Engineers &amp; Environmental Perú S.A.</span> &middot; <time datetime="2017-07">jul. 2017</time> – <time datetime="2018-02">feb. 2018</time></p>
+            <p>Monitoreos de línea base para el EIA Detallado del Lote 64, cuenca del río Pastaza (Loreto): agua superficial, ruido y calidad de aire. Coordiné el traslado de equipos y, con las comunidades nativas, el acceso a los puntos de muestreo.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="sobre-mi-certificaciones">
+        <h2 id="sobre-mi-certificaciones" class="sobre-mi-subtitulo">Certificaciones</h2>
+        <ul class="lista-credenciales">
+          <li>
+            <strong>Certificación por competencias: Analista en Sistemas de Información Geográfica</strong>
+            <span class="lista-credenciales-detalle">Universidad Privada del Norte (UPN), 2025. Bloques: Cartografía y SIG, Topografía General, Gestión de Riesgos Ambientales.</span>
+          </li>
+          <li>
+            <strong>Diplomado en Seguridad, Salud Ocupacional y Medio Ambiente (SSOMA)</strong>
+            <span class="lista-credenciales-detalle">ENAM (Escuela Nacional de Estudios Ambientales), 2022.</span>
+          </li>
+          <li>
+            <strong>Diplomado en Trabajos de Alto Riesgo</strong>
+            <span class="lista-credenciales-detalle">IEHSA, 2022.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="sobre-mi-herramientas">
+        <h2 id="sobre-mi-herramientas" class="sobre-mi-subtitulo">Software y herramientas</h2>
+        <ul class="lista-credenciales">
+          <li>
+            <strong>QGIS</strong>
+            <span class="lista-credenciales-detalle">Respaldado por la certificación de Analista en SIG (UPN).</span>
+          </li>
+          <li>
+            <strong>AutoCAD, AERMOD y análisis de datos</strong>
+            <span class="lista-credenciales-detalle">Nivel básico, en formación.</span>
+          </li>
+        </ul>
+        <p>Uso herramientas de IA para automatizar flujos de trabajo; este sitio, con su panel de publicación y validación automática, es un ejemplo.</p>
+      </section>
+
+      <section aria-labelledby="sobre-mi-contacto">
+        <h2 id="sobre-mi-contacto" class="sobre-mi-subtitulo">Contacto</h2>
+        <ul class="sobre-mi-contacto">
+          <li>LinkedIn: <a href="https://www.linkedin.com/in/salcedo-tarazona" target="_blank" rel="noopener">linkedin.com/in/salcedo-tarazona</a></li>
+          <li>Correo: <a href="mailto:elvissalcedotarazona&#64;gmail&#46;com">elvissalcedotarazona&#64;gmail&#46;com</a></li>
+        </ul>
+        <p><a href="/#analisis">Ver los análisis publicados</a></p>
+      </section>
+    </div>
