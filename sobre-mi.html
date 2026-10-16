@@ -15,6 +15,11 @@ permalink: /sobre-mi.html
     <h1 class="page-title">Sobre mí</h1>
 
     <div class="texto-corrido sobre-mi">
+      {%- comment -%}
+        Sin loading="lazy": es lo primero que se ve de la página. El archivo
+        se usa tal cual, sin recomprimir (600x786).
+      {%- endcomment %}
+      <img class="sobre-mi-foto" src="/assets/foto-perfil.jpg" width="600" height="786" decoding="async" alt="Retrato de Elvis Salcedo">
       <section aria-labelledby="sobre-mi-perfil">
         <h2 id="sobre-mi-perfil" class="sobre-mi-subtitulo">Perfil</h2>
         <p>Soy Tecnólogo Ambiental titulado por SENATI y estudio el último año de Ingeniería Ambiental en la Universidad Privada del Norte (UPN). Empecé en campo, ejecutando monitoreos de calidad de agua, aire, suelo, ruido y factores ergonómicos. Esa etapa me enseñó algo que ningún curso reemplaza: entender de dónde vienen los datos y qué puede salir mal al tomarlos.</p>

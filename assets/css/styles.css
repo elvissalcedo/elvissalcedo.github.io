@@ -1182,6 +1182,17 @@ blockquote {
   color: var(--text);
   font: 400 17px/1.6 'Lora', Georgia, serif;
 }
+/* width/height del <img> reservan el lugar; height: auto evita que salga
+   aplastada al achicarse (misma regla que las imágenes de los artículos). */
+.sobre-mi-foto {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 0 28px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
 .sobre-mi-subtitulo {
   margin: 40px 0 14px;
   color: var(--heading);

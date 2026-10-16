@@ -9,3 +9,8 @@
           {%- for cat in site.categorias %}
           <li><a href="/categorias/{{ cat.slug }}.html"{% if page.category == cat.name or page.categoria_slug == cat.slug %} class="selected"{% if page.layout == "category" %} aria-current="page"{% endif %}{% endif %}>{{ cat.name }}</a></li>
           {%- endfor %}
+          {%- comment -%}
+            "Sobre mí" al final, después de las categorías: está a mano para
+            quien quiera conocer al autor, sin mezclarse con los artículos.
+          {%- endcomment %}
+          <li><a href="/sobre-mi.html"{% if page.url == "/sobre-mi.html" %} class="selected" aria-current="page"{% endif %}>Sobre mí</a></li>
