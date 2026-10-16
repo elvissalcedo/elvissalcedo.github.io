@@ -3,11 +3,4 @@ layout: default
 permalink: /
 clase_main: page-body-listado
 ---
-{% include portada-hero.html %}
-{%- comment -%}
-  id="analisis": destino del botón "Leer mis análisis" de la presentación.
-  Un contenedor sin estilo propio, así la lista se ve igual que antes.
-{%- endcomment %}
-<div id="analisis" class="portada-analisis">
 {% include lista-posts.html posts=site.posts destacar=true metricas=true vacio="Todavía no hay artículos publicados. Próximamente." %}
-</div>
